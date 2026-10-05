@@ -1,1 +1,17 @@
-@import 'tailwindcss';
+@import "tailwindcss";
+
+@theme {
+  --color-main: #60e1ff;
+  --color-sub: #d4f3fa;
+  --color-soft: #e5faff;
+  --color-alert: #f35c4b;
+  --font-sans:
+    "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
+    sans-serif;
+}
+
+html,
+body {
+  background: #f4f4f4;
+  letter-spacing: -0.02em;
+}
