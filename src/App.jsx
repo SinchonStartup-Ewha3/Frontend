@@ -1,3 +1,8 @@
+import BottomNav from "./components/BottomNav";
+import Header from "./components/Header";
+import Chip from "./components/Chip";
+import Toggle from "./components/Toggle";
+
 // 기본 세팅 확인용 임시 화면!!! 나중에 라우팅 구조 짜면서 바꿀게요~.~
 const colors = [
   ["main", "bg-main"],
@@ -32,6 +37,18 @@ const App = () => (
             {n}
           </div>
         ))}
+      </div>
+      <div className="mt-4 flex flex-col gap-2 items-center">
+        <p>Header</p>
+        <Header back />
+        <Header left="취소" right="등록" />
+        <BottomNav />
+        <p>Chip</p>
+        <Chip active children={"예서니"} />
+        <Chip children={"파이팅"}></Chip>
+        <p>Toggle</p>
+        <Toggle />
+        <p>BottomNav... 아래에</p>
       </div>
     </div>
   </div>
