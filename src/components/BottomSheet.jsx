@@ -8,7 +8,6 @@ export default function BottomSheet({
 }) {
   const titleId = useId();
 
-  // 열려 있는 동안 배경 스크롤을 막고 Escape 키로 닫습니다.
   useEffect(() => {
     if (!isOpen) return;
 
@@ -30,7 +29,6 @@ export default function BottomSheet({
   if (!isOpen) return null;
 
   return (
-    // 배경은 화면 전체에 깔고, 시트 영역만 서비스 너비로 제한합니다.
     <div className="fixed inset-0 z-50 flex justify-center">
       <button
         type="button"
@@ -38,8 +36,6 @@ export default function BottomSheet({
         onClick={onClose}
         className="absolute inset-0 bg-black/40"
       />
-
-      {/* 서비스 레이아웃과 같은 최대 너비 안에서 아래에 붙입니다. */}
       <div className="pointer-events-none relative flex h-full w-full max-w-[390px] items-end">
         <section
           role="dialog"
