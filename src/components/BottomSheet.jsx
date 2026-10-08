@@ -5,6 +5,10 @@ export default function BottomSheet({
   title,
   onClose,
   children,
+  showHandle = true,
+  showClose = true,
+  backdropClassName = "bg-black/40",
+  titleClassName = "",
 }) {
   const titleId = useId();
 
@@ -34,7 +38,7 @@ export default function BottomSheet({
         type="button"
         aria-label="바텀시트 닫기"
         onClick={onClose}
-        className="absolute inset-0 bg-black/40"
+        className={`absolute inset-0 ${backdropClassName}`}
       />
       <div className="pointer-events-none relative flex h-full w-full max-w-[390px] items-end">
         <section
@@ -43,36 +47,40 @@ export default function BottomSheet({
           aria-labelledby={titleId}
           className="pointer-events-auto max-h-[90dvh] w-full overflow-y-auto rounded-t-[30px] bg-white px-6 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_24px_rgba(0,0,0,0.12)]"
         >
-          <div className="mx-auto mt-3 h-1 w-10 rounded-full bg-[#D2D2D1]" />
+          {showHandle && (
+            <div className="mx-auto mt-3 h-1 w-10 rounded-full bg-[#D2D2D1]" />
+          )}
 
-          <header className="flex min-h-16 items-center justify-between gap-4">
+          <header className={`flex min-h-16 items-center ${showClose ? "justify-between" : "justify-start"} gap-4`}>
             <h2
               id={titleId}
-              className="text-xl font-semibold tracking-[-0.02em] text-[#252525]"
+              className={`text-xl font-semibold tracking-[-0.02em] text-[#252525] ${titleClassName}`}
             >
               {title}
             </h2>
 
-            <button
-              type="button"
-              aria-label="닫기"
-              onClick={onClose}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[#797776] hover:bg-[#F4F4F4]"
-            >
-              <svg
-                aria-hidden="true"
-                viewBox="0 0 24 24"
-                fill="none"
-                className="h-6 w-6"
+            {showClose && (
+              <button
+                type="button"
+                aria-label="닫기"
+                onClick={onClose}
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[#797776] hover:bg-[#F4F4F4]"
               >
-                <path
-                  d="m6 6 12 12M18 6 6 18"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </button>
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  className="h-6 w-6"
+                >
+                  <path
+                    d="m6 6 12 12M18 6 6 18"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </button>
+            )}
           </header>
 
           <div className="pb-6">{children}</div>

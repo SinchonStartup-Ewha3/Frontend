@@ -1,5 +1,6 @@
 import Button from "../../components/Button";
 import Header from "../../components/Header";
+import MobileLayout from "../../components/MobileLayout";
 import mapCharacter from "../../assets/images/map_character.svg";
 import mapIcon from "../../assets/icons/map_icon.svg";
 import { useNavigate } from "react-router-dom";
@@ -7,9 +8,10 @@ import { useNavigate } from "react-router-dom";
 export default function LocationSetupPage() {
   const navigate = useNavigate();
   return (
+    <MobileLayout>
     <main className="relative mx-auto min-h-[852px] w-full max-w-[402px] overflow-hidden bg-white text-[#353331]">
       <div className="absolute left-6 right-6 top-6 z-10">
-        <Header back onLeft={() => navigate("/nickname")} />
+        <Header back onLeft={() => navigate("/birth-info")} />
       </div>
       <div className="absolute left-1/2 top-[147px] h-[44px] w-[34px] -translate-x-1/2" aria-hidden="true">
         <img src={mapIcon} alt="" />
@@ -37,6 +39,7 @@ export default function LocationSetupPage() {
         </Button>
       </div>
     </main>
+    </MobileLayout>
   );
 }
 

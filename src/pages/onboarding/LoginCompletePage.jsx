@@ -1,5 +1,6 @@
 import Button from "../../components/Button";
 import Header from "../../components/Header";
+import MobileLayout from "../../components/MobileLayout";
 import completeCharacter from "../../assets/images/login_complete_character.svg";
 import { useNavigate } from "react-router-dom";
 
@@ -7,6 +8,7 @@ export default function LoginCompletePage() {
   const navigate = useNavigate();
 
   return (
+    <MobileLayout>
     <main className="relative mx-auto min-h-[852px] w-full max-w-[402px] overflow-hidden bg-white text-[#353331]">
       <div className="absolute left-1/2 top-[153px] h-[34px] w-[34px] -translate-x-1/2" aria-hidden="true">
         <svg viewBox="0 0 34 34" fill="none" className="h-full w-full">
@@ -42,5 +44,6 @@ export default function LoginCompletePage() {
         </Button>
       </div>
     </main>
+    </MobileLayout>
   );
 }
