@@ -3,12 +3,14 @@ import loginBackground from "../../assets/images/kakaologin_background.svg";
 import weeLogo from "../../assets/icons/logo.svg";
 import kakaoIcon from "../../assets/icons/kakao.svg";
 import Header from "../../components/Header";
+import MobileLayout from "../../components/MobileLayout";
 import { useNavigate } from "react-router-dom";
 
 export default function LoginPage() {
   const navigate = useNavigate();
 
   return (
+    <MobileLayout>
     <main className="relative mx-auto flex min-h-[852px] w-full max-w-[402px] flex-col overflow-hidden bg-[#7eafc8] text-white">
       <img
         src={loginBackground}
@@ -46,5 +48,6 @@ export default function LoginPage() {
       </section>
 
     </main>
+    </MobileLayout>
   );
 }

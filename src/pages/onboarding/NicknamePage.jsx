@@ -1,14 +1,17 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "../../components/Button";
 import Header from "../../components/Header";
 import InputField from "../../components/InputField";
+import MobileLayout from "../../components/MobileLayout";
+import useOnboardingStore from "../../store/useOnboardingStore";
 
 export default function NicknamePage() {
-  const [nickname, setNickname] = useState("");
+  const nickname = useOnboardingStore((state) => state.nickname);
+  const setNickname = useOnboardingStore((state) => state.setNickname);
   const navigate = useNavigate();
 
   return (
+    <MobileLayout>
     <main className="relative mx-auto min-h-[852px] w-full max-w-[402px] overflow-hidden bg-white text-[#353331]">
       <div className="absolute left-6 right-6 top-6 z-10">
         <Header back onLeft={() => navigate("/login-complete")} />
@@ -33,10 +36,11 @@ export default function NicknamePage() {
       </p>
 
       <div className="absolute left-6 top-[696px] w-[calc(100%-48px)] max-w-[345px]">
-        <Button variant="primary" onClick={() => navigate("/location-setup")} className="h-[44px] rounded-[10px] text-[18px] tracking-[-0.18px]">
+        <Button variant="primary" onClick={() => navigate("/birth-info")} className="h-[44px] rounded-[10px] text-[18px] tracking-[-0.18px]">
           다음
         </Button>
       </div>
     </main>
+    </MobileLayout>
   );
 }
