@@ -14,4 +14,21 @@ html,
 body {
   background: #f4f4f4;
   letter-spacing: -0.02em;
+  font-family:
+    "Pretendard Variable",
+    Pretendard,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Apple SD Gothic Neo",
+    "Noto Sans KR",
+    "Malgun Gothic",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  word-break: keep-all;
+}
+
+/* 모바일 입력창 포커스 시 확대 방지 + 탭 하이라이트 제거 추가...! 하는 게 좋을 거 같아서 */
+button,
+input {
+  -webkit-tap-highlight-color: transparent;
 }
