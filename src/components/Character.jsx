@@ -1,12 +1,12 @@
-const weatherImages = import.meta.glob(
-  "../assets/images/weather/*.svg",
-  { eager: true, import: "default" },
-);
+const weatherImages = import.meta.glob("../assets/images/weather/*.svg", {
+  eager: true,
+  import: "default",
+});
 
-const fortuneImages = import.meta.glob(
-  "../assets/images/fortune/*.svg",
-  { eager: true, import: "default" },
-);
+const fortuneImages = import.meta.glob("../assets/images/fortune/*.svg", {
+  eager: true,
+  import: "default",
+});
 
 const SIZES = {
   small: "w-20",
@@ -14,12 +14,12 @@ const SIZES = {
   large: "w-56",
 };
 
-export default function Character({
-  type,                  // "weather" 또는 "fortune"
-  name,                  // 날씨 종류 또는 운세 캐릭터 이름
+const Character = ({
+  type, // "weather" 또는 "fortune"
+  name, // 날씨 종류 또는 운세 캐릭터 이름
   size = "medium",
   className = "",
-}) {
+}) => {
   const imagePath =
     type === "weather"
       ? `../assets/images/weather/weather_${name}_character.svg`
@@ -40,4 +40,6 @@ export default function Character({
       className={`block object-contain ${SIZES[size] ?? SIZES.medium} ${className}`}
     />
   );
-}
+};
+
+export default Character;

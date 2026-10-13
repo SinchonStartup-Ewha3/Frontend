@@ -27,34 +27,30 @@ const Magnifier = () => (
 );
 
 // 일반 텍스트 입력창과 검색창에서 함께 사용하는 컴포넌트입니다.
-export default function InputField({
+const InputField = ({
   type = "text", // "text" 또는 "search"를 지정
   value, // 입력창에 표시할 값
   placeholder, // 입력 전 안내 문구
   onChange, // 입력 내용이 바뀔 때 호출
   onSubmit, // 검색 버튼을 누르거나 Enter를 누르면 호출
   disabled = false, // true이면 입력과 검색을 비활성화
-  className = "", 
-  id, 
+  className = "",
+  id,
   ...inputProps // maxLength, name 등 나머지 기본 input 속성
-}) {
+}) => {
   const generatedId = useId();
   const inputId = id ?? generatedId;
 
- 
   const isSearch = type === "search" || type === "SearchField";
-
 
   const handleSubmit = (event) => {
     event.preventDefault();
     if (!disabled) onSubmit?.(value ?? "");
   };
 
-
   const handleKeyDown = (event) => {
     if (event.key === "Enter") handleSubmit(event);
   };
-
 
   if (!isSearch) {
     return (
@@ -71,7 +67,6 @@ export default function InputField({
     );
   }
 
-
   return (
     <div
       role="search"
@@ -79,7 +74,6 @@ export default function InputField({
         disabled ? "bg-[#F7F7F7]" : ""
       } ${className}`}
     >
-     
       <label htmlFor={inputId} className="sr-only">
         {placeholder || "검색"}
       </label>
@@ -96,7 +90,6 @@ export default function InputField({
         className="h-full min-w-0 flex-1 bg-transparent text-base font-medium leading-normal tracking-[-0.02em] text-[#252525] outline-none placeholder:text-[#A5A4A3] disabled:cursor-not-allowed disabled:text-[#BCBBBA]"
       />
 
-    
       <button
         type="button"
         aria-label="검색"
@@ -108,9 +101,9 @@ export default function InputField({
       </button>
     </div>
   );
-}
+};
+
+export default InputField;
 
 // 검색 입력창만 따로 가져다 쓰고 싶을 때 사용하는 간편 컴포넌트.
-export function SearchField(props) {
-  return <InputField {...props} type="search" />;
-}
+export const SearchField = (props) => <InputField {...props} type="search" />;
