@@ -27,8 +27,11 @@ export const reverseGeocode = async ({ latitude, longitude }) => {
     console.info("[mock] reverseGeocode", latitude, longitude);
     return "서울특별시 서대문구 아현동";
   }
-  const { data } = await api.get("/locations/reverse", {
-    params: { lat: latitude, lng: longitude },
+  const { data } = await api.patch("/api/users/me/location/", {
+    locationMode: "GPS",
+    lat: latitude,
+    lng: longitude,
   }); // TODO(BE)
-  return data.region;
+
+  return data.region.shortName;
 };

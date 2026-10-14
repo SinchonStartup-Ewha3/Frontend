@@ -49,10 +49,17 @@ export const useCreateSchedule = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: createSchedule,
-    onSuccess: (_data, variables) =>
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.schedules(variables.type),
-      }),
+    onSuccess: (created, variables) => {
+      const queryKey = queryKeys.schedules(variables.type);
+      queryClient.setQueryData(queryKey, (current = []) => {
+        if (!Array.isArray(current)) return [created];
+        if (created?.id && current.some((schedule) => schedule.id === created.id)) {
+          return current;
+        }
+        return [...current, created];
+      });
+      return queryClient.invalidateQueries({ queryKey });
+    },
   });
 };
 

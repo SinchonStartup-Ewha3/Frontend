@@ -14,7 +14,7 @@ export const fetchSubscription = async () => {
       fortunePass: { ...db.fortunePass },
     };
   }
-  const { data } = await api.get("/payments/subscription"); // TODO(BE)
+  const { data } = await api.get("/api/premium/billing/"); // TODO(BE)
   return data;
 };
 

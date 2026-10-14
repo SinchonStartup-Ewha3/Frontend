@@ -9,10 +9,84 @@ const api = axios.create({
   timeout: 10_000,
 });
 
-// TODO(BE): 토큰 헤더 추가 / 401 처리(재로그인) 등은 백엔드 명세 나오면 여기에
+const refreshApi = axios.create({
+  baseURL: API_URL,
+  withCredentials: true,
+  timeout: 10_000,
+});
+
+const REFRESH_URL = "/api/auth/token/refresh/";
+let refreshPromise = null;
+
+const clearSession = () => {
+  localStorage.removeItem("wee_access_token");
+  localStorage.removeItem("wee_refresh_token");
+};
+
+const returnToLogin = () => {
+  clearSession();
+  window.location.assign("/");
+};
+
+api.interceptors.request.use((config) => {
+  const accessToken = localStorage.getItem("wee_access_token");
+  if (accessToken) {
+    config.headers.Authorization = `Bearer ${accessToken}`;
+  }
+  return config;
+});
+
 api.interceptors.response.use(
   (res) => res,
-  (error) => Promise.reject(error),
+  async (error) => {
+    const originalRequest = error.config;
+    if (error.response?.status !== 401 || !originalRequest) {
+      return Promise.reject(error);
+    }
+
+    const accessToken = localStorage.getItem("wee_access_token");
+    if (!accessToken) {
+      return Promise.reject(error);
+    }
+
+    if (originalRequest._retry) {
+      returnToLogin();
+      return Promise.reject(error);
+    }
+
+    originalRequest._retry = true;
+    const refreshToken = localStorage.getItem("wee_refresh_token");
+    if (!refreshToken) {
+      returnToLogin();
+      return Promise.reject(error);
+    }
+
+    if (!refreshPromise) {
+      refreshPromise = refreshApi
+        .post(REFRESH_URL, { refresh: refreshToken })
+        .then(({ data }) => {
+          if (!data.access) {
+            throw new Error("Access Token 갱신 응답에 access 값이 없습니다.");
+          }
+          localStorage.setItem("wee_access_token", data.access);
+          return data.access;
+        })
+        .finally(() => {
+          refreshPromise = null;
+        });
+    }
+
+    try {
+      const newAccessToken = await refreshPromise;
+      originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+      return api(originalRequest);
+    } catch (refreshError) {
+      if (refreshError.response?.status === 401) {
+        returnToLogin();
+      }
+      return Promise.reject(refreshError);
+    }
+  },
 );
 
 export default api;
