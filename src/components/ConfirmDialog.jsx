@@ -1,23 +1,63 @@
 import { useId } from "react";
 import Modal from "./Modal";
+import withdrawalImage from "../assets/images/withdraw-confirmation.png";
+import refundImage from "../assets/images/refund-confirmation.png";
+import scheduleDeleteImage from "../assets/images/schedule-delete-confirmation.png";
 
-// 확인/취소 다이얼로그 (회원 탈퇴, 일정 삭제, 환불 요청 확인 등)
-// 연한 하늘색 둥근 카드 + 아래에 [취소 | 확인] 두 칸 버튼
-// - illustration: 상단 빈 공간(약 91px)에 넣을 이미지/캐릭터. 기본은 빈 공간.
-// - cancelTone: "main"(하늘색, 기본) | "muted"(회색)  ← 삭제 다이얼로그는 회색
+const variants = {
+  withdraw: {
+    title: "탈퇴하시겠습니까?",
+    description: "탈퇴하실 경우 현재까지의 모든 데이터가 삭제되고,\n재가입하셔야 합니다.",
+    cancelText: "취소",
+    confirmText: "탈퇴",
+    image: withdrawalImage,
+    imageFrame: "h-[66px] w-[79px]",
+    imageCrop: "left-[-7.39%] top-[-6.9%] h-[113.79%] w-[114.78%]",
+    contentSpacing: "mt-[6px]",
+    contentPadding: "pb-4",
+  },
+  refund: {
+    title: "환불 요청을 완료하시겠습니까?",
+    description: "입력한 정보는 환불 절차가 완료된 이후 폐기되며,\n요청 이후 환불 절차가 진행됩니다.",
+    cancelText: "취소",
+    confirmText: "확인",
+    image: refundImage,
+    imageFrame: "h-[60px] w-[67px]",
+    imageCrop: "left-[-7%] top-[-6%] h-[112%] w-[114%]",
+    contentSpacing: "mt-[10px]",
+    contentPadding: "pb-[10px]",
+  },
+  scheduleDelete: {
+    title: "‘일정 이름’ 일정을\n삭제할까요?",
+    description: "삭제하면 이 일정에 대한\n날씨 알림을 더 이상 받을 수 없어요",
+    cancelText: "취소",
+    confirmText: "삭제",
+    image: scheduleDeleteImage,
+    imageFrame: "h-[68px] w-[67px]",
+    imageFrameMargin: "mt-[5px]",
+    imageViewport: "absolute left-0 top-[4px] h-[60px] w-[67px]",
+    imageCrop: "left-[-22.95%] top-[-22.73%] h-[136.36%] w-[147.54%]",
+    contentSpacing: "mt-[5px]",
+    contentPadding: "pb-[15px]",
+    buttonAreaSpacing: "mt-[6px]",
+  },
+};
+
 const ConfirmDialog = ({
   isOpen,
+  variant = "withdraw",
   title,
   description,
-  cancelText = "취소",
-  confirmText = "확인",
+  cancelText,
+  confirmText,
   cancelTone = "main",
   loading = false,
-  illustration = null,
+  illustration,
   onCancel,
   onConfirm,
 }) => {
   const titleId = useId();
+  const preset = variants[variant] ?? variants.withdraw;
 
   return (
     <Modal isOpen={isOpen} onClose={onCancel}>
@@ -25,42 +65,49 @@ const ConfirmDialog = ({
         role="alertdialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="overflow-hidden rounded-[24px] bg-[#F4FAFF] text-center"
+        className="overflow-hidden rounded-[16px] border border-[#D2D2D1] bg-[#F4FAFF] text-center shadow-[0px_4px_4px_rgba(165,164,163,0.18)]"
       >
-        {/* 상단 이미지 영역 */}
-        <div className="flex h-[91px] items-center justify-center">
-          {illustration}
+        <div className={`px-4 pt-3 ${preset.contentPadding}`}>
+          <div className={`relative mx-auto overflow-hidden ${preset.imageFrameMargin ?? ""} ${preset.imageFrame}`}>
+            {illustration ?? (
+              <div className={preset.imageViewport ?? "absolute inset-0"}>
+                <img
+                  src={preset.image}
+                  alt=""
+                  className={`absolute max-w-none ${preset.imageCrop}`}
+                />
+              </div>
+            )}
+          </div>
+
+          <h2
+            id={titleId}
+            className={`${preset.contentSpacing} whitespace-pre-line text-[17px] font-semibold leading-[22px] tracking-[-0.4px] text-[#1F1C1A]`}
+          >
+            {title ?? preset.title}
+          </h2>
+          <p className={`${preset.contentSpacing} whitespace-pre-line text-[13px] leading-[18px] tracking-[-0.4px] text-[#8F8E8D]`}>
+            {description ?? preset.description}
+          </p>
         </div>
 
-        <h2
-          id={titleId}
-          className="whitespace-pre-line px-6 text-[15px] font-semibold leading-[1.3] tracking-[-0.02em] text-[#1F1C1A]"
-        >
-          {title}
-        </h2>
-        <p className="mt-3 whitespace-pre-line px-6 text-xs leading-[15px] tracking-[-0.02em] text-[#8F8E8D]">
-          {description}
-        </p>
-
-        {/* 버튼 2칸: 가운데 세로선 + 위쪽 가로선 */}
-        <div className="mt-[25px] grid h-11 grid-cols-2 border-t border-[#A5A4A3]/70">
+        <div className={`flex h-11 border-t-[0.333px] border-[#A5A4A3] ${preset.buttonAreaSpacing ?? ""}`}>
           <button
             type="button"
             onClick={onCancel}
             disabled={loading}
-            className={`border-r border-[#A5A4A3]/70 text-[15px] font-medium ${
-              cancelTone === "main" ? "text-main" : "text-[#BCBBBA]"
-            }`}
+            className={`flex-1 text-[17px] font-semibold leading-[22px] tracking-[-0.43px] ${cancelTone === "main" ? "text-main" : cancelTone === "light" ? "text-[#BCBBBA]" : "text-[#8F8E8D]"}`}
           >
-            {cancelText}
+            {cancelText ?? preset.cancelText}
           </button>
+          <span aria-hidden="true" className="w-[0.333px] bg-[#A5A4A3]" />
           <button
             type="button"
             onClick={onConfirm}
             disabled={loading}
-            className="text-[15px] font-medium text-[#8F8E8D] disabled:opacity-50"
+            className="flex-1 text-[17px] font-medium leading-[22px] tracking-[-0.43px] text-[#8F8E8D] disabled:opacity-50"
           >
-            {loading ? "처리 중..." : confirmText}
+            {loading ? "처리 중..." : confirmText ?? preset.confirmText}
           </button>
         </div>
       </div>

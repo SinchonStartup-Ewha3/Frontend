@@ -36,7 +36,7 @@ export const fetchSchedules = async (type) => {
   const { data } = await api.get("/notifications/schedules", {
     params: { type },
   }); // TODO(BE)
-  return data;
+  return Array.isArray(data) ? data : data.schedules ?? data.results ?? [];
 };
 
 // schedule 예) { type, name, days:["월","금"], time:"18:00", region, leadMinutes:60 }
@@ -49,7 +49,7 @@ export const createSchedule = async (schedule) => {
     return created;
   }
   const { data } = await api.post("/notifications/schedules", schedule); // TODO(BE)
-  return data;
+  return data.schedule ?? data;
 };
 
 export const deleteSchedule = async (id) => {

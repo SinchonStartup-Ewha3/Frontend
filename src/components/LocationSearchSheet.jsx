@@ -58,7 +58,8 @@ const LocationSearchSheet = ({ isOpen, onClose, selected, onSelect }) => {
       onClose={close}
       showHandle={false}
       showHeader={false}
-      className="h-[83dvh] !pb-0"
+      backdropClassName="bg-black/50"
+      className="!h-[82dvh] !max-h-none !rounded-t-[20px] !pb-0"
     >
       <div className="pt-[49px]">
         <SearchBar

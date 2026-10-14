@@ -76,7 +76,7 @@ export default function CommunityWritePage() {
               maxLength={100}
               value={message}
               onChange={(event) => setMessage(event.target.value)}
-              placeholder="오늘 착장 한마디"
+              placeholder="오늘 뭘 입었는지, 뭘 챙겼는지 적어주세요"
               aria-label="커뮤니티에 남길 한마디"
               className="h-full w-full resize-none rounded-[15px] bg-transparent px-[21px] py-[15px] text-[16px] font-medium leading-[1.5] tracking-[-0.48px] text-[#353331] outline-none placeholder:text-[#A5A4A3]"
             />

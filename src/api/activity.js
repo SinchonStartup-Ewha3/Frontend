@@ -31,6 +31,7 @@ export const deleteMyPost = async (id) => {
   if (USE_MOCK) {
     await delay(300);
     db.myPosts = db.myPosts.filter((p) => p.id !== id);
+    db.savedPosts = db.savedPosts.filter((p) => p.id !== id);
     persist();
     return { ok: true };
   }

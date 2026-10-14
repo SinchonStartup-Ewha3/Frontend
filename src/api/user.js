@@ -27,6 +27,12 @@ export const updateProfile = async (payload) => {
   return data;
 };
 
+//닉네임 설정
+export const updateNickname = async (nickname) => {
+  const { data } = await api.patch("/api/users/me/nickname/", { nickname });
+  return data;
+};
+
 // 회원 탈퇴
 export const withdrawUser = async () => {
   if (USE_MOCK) {

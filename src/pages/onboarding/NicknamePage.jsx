@@ -36,7 +36,7 @@ export default function NicknamePage() {
       </p>
 
       <div className="absolute left-6 top-[696px] w-[calc(100%-48px)] max-w-[345px]">
-        <Button variant="primary" onClick={() => navigate("/birth-info")} className="h-[44px] rounded-[10px] text-[18px] tracking-[-0.18px]">
+        <Button variant="primary" onClick={() => navigate("/location-setup")} className="h-[44px] rounded-[10px] text-[18px] tracking-[-0.18px]">
           다음
         </Button>
       </div>

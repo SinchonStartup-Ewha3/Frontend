@@ -12,8 +12,9 @@ const PageHeading = ({
   titleClassName = "",
   descClassName = "",
   className = "",
+  style,
 }) => (
-  <div className={className}>
+  <div className={className} style={style}>
     <h1
       className={`whitespace-pre-line font-semibold tracking-[-0.02em] text-[#353331] ${SIZE[size]} ${titleClassName}`}
     >

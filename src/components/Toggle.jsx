@@ -14,13 +14,14 @@ const SIZES = {
 };
 // 알림 on/off 용 토글 버튼입니다!!!
 
-const Toggle = ({ on, onChange, size = "md" }) => {
+const Toggle = ({ on, onChange, size = "md", label }) => {
   const s = SIZES[size];
   return (
     <button
       type="button"
       role="switch"
       aria-checked={on}
+      aria-label={label}
       onClick={onChange}
       className={`${s.track} shrink-0 rounded-full border-[0.8px] p-[0.134rem] transition-colors ${
         on ? "bg-[#353331] border-[#353331]" : "bg-white border-[#D2D2D1]"

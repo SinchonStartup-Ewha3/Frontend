@@ -1,7 +1,7 @@
 // 프리미엄 구독 관련 상수 모음 ~.~
 
 // 프리미엄 온보딩 진행 바
-export const ONBOARDING_PROGRESS = [20, 40, 60, 80, 100];
+export const ONBOARDING_PROGRESS = [25, 50, 75, 100];
 
 // 설문 진행 바
 export const SURVEY_PROGRESS = [20, 40, 60, 80, 80];
@@ -9,7 +9,7 @@ export const SURVEY_PROGRESS = [20, 40, 60, 80, 80];
 // 구독 상품 (Paddle priceId는 .env 로 넣기)
 export const PREMIUM_PLAN = {
   name: "Wee 구독",
-  priceLabel: "3,000₩",
+  priceLabel: "2,500₩",
   periodLabel: "3 weeks 구독권",
   description: "Wee 구독으로\n맞춤형 행동 알림을 받아보세요.",
   priceId: import.meta.env.VITE_PADDLE_PRICE_PREMIUM ?? "",

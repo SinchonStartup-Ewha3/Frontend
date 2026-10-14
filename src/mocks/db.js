@@ -31,7 +31,7 @@ const createSeed = () => ({
   alarmSettings: {
     outer: true,
     exercise: false,
-    laundry: true,
+    laundry: false,
     umbrella: true,
   },
   // 알림 일정 (우산 챙기세요 -> 내 알림 일정)

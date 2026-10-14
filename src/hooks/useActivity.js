@@ -23,8 +23,10 @@ export const useDeleteMyPost = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: deleteMyPost,
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: queryKeys.myPosts }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.myPosts });
+      queryClient.invalidateQueries({ queryKey: queryKeys.savedPosts });
+    },
   });
 };
 
