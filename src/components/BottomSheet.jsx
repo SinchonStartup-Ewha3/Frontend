@@ -17,6 +17,7 @@ const BottomSheet = ({
   titleClassName = "",
   className = "",
   closeClassName = "",
+  hideScrollbar = false,
 }) => {
   const titleId = useId();
 
@@ -53,7 +54,7 @@ const BottomSheet = ({
           role="dialog"
           aria-modal="true"
           aria-labelledby={titleId}
-          className={`pointer-events-auto max-h-[90dvh] w-full overflow-y-auto rounded-t-[30px] bg-white px-6 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_24px_rgba(0,0,0,0.12)] ${className}`}
+          className={`pointer-events-auto max-h-[90dvh] w-full overflow-y-auto rounded-t-[30px] bg-white px-6 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_24px_rgba(0,0,0,0.12)] ${hideScrollbar ? "hide-scrollbar" : ""} ${className}`}
         >
           {showHandle && (
             <div className="mx-auto mt-3 h-1 w-10 rounded-full bg-[#D2D2D1]" />

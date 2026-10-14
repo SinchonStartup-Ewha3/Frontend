@@ -1,11 +1,15 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "../../components/Button";
 import Card from "../../components/Card";
+import CouponRegistrationSheet from "../../components/CouponRegistrationSheet";
+import Header from "../../components/Header";
 import MobileLayout from "../../components/MobileLayout";
 import wizardCharacter from "../../assets/images/fortune/fortune_wizard.svg";
 
 export default function WeatherFortunePage() {
   const navigate = useNavigate();
+  const [isCouponDialogOpen, setIsCouponDialogOpen] = useState(false);
 
   return (
     <MobileLayout>
@@ -16,7 +20,11 @@ export default function WeatherFortunePage() {
             "linear-gradient(158.32deg, #fff 3.3%, #f9f4fe 24.56%, #dcf4fc 67.5%, #fff 99.09%)",
         }}
       >
-        <p className="absolute left-0 right-0 top-[111px] text-center text-[16px] font-semibold leading-[1.5] tracking-[-0.48px] text-[#D2D2D1]">
+        <div className="absolute left-5 right-5 top-[73px] z-10">
+          <Header back />
+        </div>
+
+        <p className="absolute left-0 right-0 top-[111px] text-center text-[16px] font-medium leading-[1.5] tracking-[-0.48px] text-[#BCBBBA]">
           오늘 나의 운세가 궁금하다면?
         </p>
 
@@ -57,6 +65,7 @@ export default function WeatherFortunePage() {
 
         <Button
           variant="white"
+          onClick={() => navigate("/weather-fortune/calendar")}
           className="absolute left-1/2 top-[611px] !h-[44px] !w-[345px] -translate-x-1/2 rounded-[10px] text-[18px] tracking-[-0.18px]"
         >
           오늘의 운세 보기
@@ -64,23 +73,20 @@ export default function WeatherFortunePage() {
 
         <button
           type="button"
-          className="absolute left-1/2 top-[671px] -translate-x-1/2 whitespace-nowrap text-[14px] font-medium leading-[19px] tracking-[-0.42px] text-[#353331] underline underline-offset-2"
+          onClick={() => setIsCouponDialogOpen(true)}
+          className="absolute left-1/2 top-[680px] -translate-x-1/2 whitespace-nowrap text-[16px] font-medium leading-[1.5] tracking-[-0.48px] text-[#A5A4A3]"
         >
-          유료 결제 하러 가기
-        </button>
-
-        <button
-          type="button"
-          onClick={() => navigate("/home")}
-          className="absolute left-1/2 top-[694px] -translate-x-1/2 whitespace-nowrap text-[16px] font-semibold leading-[1.5] tracking-[-0.48px] text-[#D2D2D1]"
-        >
-          뒤로가기
+          코드 등록 하러가기
         </button>
         <div
           aria-hidden="true"
-          className="absolute left-1/2 top-[714px] h-px w-[54px] -translate-x-1/2 bg-[#D2D2D1]"
+          className="absolute left-1/2 top-[703px] h-px w-[112px] -translate-x-1/2 bg-[#D2D2D1]"
         />
       </main>
+      <CouponRegistrationSheet
+        isOpen={isCouponDialogOpen}
+        onClose={() => setIsCouponDialogOpen(false)}
+      />
     </MobileLayout>
   );
 }

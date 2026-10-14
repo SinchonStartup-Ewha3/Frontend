@@ -33,6 +33,7 @@ const Button = ({
   variant = "primary",
   selected = false,
   icon,
+  iconClassName = "",
   className = "",
   ...props
 }) => {
@@ -49,7 +50,7 @@ const Button = ({
       {...props}
     >
       {/* icon이 있을 때만 이미지 표시하도록!!..~ */}
-      {icon && <img src={icon} alt="" className="w-4 h-4" />}
+      {icon && <img src={icon} alt="" className={`h-4 w-4 ${iconClassName}`} />}
       {children}
     </button>
   );

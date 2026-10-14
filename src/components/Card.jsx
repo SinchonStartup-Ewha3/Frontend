@@ -1,6 +1,7 @@
 //highlighted는 하늘색 강조 카드 (마이페이지에 맨 위에 있는 프로필 카드)
-const Card = ({ children, className = "", highlighted = false }) => (
-  <section
+const Card = ({ children, className = "", highlighted = false, as: Element = "section", ...props }) => (
+  <Element
+    {...props}
     className={`rounded-[13px] border-[1.5px] p-4 text-[#353331] ${
       highlighted
         ? "border-transparent bg-[#D4F3FA]"
@@ -8,7 +9,7 @@ const Card = ({ children, className = "", highlighted = false }) => (
     } ${className}`}
   >
     {children}
-  </section>
+  </Element>
 );
 
 export default Card;

@@ -1,18 +1,26 @@
 import Button from "../../components/Button";
-import Header from "../../components/Header";
-import MobileLayout from "../../components/MobileLayout";
 import mapCharacter from "../../assets/images/map_character.svg";
 import mapIcon from "../../assets/icons/map_icon.svg";
 import { useNavigate } from "react-router-dom";
+import {useCurrentRegion} from "../../hooks/useLocation";
+import useLocationStore from "../../store/useLocationStore";
 
 export default function LocationSetupPage() {
   const navigate = useNavigate();
+  const { locate, loading, error } = useCurrentRegion();
+  const selectRegion = useLocationStore((state) => state.selectRegion);
+
+  const handleFindLocation = async () => {
+    const region = await locate();
+
+    if(!region) return;
+
+    selectRegion(region);
+    navigate("/home", { replace: true });
+  }
+
   return (
-    <MobileLayout>
     <main className="relative mx-auto min-h-[852px] w-full max-w-[402px] overflow-hidden bg-white text-[#353331]">
-      <div className="absolute left-6 right-6 top-6 z-10">
-        <Header back onLeft={() => navigate("/birth-info")} />
-      </div>
       <div className="absolute left-1/2 top-[147px] h-[44px] w-[34px] -translate-x-1/2" aria-hidden="true">
         <img src={mapIcon} alt="" />
       </div>
@@ -34,12 +42,20 @@ export default function LocationSetupPage() {
       </div>
 
       <div className="absolute left-6 top-[696px] w-[calc(100%-48px)] max-w-[345px]">
-        <Button variant="primary" className="h-[44px] rounded-[10px] text-[18px] tracking-[-0.18px]">
-          현재 위치로 찾기
+        <Button variant="primary" className="h-[44px] rounded-[10px] text-[18px] tracking-[-0.18px]"
+          onClick={handleFindLocation}
+          disabled={loading}
+          >
+          {loading ? "위치 확인 중...": "현재 위치로 찾기"}
         </Button>
+
+        {error && (
+          <p role="alert" className="mt-3 text-center text-sm text-red-500">
+            {error}
+          </p>
+        )}
       </div>
     </main>
-    </MobileLayout>
   );
 }
 

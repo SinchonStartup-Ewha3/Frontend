@@ -10,6 +10,7 @@ const FormField = ({
   label,
   compact = false,
   className = "",
+  labelClassName = "",
   inputClassName = "",
   ...inputProps
 }) => {
@@ -18,7 +19,7 @@ const FormField = ({
     <div className={className}>
       <label
         htmlFor={id}
-        className="mb-[18px] block text-base font-semibold leading-6 text-[#1F1C1A]"
+        className={`mb-[18px] block text-base font-semibold leading-6 text-[#1F1C1A] ${labelClassName}`}
       >
         {label}
       </label>

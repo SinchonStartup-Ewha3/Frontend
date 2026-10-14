@@ -4,11 +4,11 @@ import { formatDays, formatTimeKo } from "../utils/format";
 
 // 알림 일정 카드 (알림 상세 > 내 알림 일정). 오른쪽 ⋮ 를 누르면 "삭제" 메뉴가 열려요.
 //  - 수정 기능은 GUI에 없어서 삭제만 제공. 필요하면 메뉴에 항목 추가.
-const ScheduleCard = ({ schedule, onDelete }) => {
+const ScheduleCard = ({ schedule, onDelete, className = "" }) => {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <article className="relative h-[113px] rounded-[13px] border border-[#D2D2D1] bg-white px-6 pt-[23px]">
+    <article className={`relative h-[113px] rounded-[13px] border border-[#D2D2D1] bg-white px-6 pt-[23px] ${className}`}>
       <h3 className="text-sm font-semibold leading-5 tracking-[-0.02em] text-[#4C4A48]">{schedule.name}</h3>
       <p className="mt-[5px] text-sm font-medium leading-5 tracking-[-0.02em] text-[#A5A4A3]">
         {formatDays(schedule.days)} {formatTimeKo(schedule.time)}
