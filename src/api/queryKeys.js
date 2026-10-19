@@ -8,6 +8,9 @@ const queryKeys = {
   myPost: (id) => ["posts", "mine", id],
   savedPosts: ["posts", "saved"],
   regions: (q) => ["regions", q],
+  hourlyWeather: ["home", "weather", "hourly"],
+  currentWeather: ["home", "weather", "current"],
+  home: ["home"],
 };
 
 export default queryKeys;

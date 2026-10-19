@@ -1,7 +1,14 @@
 // profile 관련 custom hook
 import { useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { fetchProfile, updateProfile, withdrawUser } from "../api/user";
+import {
+  fetchProfile,
+  deleteProfileImage,
+  updateNickname,
+  updateProfile,
+  uploadProfileImage,
+  withdrawUser,
+} from "../api/user";
 import queryKeys from "../api/queryKeys";
 import useUserStore from "../store/useUserStore";
 
@@ -24,6 +31,45 @@ export const useUpdateProfile = () => {
   return useMutation({
     mutationFn: updateProfile,
     onSuccess: (user) => queryClient.setQueryData(queryKeys.profile, user),
+  });
+};
+
+// 닉네임 전용 API 응답으로 프로필 캐시와 전역 사용자 정보를 갱신
+export const useUpdateNickname = () => {
+  const queryClient = useQueryClient();
+  const setUser = useUserStore((s) => s.setUser);
+  return useMutation({
+    mutationFn: updateNickname,
+    onSuccess: (user) => {
+      queryClient.setQueryData(queryKeys.profile, user);
+      setUser(user);
+    },
+  });
+};
+
+// 프로필 사진 업로드 후 서버의 최신 내 정보로 캐시와 전역 상태를 갱신
+export const useUploadProfileImage = () => {
+  const queryClient = useQueryClient();
+  const setUser = useUserStore((s) => s.setUser);
+  return useMutation({
+    mutationFn: uploadProfileImage,
+    onSuccess: (user) => {
+      queryClient.setQueryData(queryKeys.profile, user);
+      setUser(user);
+    },
+  });
+};
+
+// 직접 올린 사진 삭제 후 카카오 사진(또는 기본 이미지)으로 복원
+export const useDeleteProfileImage = () => {
+  const queryClient = useQueryClient();
+  const setUser = useUserStore((s) => s.setUser);
+  return useMutation({
+    mutationFn: deleteProfileImage,
+    onSuccess: (user) => {
+      queryClient.setQueryData(queryKeys.profile, user);
+      setUser(user);
+    },
   });
 };
 

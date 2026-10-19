@@ -8,6 +8,7 @@ import PageLayout from "../../components/PageLayout";
 import Toggle from "../../components/Toggle";
 import chevronRightIcon from "../../assets/icons/chevron-right.svg";
 import lockIcon from "../../assets/icons/lock.svg";
+import { useProfileQuery } from "../../hooks/useProfile";
 
 const alertOptions = [
   { id: "outerwear", label: "겉옷 알림", initial: true },
@@ -21,6 +22,7 @@ const sectionHeadingClass = "text-[16px] leading-[21px] font-bold";
 
 export default function MyPage() {
   const navigate = useNavigate();
+  const { data: profile } = useProfileQuery();
   const [alerts, setAlerts] = useState(() =>
     Object.fromEntries(alertOptions.map(({ id, initial }) => [id, initial])),
   );
@@ -45,11 +47,11 @@ export default function MyPage() {
               >
                 <span>
                   <PageHeading
-                    title="김멋사"
+                    title={profile?.nickname ?? "내 프로필"}
                     titleClassName="text-[16px] leading-[20px] font-bold"
                   />
                   <span className="mt-[8px] block text-[14px] leading-[17px]">
-                    서울특별시 서대문구
+                    {profile?.region?.shortName ?? "지역을 설정해주세요"}
                   </span>
                 </span>
                 <img src={chevronRightIcon} alt="" />
