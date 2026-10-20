@@ -1,4 +1,10 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { useEffect, useRef } from "react";
+import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { fetchProfile } from "./api/user";
+import queryKeys from "./api/queryKeys";
+import useUserStore from "./store/useUserStore";
+import Button from "./components/Button";
 import LoginPage from "./pages/onboarding/LoginPage.jsx";
 import LoginCompletePage from "./pages/onboarding/LoginCompletePage.jsx";
 import NicknamePage from "./pages/onboarding/NicknamePage.jsx";
@@ -31,6 +37,54 @@ import MyActivityPage from "./pages/mypage/MyActivityPage.jsx";
 import MyPostDetailPage from "./pages/mypage/MyPostDetailPage.jsx";
 
 export default function App() {
+  const navigate = useNavigate();
+  const token = localStorage.getItem("wee_access_token");
+  const setUser = useUserStore((state) => state.setUser);
+  const hasResolvedSession = useRef(false);
+  const profileQuery = useQuery({
+    queryKey: queryKeys.profile,
+    queryFn: fetchProfile,
+    enabled: Boolean(token),
+    retry: false,
+  });
+
+  useEffect(() => {
+    if (!token || !profileQuery.data || hasResolvedSession.current) return;
+
+    const user = profileQuery.data;
+    const isNicknameSet =
+      user.isNicknameSet ??
+      Boolean(user.nickname && !user.nickname.startsWith("user_"));
+    const isOnboarded =
+      user.isOnboarded ?? Boolean(isNicknameSet && user.region);
+
+    setUser(user);
+    hasResolvedSession.current = true;
+    navigate(
+      !isNicknameSet ? "/nickname" : isOnboarded ? "/home" : "/location-setup",
+      { replace: true },
+    );
+  }, [navigate, profileQuery.data, setUser, token]);
+
+  if (token && profileQuery.isPending) {
+    return (
+      <main className="flex min-h-dvh items-center justify-center bg-white text-base font-semibold text-[#797776]">
+        내 정보를 불러오는 중...
+      </main>
+    );
+  }
+
+  if (token && profileQuery.isError && !profileQuery.data) {
+    return (
+      <main className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-white px-6 text-center text-[#797776]">
+        <p>내 정보를 불러오지 못했어요.</p>
+        <Button onClick={() => profileQuery.refetch()} disabled={profileQuery.isFetching}>
+          다시 시도
+        </Button>
+      </main>
+    );
+  }
+
   return (
     <Routes>
       <Route path="/" element={<LoginPage />} />

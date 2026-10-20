@@ -18,6 +18,12 @@ export const fetchSubscription = async () => {
   return data;
 };
 
+//프리미엄 설문 답변 저장 연결
+export const savePremiumProfile = async (payload) => {
+  const { data } = await api.patch("/api/premium/profile/", payload);
+  return data;
+};
+
 // Paddle 결제 완료 후 서버에 거래 확인 요청.
 // ★ 실제로는 Paddle webhook 으로 서버가 결제를 검증해야 안전. 프론트의 "성공" 이벤트만 믿지 말기!
 export const confirmPremiumPayment = async ({ transactionId }) => {
@@ -67,6 +73,6 @@ export const requestRefund = async (payload) => {
     persist();
     return { ok: true };
   }
-  const { data } = await api.post("/payments/refund", payload); // TODO(BE)
+  const { data } = await api.post("api/premium/refund-requests", payload); // TODO(BE)
   return data;
 };

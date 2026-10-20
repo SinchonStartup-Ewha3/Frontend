@@ -39,7 +39,7 @@ export default function LoginPage() {
           const data = await loginWithKakao(kakaoAccessToken);
           localStorage.setItem("wee_access_token", data.access_token);
           localStorage.setItem("wee_refresh_token", data.refresh_token);
-          navigate(data.is_onboarded ? "/home" : "/nickname", { replace: true });
+          navigate("/", { replace: true });
         } catch (error) {
           setLoginError(
             error.response?.data?.detail ??

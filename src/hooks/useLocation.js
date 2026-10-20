@@ -11,7 +11,7 @@ export const useRegionSearch = (query) => {
   return useQuery({
     queryKey: queryKeys.regions(debounced),
     queryFn: () => searchRegions(debounced),
-    enabled: debounced.length > 0,
+    enabled: debounced.length >= 2,
   });
 };
 

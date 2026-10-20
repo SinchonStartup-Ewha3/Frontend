@@ -1,0 +1,327 @@
+warning: in the working copy of 'src/App.jsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/ConfirmDialog.jsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/pages/community/CommunityPage.jsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/pages/home/WeatherFortunePage.jsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/pages/home/WeatherFortuneResultPage.jsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/pages/mypage/MyActivityPage.jsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/pages/mypage/MyPage.jsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/pages/mypage/NotificationSettingsPage.jsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/pages/mypage/PaymentManagementPage.jsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/pages/mypage/ProfileEditPage.jsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/pages/onboarding/LocationSetupPage.jsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/pages/onboarding/LoginPage.jsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/pages/onboarding/NicknamePage.jsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/pages/premium/PremiumPage.jsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/pages/premium/PremiumSurveyPage.jsx', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/.env.example b/.env.example[m
+[1mindex 4bd5149..18b0ae9 100644[m
+[1m--- a/.env.example[m
+[1m+++ b/.env.example[m
+[36m@@ -1,9 +1,9 @@[m
+[31m-VITE_API_URL=http://localhost:8080[m
+[32m+[m[32mVITE_API_URL=https://api.weether.kr[m
+ VITE_KAKAO_JS_KEY=[m
+ VITE_KAKAO_REST_KEY=[m
+[31m-VITE_KAKAO_REDIRECT_URI=http://localhost:5173/auth/kakao[m
+[32m+[m[32mVITE_KAKAO_REDIRECT_URI=https://api.weether.kr/auth/kakao[m
+ VITE_VAPID_PUBLIC_KEY=[m
+[31m-VITE_USE_MOCK=true[m
+[32m+[m[32mVITE_USE_MOCK=false[m
+ [m
+ # Paddle (결제) — VITE_USE_MOCK=true 이거나 토큰이 비어 있으면 결제 성공을 흉내내도록 일단 만듦...[m
+ VITE_PADDLE_CLIENT_TOKEN=[m
+[1mdiff --git a/index.html b/index.html[m
+[1mindex f58feea..1e396d5 100644[m
+[1m--- a/index.html[m
+[1m+++ b/index.html[m
+[36m@@ -17,9 +17,9 @@[m
+       crossorigin[m
+       href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"[m
+     />[m
+[31m-    <!-- Kakao JS SDK (로그인은 추후에 구현하겠습니당!!) -->[m
+[32m+[m[32m    <!-- Kakao JavaScript SDK v1: social-login API currently accepts Kakao access tokens. -->[m
+     <script[m
+[31m-      src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"[m
+[32m+[m[32m      src="https://t1.kakaocdn.net/kakao_js_sdk/v1/kakao.min.js"[m
+       crossorigin="anonymous"[m
+     ></script>[m
+     <title>WEE</title>[m
+[1mdiff --git a/src/App.jsx b/src/App.jsx[m
+[1mindex 7559334..b6d95bd 100644[m
+[1m--- a/src/App.jsx[m
+[1m+++ b/src/App.jsx[m
+[36m@@ -5,12 +5,30 @@[m [mimport NicknamePage from "./pages/onboarding/NicknamePage.jsx";[m
+ import LocationSetupPage from "./pages/onboarding/LocationSetupPage.jsx";[m
+ import HomePage from "./pages/home/HomePage.jsx";[m
+ import WeatherFortunePage from "./pages/home/WeatherFortunePage.jsx";[m
+[31m-import CommunityPage from "./pages/home/CommunityPage.jsx";[m
+[32m+[m[32mimport WeatherFortuneBirthInfoPage from "./pages/home/WeatherFortuneBirthInfoPage.jsx";[m
+[32m+[m[32mimport WeatherFortuneCalendarPage from "./pages/home/WeatherFortuneCalendarPage.jsx";[m
+[32m+[m[32mimport WeatherFortuneBirthTimePage from "./pages/home/WeatherFortuneBirthTimePage.jsx";[m
+[32m+[m[32mimport WeatherFortuneLoadingPage from "./pages/home/WeatherFortuneLoadingPage.jsx";[m
+[32m+[m[32mimport WeatherFortuneResultPage from "./pages/home/WeatherFortuneResultPage.jsx";[m
+[32m+[m[32mimport CommunityPage from "./pages/community/CommunityPage.jsx";[m
+ import SituationDetail from "./pages/situation/SituationDetail.jsx";[m
+ import LaundrySituationDetail from "./pages/situation/LaundrySituationDetail.jsx";[m
+ import RunningSituationDetail from "./pages/situation/RunningSituationDetail.jsx";[m
+[31m-import CommunityWritePage from "./pages/home/CommunityWritePage.jsx";[m
+[31m-import BirthdayInfoPage from "./pages/onboarding/BirthdayInfoPage.jsx";[m
+[32m+[m[32mimport CommunityWritePage from "./pages/community/CommunityWritePage.jsx";[m
+[32m+[m[32mimport PremiumPage from "./pages/premium/PremiumPage.jsx";[m
+[32m+[m[32mimport PremiumSurveyPage from "./pages/premium/PremiumSurveyPage.jsx";[m
+[32m+[m[32mimport PremiumSurveyCompletePage from "./pages/premium/PremiumSurveyCompletePage.jsx";[m
+[32m+[m[32mimport PremiumWelcomePage from "./pages/premium/PremiumWelcomePage.jsx";[m
+[32m+[m[32mimport PremiumScheduleSetupPage from "./pages/premium/PremiumScheduleSetupPage.jsx";[m
+[32m+[m[32mimport PremiumScheduleAlertSettingsPage from "./pages/premium/PremiumScheduleAlertSettingsPage.jsx";[m
+[32m+[m[32mimport MyPage from "./pages/mypage/MyPage.jsx";[m
+[32m+[m[32mimport ProfileEditPage from "./pages/mypage/ProfileEditPage.jsx";[m
+[32m+[m[32mimport NotificationSettingsPage from "./pages/mypage/NotificationSettingsPage.jsx";[m
+[32m+[m[32mimport UmbrellaSchedulePage from "./pages/mypage/UmbrellaSchedulePage.jsx";[m
+[32m+[m[32mimport PaymentManagementPage from "./pages/mypage/PaymentManagementPage.jsx";[m
+[32m+[m[32mimport RefundAccountPage from "./pages/mypage/RefundAccountPage.jsx";[m
+[32m+[m[32mimport MyActivityPage from "./pages/mypage/MyActivityPage.jsx";[m
+[32m+[m[32mimport MyPostDetailPage from "./pages/mypage/MyPostDetailPage.jsx";[m
+ [m
+ export default function App() {[m
+   return ([m
+[36m@@ -18,12 +36,33 @@[m [mexport default function App() {[m
+       <Route path="/" element={<LoginPage />} />[m
+       <Route path="/login-complete" element={<LoginCompletePage />} />[m
+       <Route path="/nickname" element={<NicknamePage />} />[m
+[31m-      <Route path="/birth-info" element={<BirthdayInfoPage />} />[m
+       <Route path="/location-setup" element={<LocationSetupPage />} />[m
+       <Route path="/home" element={<HomePage />} />[m
+       <Route path="/weather-fortune" element={<WeatherFortunePage />} />[m
+[32m+[m[32m      <Route path="/weather-fortune/calendar" element={<WeatherFortuneCalendarPage />} />[m
+[32m+[m[32m      <Route path="/weather-fortune/birth-info" element={<WeatherFortuneBirthInfoPage />} />[m
+[32m+[m[32m      <Route path="/weather-fortune/birth-time" element={<WeatherFortuneBirthTimePage />} />[m
+[32m+[m[32m      <Route path="/weather-fortune/loading" element={<WeatherFortuneLoadingPage />} />[m
+[32m+[m[32m      <Route path="/weather-fortune/result" element={<WeatherFortuneResultPage />} />[m
+       <Route path="/community" element={<CommunityPage />} />[m
+       <Route path="/community/write" element={<CommunityWritePage />} />[m
+[32m+[m[32m      <Route path="/premium" element={<PremiumPage />} />[m
+[32m+[m[32m      <Route path="/premium/onboarding/2" element={<PremiumPage />} />[m
+[32m+[m[32m      <Route path="/premium/onboarding/3" element={<PremiumPage />} />[m
+[32m+[m[32m      <Route path="/premium/onboarding/4" element={<PremiumPage />} />[m
+[32m+[m[32m      <Route path="/premium/survey" element={<PremiumSurveyPage />} />[m
+[32m+[m[32m      <Route path="/premium/survey/complete" element={<PremiumSurveyCompletePage />} />[m
+[32m+[m[32m      <Route path="/premium/welcome" element={<PremiumWelcomePage />} />[m
+[32m+[m[32m      <Route path="/premium/schedule-setup" element={<PremiumScheduleSetupPage />} />[m
+[32m+[m[32m      <Route path="/premium/schedule-alert-settings" element={<PremiumScheduleAlertSettingsPage />} />[m
+[32m+[m[32m      <Route path="/mypage" element={<MyPage />} />[m
+[32m+[m[32m      <Route path="/mypage/profile" element={<ProfileEditPage />} />[m
+[32m+[m[32m      <Route path="/mypage/notifications" element={<NotificationSettingsPage />} />[m
+[32m+[m[32m      <Route path="/mypage/notifications/umbrella" element={<UmbrellaSchedulePage />} />[m
+[32m+[m[32m      <Route path="/mypage/payment" element={<PaymentManagementPage />} />[m
+[32m+[m[32m      <Route path="/mypage/refund" element={<RefundAccountPage />} />[m
+[32m+[m[32m      <Route path="/mypage/activity" element={<MyActivityPage />} />[m
+[32m+[m[32m      <Route path="/mypage/activity/:postId" element={<MyPostDetailPage />} />[m
+       <Route path="/situation" element={<SituationDetail />} />[m
+       <Route path="/situation/detail" element={<SituationDetail />} />[m
+       <Route path="/situation/laundry" element={<LaundrySituationDetail />} />[m
+[1mdiff --git a/src/api/activity.js b/src/api/activity.js[m
+[1mindex 6d12e12..0b67bdc 100644[m
+[1m--- a/src/api/activity.js[m
+[1m+++ b/src/api/activity.js[m
+[36m@@ -31,6 +31,7 @@[m [mexport const deleteMyPost = async (id) => {[m
+   if (USE_MOCK) {[m
+     await delay(300);[m
+     db.myPosts = db.myPosts.filter((p) => p.id !== id);[m
+[32m+[m[32m    db.savedPosts = db.savedPosts.filter((p) => p.id !== id);[m
+     persist();[m
+     return { ok: true };[m
+   }[m
+[1mdiff --git a/src/api/axios.js b/src/api/axios.js[m
+[1mindex e223dbc..1a95398 100644[m
+[1m--- a/src/api/axios.js[m
+[1m+++ b/src/api/axios.js[m
+[36m@@ -9,10 +9,84 @@[m [mconst api = axios.create({[m
+   timeout: 10_000,[m
+ });[m
+ [m
+[31m-// TODO(BE): 토큰 헤더 추가 / 401 처리(재로그인) 등은 백엔드 명세 나오면 여기에[m
+[32m+[m[32mconst refreshApi = axios.create({[m
+[32m+[m[32m  baseURL: API_URL,[m
+[32m+[m[32m  withCredentials: true,[m
+[32m+[m[32m  timeout: 10_000,[m
+[32m+[m[32m});[m
+[32m+[m
+[32m+[m[32mconst REFRESH_URL = "/api/auth/token/refresh/";[m
+[32m+[m[32mlet refreshPromise = null;[m
+[32m+[m
+[32m+[m[32mconst clearSession = () => {[m
+[32m+[m[32m  localStorage.removeItem("wee_access_token");[m
+[32m+[m[32m  localStorage.removeItem("wee_refresh_token");[m
+[32m+[m[32m};[m
+[32m+[m
+[32m+[m[32mconst returnToLogin = () => {[m
+[32m+[m[32m  clearSession();[m
+[32m+[m[32m  window.location.assign("/");[m
+[32m+[m[32m};[m
+[32m+[m
+[32m+[m[32mapi.interceptors.request.use((config) => {[m
+[32m+[m[32m  const accessToken = localStorage.getItem("wee_access_token");[m
+[32m+[m[32m  if (accessToken) {[m
+[32m+[m[32m    config.headers.Authorization = `Bearer ${accessToken}`;[m
+[32m+[m[32m  }[m
+[32m+[m[32m  return config;[m
+[32m+[m[32m});[m
+[32m+[m
+ api.interceptors.response.use([m
+   (res) => res,[m
+[31m-  (error) => Promise.reject(error),[m
+[32m+[m[32m  async (error) => {[m
+[32m+[m[32m    const originalRequest = error.config;[m
+[32m+[m[32m    if (error.response?.status !== 401 || !originalRequest) {[m
+[32m+[m[32m      return Promise.reject(error);[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m[32m    const accessToken = localStorage.getItem("wee_access_token");[m
+[32m+[m[32m    if (!accessToken) {[m
+[32m+[m[32m      return Promise.reject(error);[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m[32m    if (originalRequest._retry) {[m
+[32m+[m[32m      returnToLogin();[m
+[32m+[m[32m      return Promise.reject(error);[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m[32m    originalRequest._retry = true;[m
+[32m+[m[32m    const refreshToken = localStorage.getItem("wee_refresh_token");[m
+[32m+[m[32m    if (!refreshToken) {[m
+[32m+[m[32m      returnToLogin();[m
+[32m+[m[32m      return Promise.reject(error);[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m[32m    if (!refreshPromise) {[m
+[32m+[m[32m      refreshPromise = refreshApi[m
+[32m+[m[32m        .post(REFRESH_URL, { refresh: refreshToken })[m
+[32m+[m[32m        .then(({ data }) => {[m
+[32m+[m[32m          if (!data.access) {[m
+[32m+[m[32m            throw new Error("Access Token 갱신 응답에 access 값이 없습니다.");[m
+[32m+[m[32m          }[m
+[32m+[m[32m          localStorage.setItem("wee_access_token", data.access);[m
+[32m+[m[32m          return data.access;[m
+[32m+[m[32m        })[m
+[32m+[m[32m        .finally(() => {[m
+[32m+[m[32m          refreshPromise = null;[m
+[32m+[m[32m        });[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m[32m    try {[m
+[32m+[m[32m      const newAccessToken = await refreshPromise;[m
+[32m+[m[32m      originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;[m
+[32m+[m[32m      return api(originalRequest);[m
+[32m+[m[32m    } catch (refreshError) {[m
+[32m+[m[32m      if (refreshError.response?.status === 401) {[m
+[32m+[m[32m        returnToLogin();[m
+[32m+[m[32m      }[m
+[32m+[m[32m      return Promise.reject(refreshError);[m
+[32m+[m[32m    }[m
+[32m+[m[32m  },[m
+ );[m
+ [m
+ export default api;[m
+[1mdiff --git a/src/api/config.js b/src/api/config.js[m
+[1mindex d75d245..6bf0388 100644[m
+[1m--- a/src/api/config.js[m
+[1m+++ b/src/api/config.js[m
+[36m@@ -2,3 +2,4 @@[m
+ // VITE_USE_MOCK=true 이면 api 함수들이 mocks/db.js 를 사용[m
+ export const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true";[m
+ export const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080";[m
+[32m+[m[32mexport const KAKAO_JS_KEY = import.meta.env.VITE_KAKAO_JS_KEY ?? "";[m
+[1mdiff --git a/src/api/location.js b/src/api/location.js[m
+[1mindex 888b537..70f3d76 100644[m
+[1m--- a/src/api/location.js[m
+[1m+++ b/src/api/location.js[m
+[36m@@ -27,8 +27,11 @@[m [mexport const reverseGeocode = async ({ latitude, longitude }) => {[m
+     console.info("[mock] reverseGeocode", latitude, longitude);[m
+     return "서울특별시 서대문구 아현동";[m
+   }[m
+[31m-  const { data } = await api.get("/locations/reverse", {[m
+[31m-    params: { lat: latitude, lng: longitude },[m
+[32m+[m[32m  const { data } = await api.patch("/api/users/me/location/", {[m
+[32m+[m[32m    locationMode: "GPS",[m
+[32m+[m[32m    lat: latitude,[m
+[32m+[m[32m    lng: longitude,[m
+   }); // TODO(BE)[m
+[31m-  return data.region;[m
+[32m+[m
+[32m+[m[32m  return data.region.shortName;[m
+ };[m
+[1mdiff --git a/src/api/notification.js b/src/api/notification.js[m
+[1mindex efb89dd..47a0d0b 100644[m
+[1m--- a/src/api/notification.js[m
+[1m+++ b/src/api/notification.js[m
+[36m@@ -36,7 +36,7 @@[m [mexport const fetchSchedules = async (type) => {[m
+   const { data } = await api.get("/notifications/schedules", {[m
+     params: { type },[m
+   }); // TODO(BE)[m
+[31m-  return data;[m
+[32m+[m[32m  return Array.isArray(data) ? data : data.schedules ?? data.results ?? [];[m
+ };[m
+ [m
+ // schedule 예) { type, name, days:["월","금"], time:"18:00", region, leadMinutes:60 }[m
+[36m@@ -49,7 +49,7 @@[m [mexport const createSchedule = async (schedule) => {[m
+     return created;[m
+   }[m
+   const { data } = await api.post("/notifications/schedules", schedule); // TODO(BE)[m
+[31m-  return data;[m
+[32m+[m[32m  return data.schedule ?? data;[m
+ };[m
+ [m
+ export const deleteSchedule = async (id) => {[m
+[1mdiff --git a/src/api/payment.js b/src/api/payment.js[m
+[1mindex 91e742a..2584f53 100644[m
+[1m--- a/src/api/payment.js[m
+[1m+++ b/src/api/payment.js[m
+[36m@@ -14,7 +14,7 @@[m [mexport const fetchSubscription = async () => {[m
+       fortunePass: { ...db.fortunePass },[m
+     };[m
+   }[m
+[31m-  const { data } = await api.get("/payments/subscription"); // TODO(BE)[m
+[32m+[m[32m  const { data } = await api.get("/api/premium/billing/"); // TODO(BE)[m
+   return data;[m
+ };[m
+ [m
+[1mdiff --git a/src/api/user.js b/src/api/user.js[m
+[1mindex 5b3ccb3..c4e44be 100644[m
+[1m--- a/src/api/user.js[m
+[1m+++ b/src/api/user.js[m
+[36m@@ -27,6 +27,12 @@[m [mexport const updateProfile = async (payload) => {[m
+   return data;[m
+ };[m
+ [m
+[32m+[m[32m//닉네임 설정[m
+[32m+[m[32mexport const updateNickname = async (nickname) => {[m
+[32m+[m[32m  const { data } = await api.patch("/api/users/me/nickname/", { nickname });[m
+[32m+[m[32m  return data;[m
+[32m+[m[32m};[m
+[32m+[m
+ // 회원 탈퇴[m
+ export const withdrawUser = async () => {[m
+   if (USE_MOCK) {[m
+[1mdiff --git a/src/components/Avatar.jsx b/src/components/Avatar.jsx[m
+[1mindex a5bb668..09987d1 100644[m
+[1m--- a/src/components/Avatar.jsx[m
+[1m+++ b/src/components/Avatar.jsx[m
+[36m@@ -1,5 +1,6 @@[m
+ import avatarDefault from "../assets/icons/avatar-default.svg";[m
+[31m-import editPencil from "../assets/icons/edit-pencil.svg";[m
+[32m+[m[32mimport profilePhotoEditBadge from "../assets/icons/profile-photo-edit-badge.svg";[m
+[32m+[m[32mimport profilePhotoEditPencil from "../assets/icons/profile-photo-edit-pencil.svg";[m
+ [m
+ // 프로필 동그란 이미지. editable 이면 오른쪽 아래 연필 버튼(하늘색 원)이 붙어요.[m
+ //  - onEdit: 연필 버튼 클릭 시 (파일 선택창 열기 등)[m
+[36m@@ -8,16 +9,27 @@[m [mconst Avatar = ({ src, size = 102, editable = false, onEdit, className = "" }) =[m
+     <img[m
+       src={src || avatarDefault}[m
+       alt="프로필 사진"[m
+[31m-      className="h-full w-full rounded-full bg-[#E9E8E8] object-cover"[m
+[32m+[m[32m      className={[m
+[32m+[m[32m        src[m
+[32m+[m[32m          ? "h-full w-full rounded-full bg-[#E9E8E8] object-cover"[m
+[32m+[m[32m          : size >= 140[m
+[32m+[m[32m            ? "absolute left-1/2 top-1/2 h-[102px] w-[102px] -translate-x-1/2 -translate-y-1/2 rounded-full object-contain"[m
+[32m+[m[32m            : "h-full w-full round

@@ -32,16 +32,17 @@ const LocationSearchSheet = ({ isOpen, onClose, selected, onSelect }) => {
     onClose?.();
   };
 
-  const pick = (region) => {
-    selectRegion(region); // 최근 검색에 저장
-    onSelect?.(region);
+  const pick = (region, locationMode = "MANUAL") => {
+    const regionName = typeof region === "string" ? region : region.regionName;
+    selectRegion(regionName); // 최근 검색에 저장
+    onSelect?.(regionName, { locationMode, region });
     close();
   };
 
   // "현재 위치로 찾기": 브라우저 위치 권한 → 좌표 → 지역명
   const handleLocate = async () => {
     const region = await locate();
-    if (region) pick(region);
+    if (region) pick(region, "GPS");
     else toast.error("현재 위치를 찾지 못했어요. 위치 권한을 확인해 주세요");
   };
 
@@ -77,14 +78,14 @@ const LocationSearchSheet = ({ isOpen, onClose, selected, onSelect }) => {
               <li className="py-6 text-center text-sm text-[#A5A4A3]">검색 결과가 없어요</li>
             )}
             {results.map((region) => (
-              <li key={region}>
+              <li key={region.regionCode ?? region}>
                 <button
                   type="button"
-                  onClick={() => pick(region)}
+                  onClick={() => pick(region, "MANUAL")}
                   className="flex h-12 w-full items-center gap-[13px] px-3 text-left text-base font-medium tracking-[-0.02em] text-[#797776]"
                 >
                   <img src={pinOutline} alt="" className="h-5 w-5 shrink-0" />
-                  {region}
+                  {typeof region === "string" ? region : region.regionName}
                 </button>
               </li>
             ))}
@@ -109,7 +110,7 @@ const LocationSearchSheet = ({ isOpen, onClose, selected, onSelect }) => {
                 <li key={region}>
                   <button
                     type="button"
-                    onClick={() => pick(region)}
+                    onClick={() => pick(region, "RECENT")}
                     className="flex h-[49px] w-full items-center gap-[13px] px-3 text-left text-base font-medium tracking-[-0.02em] text-[#797776]"
                   >
                     <img src={timeIcon} alt="" className="h-[17px] w-[17px] shrink-0" />
