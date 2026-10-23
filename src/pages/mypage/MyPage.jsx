@@ -1,35 +1,78 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Card from "../../components/Card";
+import Button from "../../components/Button";
 import ListRow from "../../components/ListRow";
 import MobileLayout from "../../components/MobileLayout";
 import PageHeading from "../../components/PageHeading";
 import PageLayout from "../../components/PageLayout";
-import Toggle from "../../components/Toggle";
+import PremiumCheckoutSheet from "../../components/PremiumCheckoutSheet";
 import chevronRightIcon from "../../assets/icons/chevron-right.svg";
 import lockIcon from "../../assets/icons/lock.svg";
 import { useProfileQuery } from "../../hooks/useProfile";
-
-const alertOptions = [
-  { id: "outerwear", label: "겉옷 알림", initial: true },
-  { id: "exercise", label: "운동 알림", initial: false },
-  { id: "laundry", label: "빨래 알림", initial: true },
-  { id: "umbrella", label: "우산 알림", initial: true },
-  { id: "baseball", label: "야구 관람 알림", initial: true },
-];
+import { useIsPremium } from "../../hooks/usePayment";
 
 const sectionHeadingClass = "text-[16px] leading-[21px] font-bold";
 
 export default function MyPage() {
   const navigate = useNavigate();
-  const { data: profile } = useProfileQuery();
-  const [alerts, setAlerts] = useState(() =>
-    Object.fromEntries(alertOptions.map(({ id, initial }) => [id, initial])),
-  );
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const isLoggedIn = Boolean(localStorage.getItem("wee_access_token"));
+  const { data: profile } = useProfileQuery({ enabled: isLoggedIn });
+  const { isPremium } = useIsPremium({ enabled: isLoggedIn });
 
-  const toggleAlert = (id) => {
-    setAlerts((current) => ({ ...current, [id]: !current[id] }));
-  };
+  if (!isLoggedIn) {
+    return (
+      <MobileLayout>
+        <PageLayout className="!px-0">
+          <main className="px-[21px] pt-[106px] text-[#353331]">
+            <div className="flex flex-col gap-[18px]">
+              <Card highlighted className="!rounded-[13px] !p-0">
+                <button
+                  type="button"
+                  onClick={() => navigate("/consent", { state: { intent: "kakao", from: "/mypage" } })}
+                  className="flex min-h-[77px] w-full items-center justify-between px-[17px] text-left"
+                >
+                  <span>
+                    <PageHeading
+                      title="비회원"
+                      titleClassName="text-[16px] leading-[20px] font-bold"
+                    />
+                    <span className="mt-[8px] block text-[14px] leading-[17px]">
+                      로그인 / 회원가입 하러 가기
+                    </span>
+                  </span>
+                  <img src={chevronRightIcon} alt="" />
+                </button>
+              </Card>
+
+              <Card className="!rounded-[13px] !px-[16px] !py-[14px]">
+                <p className="text-[14px] leading-[20px] text-[#797776]">
+                  프리미엄 구독으로 맞춤형 기능을 이용해보세요.
+                </p>
+                <Button
+                  className="mt-[14px]"
+                  onClick={() => setIsCheckoutOpen(true)}
+                >
+                  프리미엄 구독하기
+                </Button>
+              </Card>
+            </div>
+          </main>
+          {isCheckoutOpen && (
+            <PremiumCheckoutSheet
+              isOpen
+              onClose={() => setIsCheckoutOpen(false)}
+              onSuccess={() => {
+                setIsCheckoutOpen(false);
+                navigate("/premium/welcome");
+              }}
+            />
+          )}
+        </PageLayout>
+      </MobileLayout>
+    );
+  }
 
   return (
     <MobileLayout>
@@ -48,7 +91,7 @@ export default function MyPage() {
                 <span>
                   <PageHeading
                     title={profile?.nickname ?? "내 프로필"}
-                    titleClassName="text-[16px] leading-[20px] font-bold"
+                    titleClassName={`${isPremium ? "text-[18px] leading-[21px]" : "text-[16px] leading-[20px]"} font-bold`}
                   />
                   <span className="mt-[8px] block text-[14px] leading-[17px]">
                     {profile?.region?.shortName ?? "지역을 설정해주세요"}
@@ -58,48 +101,31 @@ export default function MyPage() {
               </button>
             </Card>
 
-            <Card className="relative !h-[238px] !rounded-[13px] !px-[15px] !py-[14px]">
-              <button
-                type="button"
-                onClick={() => navigate("/mypage/notifications")}
-                aria-label="알림 설정 상세 화면으로 이동"
-                className="block text-left"
+            <Card className="relative !h-[56px] !rounded-[13px] !px-[16px] !py-[14px]">
+              <ListRow
+                onClick={isPremium ? () => navigate("/mypage/notifications") : undefined}
+                disabled={!isPremium}
+                className={`${isPremium ? "text-[18px]" : sectionHeadingClass} h-[22px]`}
               >
-                <PageHeading
-                  title="알림 설정"
-                  titleClassName={sectionHeadingClass}
-                />
-              </button>
-              <div className="mt-[10px] flex flex-col">
-                {alertOptions.map(({ id, label }) => (
-                  <div
-                    key={id}
-                    className="flex h-[36.44px] items-center justify-between text-[14px] leading-[20px]"
-                  >
-                    <span>{label}</span>
-                    <Toggle
-                      size="sm"
-                      on={alerts[id]}
-                      onChange={() => toggleAlert(id)}
-                    />
-                  </div>
-                ))}
-              </div>
-              <div className="pointer-events-none absolute inset-x-[14px] top-[46px] bottom-[11px] flex flex-col items-center bg-[rgba(255,255,255,0.86)] pt-[50px] backdrop-blur-[2px]">
-                <span className="flex h-6 w-6 items-center justify-center">
-                  <img src={lockIcon} alt="" />
-                </span>
-                <p className="mt-[12px] whitespace-nowrap text-[14px] leading-[19px] text-[#797776]">
-                  알림 구독 유저를 위한 기능이에요
-                </p>
-              </div>
+                알림 일정 관리
+              </ListRow>
+              {!isPremium && (
+                <div className="pointer-events-none absolute inset-x-[14px] top-[7px] z-10 flex h-[39px] items-center justify-center gap-[8px] bg-[rgba(255,255,255,0.86)] backdrop-blur-[2px]">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center">
+                    <img src={lockIcon} alt="" />
+                  </span>
+                  <p className="whitespace-nowrap text-[14px] leading-[19px] text-[#797776]">
+                    알림 구독 유저를 위한 기능이에요
+                  </p>
+                </div>
+              )}
             </Card>
 
             <Card className="!h-[131px] !rounded-[13px] !px-[16px] !py-[14px]">
               <div className="flex h-full flex-col">
                 <ListRow
                   onClick={() => navigate("/mypage/payment")}
-                  className={`${sectionHeadingClass} h-[22px]`}
+                  className={`${isPremium ? "text-[18px] leading-[21px] font-bold" : sectionHeadingClass} h-[22px]`}
                 >
                   결제 관리
                 </ListRow>
@@ -116,7 +142,7 @@ export default function MyPage() {
               <div className="flex h-full flex-col">
                 <PageHeading
                   title="내 활동"
-                  titleClassName={sectionHeadingClass}
+                  titleClassName={isPremium ? "text-[18px] leading-[21px] font-bold" : sectionHeadingClass}
                 />
                 <div className="mt-[8px] flex flex-1 flex-col justify-between">
                   <ListRow
@@ -126,14 +152,15 @@ export default function MyPage() {
                     작성한 게시물
                   </ListRow>
                   <ListRow
-                    onClick={() => navigate("/mypage/activity?type=saved")}
+                    onClick={() => navigate("/mypage/activity?type=liked")}
                     className="h-[29px] text-[14px] leading-[20px]"
                   >
-                    저장한 게시물
+                    공감한 게시물
                   </ListRow>
                 </div>
               </div>
             </Card>
+
           </div>
         </main>
       </PageLayout>

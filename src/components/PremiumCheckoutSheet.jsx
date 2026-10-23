@@ -2,25 +2,36 @@ import { useState } from "react";
 import BottomSheet from "./BottomSheet";
 import Button from "./Button";
 import { PREMIUM_PLAN } from "../constants/premium";
-import { useConfirmPremiumPayment } from "../hooks/usePayment";
+import { useCreatePremiumCheckout, useRefreshPremiumStatus } from "../hooks/usePayment";
 import usePaddleCheckout from "../hooks/usePaddleCheckout";
-import useUserStore from "../store/useUserStore";
+import { USE_MOCK } from "../api/config";
 import premiumCharacter from "../assets/images/premium_character.svg";
 
 export default function PremiumCheckoutSheet({ isOpen, onClose, onSuccess }) {
   const [paymentError, setPaymentError] = useState("");
-  const email = useUserStore((state) => state.user?.email);
   const { open: openCheckout, ready, loading } = usePaddleCheckout();
-  const confirmPayment = useConfirmPremiumPayment();
+  const createCheckout = useCreatePremiumCheckout();
+  const refreshStatus = useRefreshPremiumStatus();
 
   const handlePayment = async () => {
     setPaymentError("");
+    const popup = USE_MOCK ? null : window.open("about:blank", "_blank");
+    if (!USE_MOCK && !popup) {
+      setPaymentError("결제창을 열 수 없어요. 브라우저에서 팝업을 허용해 주세요.");
+      return;
+    }
     try {
-      const result = await openCheckout({ priceId: PREMIUM_PLAN.priceId, email });
+      const checkout = await createCheckout.mutateAsync();
+      if (!checkout?.checkoutUrl) throw new Error("결제창 주소를 받지 못했어요. 다시 시도해 주세요.");
+      const result = await openCheckout({ checkoutUrl: checkout.checkoutUrl, popup });
       if (result.status !== "completed") return;
-      await confirmPayment.mutateAsync({ transactionId: result.transactionId });
+      const status = await refreshStatus.mutateAsync();
+      if (!status?.subscription?.active) {
+        throw new Error("결제가 완료됐지만 이용권 반영을 확인하지 못했어요. 잠시 후 다시 확인해 주세요.");
+      }
       onSuccess?.();
     } catch (error) {
+      if (popup && !popup.closed) popup.close();
       setPaymentError(error?.message || "결제 중 문제가 발생했어요. 다시 시도해 주세요.");
     }
   };
@@ -77,10 +88,10 @@ export default function PremiumCheckoutSheet({ isOpen, onClose, onSuccess }) {
         <Button
           variant="white"
           onClick={handlePayment}
-          disabled={!ready || loading || confirmPayment.isPending}
+          disabled={!ready || loading || createCheckout.isPending || refreshStatus.isPending}
           className="mt-[10px] h-[38px] rounded-[7px] text-[14px] font-semibold tracking-[-0.14px] disabled:opacity-60"
         >
-          {loading || confirmPayment.isPending ? "결제 중..." : "Wee 결제하기"}
+          {loading || createCheckout.isPending || refreshStatus.isPending ? "결제 중..." : "Wee 결제하기"}
         </Button>
       </div>
     </BottomSheet>

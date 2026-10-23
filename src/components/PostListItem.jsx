@@ -24,7 +24,7 @@ const PostListItem = ({ post, heartActive = false, heartColor = "#60E1FF", onHea
         {onHeartClick ? (
           <button
             type="button"
-            aria-label={heartActive ? "저장 취소" : "저장"}
+            aria-label={heartActive ? "공감 취소" : "공감"}
             aria-pressed={heartActive}
             onClick={onHeartClick}
             className="absolute left-2 top-2 flex h-4 w-4 items-center justify-center"
@@ -42,9 +42,17 @@ const PostListItem = ({ post, heartActive = false, heartColor = "#60E1FF", onHea
           {post.message}
         </p>
         <div className="absolute left-[99px] top-[57px] flex items-center gap-[7px] whitespace-nowrap text-xs font-medium leading-[18px] tracking-[-0.03em] text-[#A5A4A3]">
-          <span>{timeAgo(post.createdAt)}</span>
+          <span>{post.createdAtDisplay ?? timeAgo(post.createdAt)}</span>
           <span aria-hidden="true">ㅣ</span>
           <span>공감 {post.likes ?? 0}</span>
+          {(post.region?.shortName || typeof post.region === "string") && (
+            <>
+              <span aria-hidden="true">ㅣ</span>
+              <span className="max-w-[95px] truncate">
+                {post.region?.shortName ?? post.region}
+              </span>
+            </>
+          )}
         </div>
       </button>
 

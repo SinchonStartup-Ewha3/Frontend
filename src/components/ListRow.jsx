@@ -8,16 +8,18 @@ const VARIANTS = {
 const ListRow = ({
   children, // 행 안에 표시할 글자
   onClick, // 행을 눌렀을 때 실행할 함수
+  disabled = false,
   variant = "default", // 색상 종류. 생략하면 기본 색
   className = "", // 필요하면 추가할 Tailwind 클래스
 }) => (
   <button
     type="button"
     onClick={onClick}
+    disabled={disabled}
     // 글자와 오른쪽 화살표를 양 끝에 배치하고, 행 높이를 최소 32px로 설정.
     className={`flex min-h-8 w-full items-center justify-between text-left text-sm ${
       VARIANTS[variant] ?? VARIANTS.default
-    } ${className}`}
+    } disabled:cursor-not-allowed ${className}`}
   >
     <span>{children}</span>
 

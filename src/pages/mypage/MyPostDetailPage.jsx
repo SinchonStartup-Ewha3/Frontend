@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import BottomCTA from "../../components/BottomCTA";
 import Button from "../../components/Button";
+import ConfirmDialog from "../../components/ConfirmDialog";
 import Header from "../../components/Header";
 import MobileLayout from "../../components/MobileLayout";
 import PageLayout from "../../components/PageLayout";
@@ -12,6 +14,7 @@ export default function MyPostDetailPage() {
   const { postId } = useParams();
   const navigate = useNavigate();
   const toast = useToast();
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const postQuery = useMyPostQuery(postId);
   const deletePost = useDeleteMyPost();
   const post = postQuery.data;
@@ -52,6 +55,14 @@ export default function MyPostDetailPage() {
                 {post.message}
               </p>
 
+              {(post.tagLabel || post.region) && (
+                <p className="mt-[12px] text-[13px] leading-[18px] text-[#8F8E8D]">
+                  {[post.tagLabel, typeof post.region === "string" ? post.region : post.region?.shortName]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </p>
+              )}
+
               {post.image ? (
                 <img
                   src={post.image}
@@ -71,7 +82,7 @@ export default function MyPostDetailPage() {
                     {formatMonthDay(post.createdAt)}
                   </span>
                   <span className="text-[15px] tracking-[-0.3px] text-[#A5A4A3]">
-                    {timeAgo(post.createdAt)}
+                    {post.createdAtDisplay ?? timeAgo(post.createdAt)}
                   </span>
                 </div>
                 <p className="mt-[18px] text-[15px] tracking-[-0.3px] text-[#797776]">
@@ -84,11 +95,19 @@ export default function MyPostDetailPage() {
 
         {post && (
           <BottomCTA bottomClassName="bottom-[124px]">
-            <Button onClick={handleDelete} disabled={deletePost.isPending}>
+            <Button onClick={() => setIsDeleteDialogOpen(true)} disabled={deletePost.isPending}>
               {deletePost.isPending ? "삭제 중..." : "삭제하기"}
             </Button>
           </BottomCTA>
         )}
+        <ConfirmDialog
+          isOpen={isDeleteDialogOpen}
+          variant="postDelete"
+          cancelTone="light"
+          loading={deletePost.isPending}
+          onCancel={() => setIsDeleteDialogOpen(false)}
+          onConfirm={handleDelete}
+        />
       </PageLayout>
     </MobileLayout>
   );

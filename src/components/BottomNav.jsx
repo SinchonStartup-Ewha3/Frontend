@@ -31,29 +31,31 @@ const ITEMS = [
   },
 ];
 
-const BottomNav = ({ activeTo }) => (
-  <nav className="fixed bottom-[2.875rem] left-1/2 -translate-x-1/2 w-63 h-13.5 rounded-[28.55819rem] border-[1.771px] border-solid border-[#E9E8E8] bg-white grid grid-cols-4 place-items-center">
-    {ITEMS.map((item) => (
-      <NavLink
-        key={item.to}
-        to={item.to}
-        end={item.to === "/"}
-        aria-label={item.label}
-        className={({ isActive }) => {
-          const itemIsActive = isActive || item.to === activeTo;
-          return `w-11.25 h-11.25 rounded-full flex items-center justify-center ${itemIsActive ? "bg-main" : ""}`;
-        }}
-      >
-        {({ isActive }) => (
-          <img
-            src={isActive || item.to === activeTo ? item.activeIcon : item.icon}
-            alt=""
-            className="h-[1.1rem] object-cover"
-          />
-        )}
-      </NavLink>
-    ))}
-  </nav>
-);
+const BottomNav = ({ activeTo }) => {
+  return (
+    <nav className="fixed bottom-[2.875rem] left-1/2 -translate-x-1/2 w-63 h-13.5 rounded-[28.55819rem] border-[1.771px] border-solid border-[#E9E8E8] bg-white grid grid-cols-4 place-items-center">
+      {ITEMS.map((item) => (
+        <NavLink
+          key={item.to}
+          to={item.to}
+          end={item.to === "/"}
+          aria-label={item.label}
+          className={({ isActive }) => {
+            const itemIsActive = isActive || item.to === activeTo;
+            return `w-11.25 h-11.25 rounded-full flex items-center justify-center ${itemIsActive ? "bg-main" : ""}`;
+          }}
+        >
+          {({ isActive }) => (
+            <img
+              src={isActive || item.to === activeTo ? item.activeIcon : item.icon}
+              alt=""
+              className="h-[1.1rem] object-cover"
+            />
+          )}
+        </NavLink>
+      ))}
+    </nav>
+  );
+};
 
 export default BottomNav;

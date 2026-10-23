@@ -5,11 +5,21 @@ import Button from "../../components/Button";
 import MobileLayout from "../../components/MobileLayout";
 import PageHeading from "../../components/PageHeading";
 import { SURVEY_PROGRESS, SURVEY_QUESTIONS } from "../../constants/premium";
+import { useSavePremiumProfile } from "../../hooks/usePayment";
+import useToast from "../../hooks/useToast";
+
+const ANSWER_CODES = [
+  ["VERY_SENSITIVE", "NORMAL", "HEAT_SENSITIVE", "UNKNOWN"],
+  ["MORNING", "EVENING", "GOOD_WEATHER_ONLY", "FLEXIBLE"],
+  ["RAIN_BEFORE", "HIGH_HUMIDITY", "INDOOR_DRYING_TIP", "DAILY_SUMMARY"],
+];
 
 const OPTION_TOPS = [318, 384, 449, 514];
 
 export default function PremiumSurveyPage() {
   const navigate = useNavigate();
+  const toast = useToast();
+  const saveProfile = useSavePremiumProfile();
   const [questionIndex, setQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState(() =>
     SURVEY_QUESTIONS.map(() => null),
@@ -22,7 +32,19 @@ export default function PremiumSurveyPage() {
       setQuestionIndex((current) => current + 1);
       return;
     }
-    navigate("/premium/schedule-setup");
+    if (answers.some((answer) => answer === null)) {
+      toast.error("모든 설문 항목을 선택해 주세요.");
+      return;
+    }
+    const payload = {
+      coldSensitivity: ANSWER_CODES[0][answers[0]],
+      exercisePreference: ANSWER_CODES[1][answers[1]],
+      laundryPreferences: [ANSWER_CODES[2][answers[2]]],
+    };
+    saveProfile.mutate(payload, {
+      onSuccess: () => navigate("/premium/schedule-setup"),
+      onError: () => toast.error("설문을 저장하지 못했어요. 다시 시도해 주세요."),
+    });
   };
 
   return (
@@ -86,9 +108,10 @@ export default function PremiumSurveyPage() {
         <BottomCTA bottomClassName="bottom-[112px]">
           <Button
             onClick={handleNext}
+            disabled={saveProfile.isPending}
             className="h-[44px] rounded-[10px] text-[18px] tracking-[-0.18px]"
           >
-            다음
+            {saveProfile.isPending ? "저장 중..." : "다음"}
           </Button>
         </BottomCTA>
       </main>

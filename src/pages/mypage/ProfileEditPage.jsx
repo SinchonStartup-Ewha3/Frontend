@@ -10,7 +10,6 @@ import LocationSearchSheet from "../../components/LocationSearchSheet";
 import MobileLayout from "../../components/MobileLayout";
 import PageLayout from "../../components/PageLayout";
 import useToast from "../../hooks/useToast";
-import { logoutFromService } from "../../api/auth";
 import { searchRegions, updateUserLocation } from "../../api/location";
 import queryKeys from "../../api/queryKeys";
 import useUserStore from "../../store/useUserStore";
@@ -155,8 +154,9 @@ export default function ProfileEditPage() {
     withdraw.mutate(undefined, {
       onSuccess: () => {
         setShowWithdrawDialog(false);
-        navigate("/", { replace: true });
+        navigate("/login", { replace: true });
       },
+      onError: () => toast.error("회원 탈퇴를 완료하지 못했어요. 잠시 후 다시 시도해주세요."),
     });
   };
 
@@ -244,12 +244,6 @@ export default function ProfileEditPage() {
                   : updateNickname.isPending
                     ? "저장 중..."
                     : "저장"}
-              </Button>
-              <Button
-                variant="white"
-                onClick={logoutFromService}
-              >
-                로그아웃
               </Button>
               <Button
                 variant="ghost"

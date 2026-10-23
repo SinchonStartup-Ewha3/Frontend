@@ -6,19 +6,30 @@ import PageLayout from "../../components/PageLayout";
 import PostListItem from "../../components/PostListItem";
 import {
   useMyPostsQuery,
-  useSavedPostsQuery,
-  useUnsavePost,
+  useLikedPostsQuery,
+  useUnlikePost,
 } from "../../hooks/useActivity";
 
 export default function MyActivityPage() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const isSaved = searchParams.get("type") === "saved";
-  const myPostsQuery = useMyPostsQuery();
-  const savedPostsQuery = useSavedPostsQuery();
-  const unsavePost = useUnsavePost();
-  const postsQuery = isSaved ? savedPostsQuery : myPostsQuery;
-  const posts = postsQuery.data ?? [];
+  const [searchParams, setSearchParams] = useSearchParams();
+  const isLiked = ["liked", "saved"].includes(searchParams.get("type"));
+  const requestedPage = Number(searchParams.get("page") ?? 1);
+  const page = Number.isInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
+  const pageSize = 10;
+  const myPostsQuery = useMyPostsQuery(page, pageSize, !isLiked);
+  const likedPostsQuery = useLikedPostsQuery(page, pageSize, isLiked);
+  const unlikePost = useUnlikePost();
+  const postsQuery = isLiked ? likedPostsQuery : myPostsQuery;
+  const posts = postsQuery.data?.results ?? [];
+  const pageCount = Math.ceil((postsQuery.data?.count ?? 0) / pageSize);
+
+  const goToPage = (nextPage) => {
+    const params = new URLSearchParams(searchParams);
+    if (nextPage === 1) params.delete("page");
+    else params.set("page", String(nextPage));
+    setSearchParams(params);
+  };
 
   return (
     <MobileLayout>
@@ -26,23 +37,23 @@ export default function MyActivityPage() {
         <main className="min-h-screen px-[26px] pt-[73px] text-[#353331]">
           <Header back />
           <PageHeading
-            title={isSaved ? "저장한 게시물" : "작성한 게시물"}
+            title={isLiked ? "공감한 게시물" : "작성한 게시물"}
             className="mt-[18px]"
             titleClassName="!text-[24px] !leading-[1.4] !tracking-[-0.72px]"
           />
 
           <section
-            aria-label={isSaved ? "저장한 게시물 목록" : "작성한 게시물 목록"}
+            aria-label={isLiked ? "공감한 게시물 목록" : "작성한 게시물 목록"}
             className="mt-[18px]"
           >
             {posts.map((post) => (
               <PostListItem
                 key={post.id}
                 post={post}
-                heartActive={isSaved}
-                onClick={isSaved ? undefined : () => navigate(`/mypage/activity/${post.id}`)}
+                heartActive={isLiked || Boolean(post.isLiked)}
+                onClick={isLiked ? undefined : () => navigate(`/mypage/activity/${post.id}`)}
                 onHeartClick={
-                  isSaved ? () => unsavePost.mutate(post.id) : undefined
+                  isLiked ? () => unlikePost.mutate(post.id) : undefined
                 }
               />
             ))}
@@ -59,10 +70,31 @@ export default function MyActivityPage() {
             )}
             {!postsQuery.isLoading && !postsQuery.isError && posts.length === 0 && (
               <p className="py-8 text-center text-sm text-[#A5A4A3]">
-                {isSaved ? "저장한 게시물이 없어요." : "작성한 게시물이 없어요."}
+                {isLiked ? "공감한 게시물이 없어요." : "작성한 게시물이 없어요."}
               </p>
             )}
           </section>
+          {!postsQuery.isError && pageCount > 1 && (
+            <div className="flex items-center justify-center gap-5 py-3 text-sm font-medium text-[#797776]">
+              <button
+                type="button"
+                disabled={page <= 1 || postsQuery.isFetching}
+                onClick={() => goToPage(page - 1)}
+                className="disabled:opacity-40"
+              >
+                이전
+              </button>
+              <span>{page} / {pageCount}</span>
+              <button
+                type="button"
+                disabled={page >= pageCount || postsQuery.isFetching}
+                onClick={() => goToPage(page + 1)}
+                className="disabled:opacity-40"
+              >
+                다음
+              </button>
+            </div>
+          )}
         </main>
       </PageLayout>
     </MobileLayout>
