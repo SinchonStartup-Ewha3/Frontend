@@ -25,6 +25,7 @@ const INITIAL_FORM = {
   days: ["월", "금"],
   time: "18:00",
   region: "서울 성북구 안암동",
+  regionCode: "",
 };
 
 export default function UmbrellaSchedulePage() {
@@ -208,8 +209,12 @@ export default function UmbrellaSchedulePage() {
           isOpen={isSearchingLocation}
           onClose={() => setIsSearchingLocation(false)}
           selected={form.region}
-          onSelect={(region) => {
-            setForm((current) => ({ ...current, region }));
+          onSelect={(region, selection) => {
+            setForm((current) => ({
+              ...current,
+              region,
+              regionCode: selection?.region?.regionCode ?? "",
+            }));
             setIsSearchingLocation(false);
           }}
         />

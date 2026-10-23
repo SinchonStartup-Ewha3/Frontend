@@ -1,5 +1,6 @@
 import api from "./axios";
 import useUserStore from "../store/useUserStore";
+import { logoutOneSignalUser } from "../push/oneSignal";
 
 export const loginWithKakao = async (kakaoAccessToken) => {
   const { data } = await api.post("/api/auth/social-login/", {
@@ -11,6 +12,9 @@ export const loginWithKakao = async (kakaoAccessToken) => {
 };
 
 export const logoutFromService = async () => {
+  await logoutOneSignalUser().catch((error) =>
+    console.warn("OneSignal 로그아웃 실패", error),
+  );
   localStorage.removeItem("wee_access_token");
   localStorage.removeItem("wee_refresh_token");
   useUserStore.getState().clearUser();

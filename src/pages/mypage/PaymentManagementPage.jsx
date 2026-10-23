@@ -26,6 +26,14 @@ export default function PaymentManagementPage() {
     ? purchasedAt.slice(0, 10).replaceAll("-", ".")
     : subscription?.nextPaymentAt;
   const usageCount = fortunePass?.remainingCount ?? fortunePass?.remainingUses;
+  const expiresAt = subscription?.premiumExpiresAt;
+  const expiresAtDisplay = expiresAt
+    ? new Intl.DateTimeFormat("ko-KR", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }).format(new Date(expiresAt))
+    : null;
 
   return (
     <MobileLayout>
@@ -52,13 +60,18 @@ export default function PaymentManagementPage() {
                 <p className="text-[14px] leading-[21px] tracking-[-0.43px]">
                   결제일 | {paidAt ?? "정보 없음"}
                 </p>
+                {expiresAtDisplay && (
+                  <p className="text-[14px] leading-[21px] tracking-[-0.43px]">
+                    이용 만료일 | {expiresAtDisplay}
+                  </p>
+                )}
                 {isActive && canRequestRefund ? (
                   <button
                     type="button"
                     onClick={() => navigate("/mypage/refund")}
                     className="self-start text-[14px] leading-[21px] tracking-[-0.43px] text-[#F35C4B]"
                   >
-                    환불 처리
+                    환불 신청
                   </button>
                 ) : isActive ? (
                   <p className="text-[14px] leading-[21px] tracking-[-0.43px] text-[#A5A4A3]">
@@ -79,7 +92,7 @@ export default function PaymentManagementPage() {
             )}
           </article>
 
-          <h2 className="ml-[6px] mt-[34px] text-[24px] font-semibold leading-[1.4] tracking-[-0.72px]">
+          <h2 className="ml-[6px] mt-[31px] text-[24px] font-semibold leading-[1.4] tracking-[-0.72px]">
             날씨 운세 이용권
           </h2>
           <article className={`${cardClassName} mt-[11px]`}>

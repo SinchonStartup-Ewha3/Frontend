@@ -1,11 +1,12 @@
 import { useEffect, useRef } from "react";
-import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { fetchProfile } from "./api/user";
 import queryKeys from "./api/queryKeys";
 import useUserStore from "./store/useUserStore";
 import Button from "./components/Button";
 import LoginPage from "./pages/onboarding/LoginPage.jsx";
+import ConsentPage from "./pages/onboarding/ConsentPage.jsx";
 import LoginCompletePage from "./pages/onboarding/LoginCompletePage.jsx";
 import NicknamePage from "./pages/onboarding/NicknamePage.jsx";
 import LocationSetupPage from "./pages/onboarding/LocationSetupPage.jsx";
@@ -35,9 +36,12 @@ import PaymentManagementPage from "./pages/mypage/PaymentManagementPage.jsx";
 import RefundAccountPage from "./pages/mypage/RefundAccountPage.jsx";
 import MyActivityPage from "./pages/mypage/MyActivityPage.jsx";
 import MyPostDetailPage from "./pages/mypage/MyPostDetailPage.jsx";
+import LoginRequiredModal from "./components/LoginRequiredModal.jsx";
+import { initializeOneSignal, loginOneSignalUser } from "./push/oneSignal";
 
 export default function App() {
   const navigate = useNavigate();
+  const location = useLocation();
   const token = localStorage.getItem("wee_access_token");
   const setUser = useUserStore((state) => state.setUser);
   const hasResolvedSession = useRef(false);
@@ -47,6 +51,22 @@ export default function App() {
     enabled: Boolean(token),
     retry: false,
   });
+
+  useEffect(() => {
+    initializeOneSignal().catch((error) =>
+      console.warn("OneSignal 초기화 실패", error),
+    );
+  }, []);
+
+  useEffect(() => {
+    if (!token || !profileQuery.data) return;
+    const djangoUserId =
+      profileQuery.data.userId ?? profileQuery.data.id ?? profileQuery.data.pk;
+    if (djangoUserId === undefined || djangoUserId === null) return;
+    loginOneSignalUser(djangoUserId).catch((error) =>
+      console.warn("OneSignal 사용자 연결 실패", error),
+    );
+  }, [profileQuery.data, token]);
 
   useEffect(() => {
     if (!token || !profileQuery.data || hasResolvedSession.current) return;
@@ -60,11 +80,12 @@ export default function App() {
 
     setUser(user);
     hasResolvedSession.current = true;
-    navigate(
-      !isNicknameSet ? "/nickname" : isOnboarded ? "/home" : "/location-setup",
-      { replace: true },
-    );
-  }, [navigate, profileQuery.data, setUser, token]);
+    if (!isNicknameSet) navigate("/nickname", { replace: true });
+    else if (!isOnboarded) navigate("/location-setup", { replace: true });
+    else if (location.pathname === "/" || location.pathname === "/login") {
+      navigate("/home", { replace: true });
+    }
+  }, [location.pathname, navigate, profileQuery.data, setUser, token]);
 
   if (token && profileQuery.isPending) {
     return (
@@ -88,40 +109,57 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<LoginPage />} />
-      <Route path="/login-complete" element={<LoginCompletePage />} />
-      <Route path="/nickname" element={<NicknamePage />} />
-      <Route path="/location-setup" element={<LocationSetupPage />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/consent" element={<ConsentPage />} />
+      <Route path="/login-complete" element={<RequireAuth><LoginCompletePage /></RequireAuth>} />
+      <Route path="/nickname" element={<RequireAuth><NicknamePage /></RequireAuth>} />
+      <Route path="/location-setup" element={<RequireAuth><LocationSetupPage /></RequireAuth>} />
       <Route path="/home" element={<HomePage />} />
-      <Route path="/weather-fortune" element={<WeatherFortunePage />} />
-      <Route path="/weather-fortune/calendar" element={<WeatherFortuneCalendarPage />} />
-      <Route path="/weather-fortune/birth-info" element={<WeatherFortuneBirthInfoPage />} />
-      <Route path="/weather-fortune/birth-time" element={<WeatherFortuneBirthTimePage />} />
-      <Route path="/weather-fortune/loading" element={<WeatherFortuneLoadingPage />} />
-      <Route path="/weather-fortune/result" element={<WeatherFortuneResultPage />} />
+      <Route path="/weather-fortune" element={<RequireAuth><WeatherFortunePage /></RequireAuth>} />
+      <Route path="/weather-fortune/calendar" element={<RequireAuth><WeatherFortuneCalendarPage /></RequireAuth>} />
+      <Route path="/weather-fortune/birth-info" element={<RequireAuth><WeatherFortuneBirthInfoPage /></RequireAuth>} />
+      <Route path="/weather-fortune/birth-time" element={<RequireAuth><WeatherFortuneBirthTimePage /></RequireAuth>} />
+      <Route path="/weather-fortune/loading" element={<RequireAuth><WeatherFortuneLoadingPage /></RequireAuth>} />
+      <Route path="/weather-fortune/result" element={<RequireAuth><WeatherFortuneResultPage /></RequireAuth>} />
       <Route path="/community" element={<CommunityPage />} />
-      <Route path="/community/write" element={<CommunityWritePage />} />
-      <Route path="/premium" element={<PremiumPage />} />
-      <Route path="/premium/onboarding/2" element={<PremiumPage />} />
-      <Route path="/premium/onboarding/3" element={<PremiumPage />} />
-      <Route path="/premium/onboarding/4" element={<PremiumPage />} />
-      <Route path="/premium/survey" element={<PremiumSurveyPage />} />
-      <Route path="/premium/survey/complete" element={<PremiumSurveyCompletePage />} />
-      <Route path="/premium/welcome" element={<PremiumWelcomePage />} />
-      <Route path="/premium/schedule-setup" element={<PremiumScheduleSetupPage />} />
-      <Route path="/premium/schedule-alert-settings" element={<PremiumScheduleAlertSettingsPage />} />
+      <Route path="/community/write" element={<RequireAuth><CommunityWritePage /></RequireAuth>} />
+      <Route path="/premium" element={<RequireAuth><PremiumPage /></RequireAuth>} />
+      <Route path="/premium/onboarding/2" element={<RequireAuth><PremiumPage /></RequireAuth>} />
+      <Route path="/premium/onboarding/3" element={<RequireAuth><PremiumPage /></RequireAuth>} />
+      <Route path="/premium/onboarding/4" element={<RequireAuth><PremiumPage /></RequireAuth>} />
+      <Route path="/premium/survey" element={<RequireAuth><PremiumSurveyPage /></RequireAuth>} />
+      <Route path="/premium/survey/complete" element={<RequireAuth><PremiumSurveyCompletePage /></RequireAuth>} />
+      <Route path="/premium/welcome" element={<RequireAuth><PremiumWelcomePage /></RequireAuth>} />
+      <Route path="/premium/schedule-setup" element={<RequireAuth><PremiumScheduleSetupPage /></RequireAuth>} />
+      <Route path="/premium/schedule-alert-settings" element={<RequireAuth><PremiumScheduleAlertSettingsPage /></RequireAuth>} />
       <Route path="/mypage" element={<MyPage />} />
-      <Route path="/mypage/profile" element={<ProfileEditPage />} />
-      <Route path="/mypage/notifications" element={<NotificationSettingsPage />} />
-      <Route path="/mypage/notifications/umbrella" element={<UmbrellaSchedulePage />} />
-      <Route path="/mypage/payment" element={<PaymentManagementPage />} />
-      <Route path="/mypage/refund" element={<RefundAccountPage />} />
-      <Route path="/mypage/activity" element={<MyActivityPage />} />
-      <Route path="/mypage/activity/:postId" element={<MyPostDetailPage />} />
+      <Route path="/mypage/profile" element={<RequireAuth><ProfileEditPage /></RequireAuth>} />
+      <Route path="/mypage/notifications" element={<RequireAuth><NotificationSettingsPage /></RequireAuth>} />
+      <Route path="/mypage/notifications/umbrella" element={<RequireAuth><UmbrellaSchedulePage /></RequireAuth>} />
+      <Route path="/mypage/payment" element={<RequireAuth><PaymentManagementPage /></RequireAuth>} />
+      <Route path="/mypage/refund" element={<RequireAuth><RefundAccountPage /></RequireAuth>} />
+      <Route path="/mypage/activity" element={<RequireAuth><MyActivityPage /></RequireAuth>} />
+      <Route path="/mypage/activity/:postId" element={<RequireAuth><MyPostDetailPage /></RequireAuth>} />
       <Route path="/situation" element={<SituationDetail />} />
       <Route path="/situation/detail" element={<SituationDetail />} />
       <Route path="/situation/laundry" element={<LaundrySituationDetail />} />
       <Route path="/situation/running" element={<RunningSituationDetail />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+  );
+}
+
+function RequireAuth({ children }) {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const token = localStorage.getItem("wee_access_token");
+  if (token) return children;
+  const returnTo = `${location.pathname}${location.search}`;
+  return (
+    <LoginRequiredModal
+      isOpen
+      onClose={() => navigate("/home", { replace: true })}
+      onLogin={() => navigate("/consent", { state: { intent: "kakao", from: returnTo } })}
+    />
   );
 }

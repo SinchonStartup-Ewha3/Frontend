@@ -87,6 +87,5 @@ export const withdrawUser = async () => {
     localStorage.removeItem("wee:mock-db:v1");
     return { ok: true };
   }
-  await api.delete("/users/me");
-  return { ok: true };
+  await api.delete("/api/users/me/");
 };

@@ -4,14 +4,18 @@ import {
   deleteMyPost,
   fetchMyPost,
   fetchMyPosts,
-  fetchSavedPosts,
-  unsavePost,
+  fetchLikedPosts,
+  unlikePost,
 } from "../api/activity";
 import queryKeys from "../api/queryKeys";
 
 // 내가 작성한 게시물 목록 / 상세
-export const useMyPostsQuery = () =>
-  useQuery({ queryKey: queryKeys.myPosts, queryFn: fetchMyPosts });
+export const useMyPostsQuery = (page = 1, pageSize = 10, enabled = true) =>
+  useQuery({
+    queryKey: queryKeys.myPostsPage(page, pageSize),
+    queryFn: () => fetchMyPosts({ page, pageSize }),
+    enabled,
+  });
 export const useMyPostQuery = (id) =>
   useQuery({
     queryKey: queryKeys.myPost(id),
@@ -23,34 +27,41 @@ export const useDeleteMyPost = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: deleteMyPost,
-    onSuccess: () => {
+    retry: false,
+    onSuccess: (_data, id) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.myPosts });
-      queryClient.invalidateQueries({ queryKey: queryKeys.savedPosts });
+      queryClient.invalidateQueries({ queryKey: queryKeys.likedPosts });
+      queryClient.removeQueries({ queryKey: queryKeys.myPost(id) });
     },
   });
 };
 
-// 저장한 게시물 목록 / 저장 취소 (하트 클릭 -> 목록에서 바로 사라지게 업데이트)
-export const useSavedPostsQuery = () =>
-  useQuery({ queryKey: queryKeys.savedPosts, queryFn: fetchSavedPosts });
+// 좋아요한 게시물 목록
+export const useLikedPostsQuery = (page = 1, pageSize = 10, enabled = true) =>
+  useQuery({
+    queryKey: queryKeys.likedPostsPage(page, pageSize),
+    queryFn: () => fetchLikedPosts({ page, pageSize }),
+    enabled,
+  });
 
-export const useUnsavePost = () => {
+// 좋아요 취소: 목록에서는 즉시 제거하고 실패하면 기존 데이터로 복구
+export const useUnlikePost = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: unsavePost,
+    mutationFn: unlikePost,
+    retry: false,
     onMutate: async (id) => {
-      await queryClient.cancelQueries({ queryKey: queryKeys.savedPosts });
-      const previous = queryClient.getQueryData(queryKeys.savedPosts);
-      queryClient.setQueryData(queryKeys.savedPosts, (old = []) =>
-        old.filter((p) => p.id !== id),
+      await queryClient.cancelQueries({ queryKey: queryKeys.likedPosts });
+      const previous = queryClient.getQueriesData({ queryKey: queryKeys.likedPosts });
+      queryClient.setQueriesData({ queryKey: queryKeys.likedPosts }, (old) =>
+        old ? { ...old, results: (old.results ?? []).filter((p) => p.id !== id) } : old,
       );
       return { previous };
     },
     onError: (_e, _id, ctx) => {
-      if (ctx?.previous)
-        queryClient.setQueryData(queryKeys.savedPosts, ctx.previous);
+      ctx?.previous?.forEach(([key, data]) => queryClient.setQueryData(key, data));
     },
     onSettled: () =>
-      queryClient.invalidateQueries({ queryKey: queryKeys.savedPosts }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.likedPosts }),
   });
 };

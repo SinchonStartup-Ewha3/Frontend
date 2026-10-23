@@ -1,18 +1,20 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Button from "../../components/Button";
 import loginBackground from "../../assets/images/kakaologin_background.svg";
 import weeLogo from "../../assets/icons/logo.svg";
 import kakaoIcon from "../../assets/icons/kakao.svg";
 import Header from "../../components/Header";
 import MobileLayout from "../../components/MobileLayout";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { KAKAO_JS_KEY } from "../../api/config";
 import { loginWithKakao } from "../../api/auth";
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [loginError, setLoginError] = useState("");
+  const autoLoginStarted = useRef(false);
 
   const handleKakaoLogin = () => {
     setLoginError("");
@@ -39,7 +41,7 @@ export default function LoginPage() {
           const data = await loginWithKakao(kakaoAccessToken);
           localStorage.setItem("wee_access_token", data.access_token);
           localStorage.setItem("wee_refresh_token", data.refresh_token);
-          navigate("/", { replace: true });
+          navigate(location.state?.from ?? "/home", { replace: true });
         } catch (error) {
           setLoginError(
             error.response?.data?.detail ??
@@ -55,6 +57,13 @@ export default function LoginPage() {
       },
     });
   };
+
+  useEffect(() => {
+    if (location.state?.autoLogin && !autoLoginStarted.current) {
+      autoLoginStarted.current = true;
+      handleKakaoLogin();
+    }
+  }, [location.state]);
 
   return (
     <MobileLayout>
@@ -80,11 +89,18 @@ export default function LoginPage() {
           오늘의 날씨를<br />오늘의 행동으로
         </p>
 
-        <div className="absolute bottom-[113px] left-1/2 w-[calc(100%-44px)] max-w-[345px] -translate-x-1/2">
+        <div className="absolute bottom-[63px] left-1/2 flex w-[calc(100%-44px)] max-w-[345px] -translate-x-1/2 flex-col gap-[13px]">
+          <Button
+            variant="primary"
+            className="h-[44px] rounded-[10px] text-[18px] tracking-[-0.18px]"
+            onClick={() => navigate("/consent", { state: { intent: "guest" } })}
+          >
+            로그인 없이 시작하기
+          </Button>
           <Button
             variant="kakao"
             className="relative h-[44px] rounded-[10px] text-[18px] tracking-[-0.18px]"
-            onClick={handleKakaoLogin}
+            onClick={() => navigate("/consent", { state: { intent: "kakao", from: location.state?.from } })}
             disabled={isLoggingIn}
           >
             <span className="absolute left-[70px] flex h-[34px] w-[34px] items-center justify-center" aria-hidden="true">

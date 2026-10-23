@@ -28,7 +28,8 @@ export default function PremiumScheduleAlertSettingsPage() {
   const user = useUserStore((current) => current.user);
   const createSchedule = useCreateSchedule();
   const schedule = state ?? DEFAULT_SCHEDULE;
-  const [region, setRegion] = useState(user?.region || "서울 성북구 안암동");
+  const [region, setRegion] = useState(user?.region?.regionName ?? user?.region ?? "서울 성북구 안암동");
+  const [regionCode, setRegionCode] = useState(user?.region?.regionCode ?? "");
   const [leadMinutes, setLeadMinutes] = useState(null);
   const [isLocationSearchOpen, setIsLocationSearchOpen] = useState(false);
   const effectiveLeadMinutes = leadMinutes ?? 60;
@@ -43,9 +44,11 @@ export default function PremiumScheduleAlertSettingsPage() {
       {
         type: "premium",
         name: schedule.name.trim(),
+        purpose: schedule.purpose,
         days: schedule.days,
         time: schedule.time || "18:00",
         region,
+        regionCode,
         leadMinutes: effectiveLeadMinutes,
       },
       {
@@ -162,8 +165,9 @@ export default function PremiumScheduleAlertSettingsPage() {
         isOpen={isLocationSearchOpen}
         onClose={() => setIsLocationSearchOpen(false)}
         selected={region}
-        onSelect={(nextRegion) => {
+        onSelect={(nextRegion, selection) => {
           setRegion(nextRegion);
+          setRegionCode(selection?.region?.regionCode ?? "");
           setIsLocationSearchOpen(false);
         }}
       />

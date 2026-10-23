@@ -4,6 +4,7 @@ import {
   createSchedule,
   deleteSchedule,
   fetchAlarmSettings,
+  patchAlarmSettings,
   fetchSchedules,
   updateAlarmSettings,
 } from "../api/notification";
@@ -34,6 +35,15 @@ export const useUpdateAlarmSettings = () => {
     },
     onSettled: () =>
       queryClient.invalidateQueries({ queryKey: queryKeys.alarmSettings }),
+  });
+};
+
+export const usePatchAlarmSettings = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: patchAlarmSettings,
+    onSuccess: (settings) =>
+      queryClient.setQueryData(queryKeys.alarmSettings, settings),
   });
 };
 

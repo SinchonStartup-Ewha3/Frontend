@@ -16,12 +16,13 @@ import {
 } from "../../hooks/useAlarmSettings";
 import useToast from "../../hooks/useToast";
 import useAlarmDraftStore from "../../store/useAlarmDraftStore";
+import usePushNotification from "../../hooks/usePushNotification";
 
 const DEFAULT_SETTINGS = {
-  outer: true,
+  outer: false,
   exercise: false,
   laundry: false,
-  umbrella: true,
+  umbrella: false,
 };
 
 export default function NotificationSettingsPage() {
@@ -33,6 +34,7 @@ export default function NotificationSettingsPage() {
   const initDraft = useAlarmDraftStore((state) => state.init);
   const toggleDraft = useAlarmDraftStore((state) => state.toggle);
   const clearDraft = useAlarmDraftStore((state) => state.clear);
+  const push = usePushNotification();
   const initialized = useRef(false);
 
   useEffect(() => {
@@ -63,6 +65,20 @@ export default function NotificationSettingsPage() {
     );
   };
 
+  const enablePush = async () => {
+    try {
+      const result = await push.enable();
+      if (result.ok) toast.success("알림을 받을 수 있도록 설정했어요.");
+      else if (result.reason === "denied") {
+        toast.error("알림이 차단되어 있어요. 브라우저 설정에서 Weether 알림을 허용해 주세요.");
+      } else if (result.reason === "unsupported") {
+        toast.error("이 브라우저에서는 웹 푸시 알림을 지원하지 않아요.");
+      }
+    } catch {
+      toast.error("알림 설정을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.");
+    }
+  };
+
   return (
     <MobileLayout>
       <PageLayout nav={false} className="!px-0 !pb-0">
@@ -76,6 +92,41 @@ export default function NotificationSettingsPage() {
             titleClassName="!text-[28px] !leading-[1.4] !tracking-[-0.84px]"
             descClassName="!mt-[8px] !text-[18px] !leading-[1.38] !tracking-[-0.54px] !text-[#D2D2D1]"
           />
+
+          <section
+            aria-label="푸시 알림 구독"
+            className="mt-[18px] rounded-[13px] border border-[#E9E8E8] bg-white px-4 py-4"
+          >
+            <p className="text-[14px] leading-[20px] text-[#797776]">
+              Weether에서 내가 선택한 맞춤 알림을 받아보세요.
+            </p>
+            {push.permission === "denied" ? (
+              <p className="mt-2 text-[13px] leading-[18px] text-[#8F8E8D]">
+                알림이 차단되어 있어요. 브라우저 설정에서 Weether 알림을 직접 허용해 주세요.
+              </p>
+            ) : push.iosInstallRequired ? (
+              <p className="mt-2 text-[13px] leading-[18px] text-[#8F8E8D]">
+                iPhone/iPad에서는 Safari 공유 버튼을 눌러 홈 화면에 추가한 뒤, 설치된 Weether에서 알림을 설정해 주세요.
+              </p>
+            ) : push.permission === "granted" ? (
+              <p className="mt-2 text-[13px] leading-[18px] text-[#8F8E8D]">
+                브라우저 알림 권한이 허용되어 있어요.
+              </p>
+            ) : push.supported ? (
+              <Button
+                type="button"
+                variant="soft"
+                onClick={enablePush}
+                className="mt-3 h-[40px] !rounded-[9px] !text-[14px]"
+              >
+                알림 받기
+              </Button>
+            ) : (
+              <p className="mt-2 text-[13px] leading-[18px] text-[#8F8E8D]">
+                이 브라우저에서는 웹 푸시 알림을 지원하지 않아요.
+              </p>
+            )}
+          </section>
 
           <section aria-label="행동 알림 항목" className="mt-[15px]">
             {ALARM_LIST.map((alarm, index) => (

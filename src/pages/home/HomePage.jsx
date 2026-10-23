@@ -24,10 +24,11 @@ import snowflakeIcon from "../../assets/icons/snowflake_icon.svg";
 import { searchRegions, updateUserLocation } from "../../api/location";
 import { fetchHomeData } from "../../api/weather";
 import queryKeys from "../../api/queryKeys";
-import { USE_MOCK } from "../../api/config";
 import { useCurrentRegion, useRegionSearch } from "../../hooks/useLocation";
 import useToast from "../../hooks/useToast";
 import useUserStore from "../../store/useUserStore";
+import useLocationStore from "../../store/useLocationStore";
+import LoginRequiredModal from "../../components/LoginRequiredModal";
 
 const formatTemperature = (value) =>
   value == null ? "--" : `${Number(value).toFixed(1).replace(/\.0$/, "")}°`;
@@ -74,12 +75,15 @@ const recentLocations = [
 export default function HomePage() {
   const navigate = useNavigate();
   const currentUser = useUserStore((state) => state.user);
+  const selectedRegion = useLocationStore((state) => state.selected);
+  const selectRegion = useLocationStore((state) => state.selectRegion);
   const [isLocationPickerOpen, setIsLocationPickerOpen] = useState(false);
+  const [isLoginPromptOpen, setIsLoginPromptOpen] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [hasEditedSearch, setHasEditedSearch] = useState(false);
   const [locationQuery, setLocationQuery] = useState("");
   const [location, setLocation] = useState(
-    () => currentUser?.region?.shortName ?? currentUser?.region ?? "서대문구 아현동",
+    () => selectedRegion?.shortName ?? selectedRegion ?? currentUser?.region?.shortName ?? currentUser?.region ?? "서대문구 아현동",
   );
   const [isSelectingLocation, setIsSelectingLocation] = useState(false);
   const { locate, loading: locating } = useCurrentRegion();
@@ -93,7 +97,7 @@ export default function HomePage() {
   } = useQuery({
     queryKey: queryKeys.home,
     queryFn: fetchHomeData,
-    enabled: USE_MOCK || Boolean(localStorage.getItem("wee_access_token")),
+    enabled: true,
     retry: false,
   });
   const toast = useToast();
@@ -126,12 +130,19 @@ export default function HomePage() {
   ];
 
   useEffect(() => {
-    const regionName = homeData?.region?.shortName;
+    const regionName = selectedRegion?.shortName ?? selectedRegion ?? homeData?.region?.shortName;
     if (regionName) setLocation(regionName);
-  }, [homeData?.region?.shortName]);
+  }, [homeData?.region?.shortName, selectedRegion]);
 
   const handleRegionSelection = async (region) => {
     if (isSelectingLocation) return;
+    if (!localStorage.getItem("wee_access_token")) {
+      selectRegion({ ...region, shortName: region.shortName });
+      setLocation(region.shortName);
+      setIsLocationPickerOpen(false);
+      queryClient.invalidateQueries({ queryKey: queryKeys.home });
+      return;
+    }
     setIsSelectingLocation(true);
     try {
       const user = await updateUserLocation({
@@ -175,6 +186,10 @@ export default function HomePage() {
   };
 
   const handleLocate = async () => {
+    if (!localStorage.getItem("wee_access_token")) {
+      toast.error("현재 위치 저장은 로그인 후 사용할 수 있어요. 지역 검색은 계속 이용할 수 있어요.");
+      return;
+    }
     const region = await locate();
     if (!region) {
       toast.error("현재 위치를 설정하지 못했어요. 위치 권한을 확인해 주세요.");
@@ -295,7 +310,9 @@ export default function HomePage() {
           <button
             type="button"
             aria-label="오늘의 날씨 운세 열기"
-            onClick={() => navigate("/weather-fortune")}
+            onClick={() => localStorage.getItem("wee_access_token")
+              ? navigate("/weather-fortune")
+              : setIsLoginPromptOpen(true)}
             className="absolute inset-0 z-10 rounded-[20px]"
           />
         </Card>
@@ -436,6 +453,11 @@ export default function HomePage() {
           </section>
         </div>
       )}
+      <LoginRequiredModal
+        isOpen={isLoginPromptOpen}
+        onClose={() => setIsLoginPromptOpen(false)}
+        onLogin={() => navigate("/consent", { state: { intent: "kakao", from: "/weather-fortune" } })}
+      />
     </MobileLayout>
   );
 }

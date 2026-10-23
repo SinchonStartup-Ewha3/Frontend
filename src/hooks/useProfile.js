@@ -11,13 +11,15 @@ import {
 } from "../api/user";
 import queryKeys from "../api/queryKeys";
 import useUserStore from "../store/useUserStore";
+import { logoutOneSignalUser } from "../push/oneSignal";
 
 // 내 프로필 조회. 성공하면 zustand(useUserStore)에도 복사.
-export const useProfileQuery = () => {
+export const useProfileQuery = ({ enabled = true } = {}) => {
   const setUser = useUserStore((s) => s.setUser);
   const query = useQuery({
     queryKey: queryKeys.profile,
     queryFn: fetchProfile,
+    enabled,
   });
   useEffect(() => {
     if (query.data) setUser(query.data);
@@ -80,6 +82,11 @@ export const useWithdraw = () => {
   return useMutation({
     mutationFn: withdrawUser,
     onSuccess: () => {
+      void logoutOneSignalUser().catch((error) =>
+        console.warn("OneSignal 로그아웃 실패", error),
+      );
+      localStorage.removeItem("wee_access_token");
+      localStorage.removeItem("wee_refresh_token");
       queryClient.clear();
       clearUser();
     },

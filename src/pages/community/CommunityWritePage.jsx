@@ -3,16 +3,46 @@ import { useNavigate } from "react-router-dom";
 import BottomNav from "../../components/BottomNav";
 import Header from "../../components/Header";
 import MobileLayout from "../../components/MobileLayout";
+import { createCommunityPost } from "../../api/community";
 
-const tags = ["가디건", "패딩", "코트"];
+const tags = [
+  { label: "가디건", value: "cardigan" },
+  { label: "패딩", value: "padded" },
+  { label: "코트", value: "coat" },
+];
+const allowedImageTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+
+const getCurrentCoordinates = () => new Promise((resolve, reject) => {
+  if (typeof navigator === "undefined" || !navigator.geolocation) {
+    reject(new Error("이 브라우저에서는 위치를 확인할 수 없어요."));
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    ({ coords }) => resolve({
+      latitude: coords.latitude,
+      longitude: coords.longitude,
+    }),
+    (error) => reject(new Error(
+      error.code === 1
+        ? "게시글에 동네를 표시하려면 위치 권한이 필요해요. 브라우저 설정에서 위치를 허용해 주세요."
+        : error.code === 3
+          ? "위치 확인 시간이 초과됐어요. 다시 등록해 주세요."
+          : "현재 위치를 확인할 수 없어요. 위치 설정을 확인해 주세요.",
+    )),
+    { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 },
+  );
+});
 
 export default function CommunityWritePage() {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
-  const [selectedTags, setSelectedTags] = useState(["가디건"]);
+  const [selectedTag, setSelectedTag] = useState("cardigan");
   const [message, setMessage] = useState("");
   const [photo, setPhoto] = useState(null);
   const [photoPreview, setPhotoPreview] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState("");
 
   useEffect(() => {
     if (!photo) {
@@ -24,45 +54,81 @@ export default function CommunityWritePage() {
     return () => URL.revokeObjectURL(previewUrl);
   }, [photo]);
 
-  const toggleTag = (tag) => {
-    setSelectedTags((current) => current.includes(tag)
-      ? current.filter((item) => item !== tag)
-      : [...current, tag]);
+  const choosePhoto = (file) => {
+    setFormError("");
+    if (file && !allowedImageTypes.has(file.type)) {
+      setFormError("JPG, PNG, WEBP 이미지만 등록할 수 있습니다.");
+      setPhoto(null);
+      return;
+    }
+    if (file && file.size > MAX_IMAGE_BYTES) {
+      setFormError("이미지 크기는 5MB 이하여야 합니다.");
+      setPhoto(null);
+      return;
+    }
+    setPhoto(file ?? null);
   };
 
   const close = () => navigate("/community");
-  const submit = () => {
-    if (!message.trim()) return;
-    sessionStorage.setItem("community:last-post", JSON.stringify({
-      message: message.trim(),
-      tags: selectedTags,
-      photoName: photo?.name ?? "",
-      createdAt: Date.now(),
-    }));
-    close();
+  const submit = async () => {
+    if (isSubmitting) return;
+    setFormError("");
+    if (!selectedTag) {
+      setFormError("태그를 선택해주세요.");
+      return;
+    }
+    if (!message.trim()) {
+      setFormError("게시글 내용을 입력해주세요.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const location = await getCurrentCoordinates();
+      const post = await createCommunityPost({
+        content: message,
+        tag: selectedTag,
+        image: photo,
+        location,
+      });
+      navigate("/community", { state: { createdPost: post } });
+    } catch (error) {
+      const data = error.response?.data;
+      const locationError = data?.location;
+      const regionError = data?.region;
+      setFormError(
+        data?.content?.[0] ?? data?.tag?.[0] ?? data?.image?.[0] ??
+        (Array.isArray(locationError) ? locationError[0] : locationError) ??
+        (Array.isArray(regionError) ? regionError[0] : regionError) ??
+        data?.detail ?? error.message ??
+        "게시글을 등록하지 못했어요. 다시 시도해 주세요.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <MobileLayout>
       <main className="relative mx-auto min-h-[852px] w-full max-w-[390px] overflow-hidden bg-white text-[#353331]">
         <div className="absolute left-[23px] right-[23px] top-[74px]">
-          <Header left="취소" right="등록" onLeft={close} onRight={submit} rightDisabled={!message.trim()} />
+          <Header left="취소" right={isSubmitting ? "등록 중..." : "등록"} onLeft={close} onRight={submit} rightDisabled={isSubmitting || !message.trim() || !selectedTag} />
         </div>
 
         <section className="absolute left-[24px] right-[24px] top-[136px]" aria-labelledby="outfit-tags-title">
           <h1 id="outfit-tags-title" className="text-[20px] font-semibold leading-[1.38] tracking-[-0.6px]">태그</h1>
           <div className="mt-[18px] flex gap-[8px]">
             {tags.map((tag) => {
-              const active = selectedTags.includes(tag);
+              const active = selectedTag === tag.value;
               return (
                 <button
                   key={tag}
                   type="button"
                   aria-pressed={active}
-                  onClick={() => toggleTag(tag)}
+                  onClick={() => setSelectedTag((current) => current === tag.value ? "" : tag.value)}
                   className={`flex h-[36px] items-center gap-[5px] rounded-full border px-[12px] text-[14px] font-semibold leading-[1.5] tracking-[-0.42px] ${active ? "border-[#60E1FF] bg-[#60E1FF] text-white" : "border-[#D2D2D1] bg-white text-[#A5A4A3]"}`}
                 >
-                  {tag}<span aria-hidden="true" className="text-[15px] font-normal">×</span>
+                  {tag.label}<span aria-hidden="true" className="text-[15px] font-normal">×</span>
                 </button>
               );
             })}
@@ -73,7 +139,7 @@ export default function CommunityWritePage() {
           <h2 id="community-message-title" className="text-[20px] font-semibold leading-[1.38] tracking-[-0.6px]">한마디</h2>
           <div className="relative mt-[17px] h-[181px] rounded-[15px] bg-[#E9E8E8]/60">
             <textarea
-              maxLength={100}
+              maxLength={200}
               value={message}
               onChange={(event) => setMessage(event.target.value)}
               placeholder="오늘 뭘 입었는지, 뭘 챙겼는지 적어주세요"
@@ -82,8 +148,8 @@ export default function CommunityWritePage() {
             />
           </div>
           <div className="mt-[9px] flex items-start justify-between gap-2 text-[14px] font-medium leading-[1.5] tracking-[-0.42px] text-[#A5A4A3]">
-            <p>작성한 후기는 AI 요약과 오늘의 체감 정보에 반영돼요.<br />정확한 위치는 공개되지 않습니다</p>
-            <span className="shrink-0">{message.length} / 100</span>
+            <p>작성한 후기는 AI 요약과 오늘의 체감 정보에 반영돼요.<br />등록 시 위치 권한을 요청하며 동네 단위로 표시돼요.</p>
+            <span className="shrink-0">{message.length} / 200</span>
           </div>
         </section>
 
@@ -92,9 +158,9 @@ export default function CommunityWritePage() {
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/*"
+            accept="image/jpeg,image/png,image/webp"
             className="sr-only"
-            onChange={(event) => setPhoto(event.target.files?.[0] ?? null)}
+            onChange={(event) => choosePhoto(event.target.files?.[0])}
           />
           <button
             type="button"
@@ -113,6 +179,12 @@ export default function CommunityWritePage() {
             )}
           </button>
         </section>
+
+        {formError && (
+          <p role="alert" className="absolute left-6 right-6 top-[710px] text-center text-sm font-medium text-red-500">
+            {formError}
+          </p>
+        )}
 
         <BottomNav />
       </main>
