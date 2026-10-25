@@ -32,7 +32,6 @@ export default function CommunityPage() {
   const postsQuery = useQuery({
     queryKey: ["community", "posts", activeCategory, page, 10],
     queryFn: () => fetchCommunityPosts({ tag: activeCategory, page, pageSize: 10 }),
-    enabled: isLoggedIn,
     retry: false,
     refetchOnMount: "always",
   });
@@ -43,15 +42,8 @@ export default function CommunityPage() {
     retry: false,
   });
   const weatherCopy = isLoggedIn ? weatherCopyQuery.data : null;
-  const headline = weatherCopy?.headline ?? {
-    title: "뚝 떨어진 기온에",
-    description: "얇은 아우터와 우산을 추천해요",
-  };
-  const premiumCard = weatherCopy?.premiumCard ?? {
-    message: "멋사님 우산 챙기셨나요?",
-    subMessage: "이미 많은 사람들이 알림 기능을 사용하고 있어요",
-    targetUrl: "/premium",
-  };
+  const headline = weatherCopy?.headline;
+  const premiumCard = weatherCopy?.premiumCard;
   const visiblePosts = postsQuery.data?.results ?? [];
   const pageCount = Math.max(1, Math.ceil((postsQuery.data?.count ?? 0) / 10));
 
@@ -108,41 +100,53 @@ export default function CommunityPage() {
 
   return (
     <MobileLayout>
-      <main className="relative min-h-[852px] w-full max-w-[390px] overflow-hidden bg-white text-[#353331]">
-        <h1 className="absolute left-6 right-6 top-[96px] text-[28px] font-semibold leading-[1.4] tracking-[-0.84px]">
-          {headline.title}
-          <br />
-          {headline.description}
-        </h1>
-
-        <div className="absolute left-6 top-[190px] flex items-center gap-[7px]">
-          {categories.map(({ label, value }) => (
-            <Chip
-              key={value}
-              active={activeCategory === value}
-              onClick={() => { setActiveCategory(value); setPage(1); }}
+      <main className="relative mx-auto flex min-h-[852px] w-full max-w-[390px] flex-col bg-white pb-0 text-[#353331]">
+        <header className="mx-6 pt-[96px]">
+          {headline && (
+            <h1 className="break-words text-[28px] font-semibold leading-[1.4] tracking-[-0.84px]">
+              {headline.title}<br />{headline.description}
+            </h1>
+          )}
+          {isLoggedIn && weatherCopyQuery.isPending && (
+            <p className="text-sm text-[#A5A4A3]">날씨 문구를 불러오는 중...</p>
+          )}
+          {isLoggedIn && weatherCopyQuery.isError && (
+            <div className="text-sm text-[#797776]">
+              <p role="alert">{weatherCopyQuery.error?.response?.data?.detail ?? "날씨 문구를 불러오지 못했어요."}</p>
+              <button type="button" onClick={() => weatherCopyQuery.refetch()} className="mt-1 text-[#33B8D7]">다시 시도</button>
+            </div>
+          )}
+          {!isLoggedIn && (
+            <p className="text-sm text-[#A5A4A3]">로그인 후 오늘의 날씨 문구를 확인할 수 있어요.</p>
+          )}
+          <div className="mt-4 flex items-center gap-[7px]">
+            {categories.map(({ label, value }) => (
+              <Chip
+                key={value}
+                active={activeCategory === value}
+                onClick={() => { setActiveCategory(value); setPage(1); }}
+              >
+                {label}
+              </Chip>
+            ))}
+            <button
+              type="button"
+              aria-label="게시물 작성"
+              onClick={() => isLoggedIn ? navigate("/community/write") : (setLoginReturnTo("/community/write"), setIsLoginPromptOpen(true))}
+              className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center"
             >
-              {label}
-            </Chip>
-          ))}
-        </div>
-        <button
-          type="button"
-          aria-label="게시물 작성"
-          onClick={() => isLoggedIn ? navigate("/community/write") : (setLoginReturnTo("/community/write"), setIsLoginPromptOpen(true))}
-          className="absolute right-[24px] top-[198px] flex h-6 w-6 items-center justify-center"
-        >
-          <img src={modifyIcon} alt="" aria-hidden="true" />
-        </button>
+              <img src={modifyIcon} alt="" aria-hidden="true" />
+            </button>
+          </div>
+        </header>
 
-        <section aria-label="커뮤니티 게시물" className="absolute bottom-[278px] left-6 right-6 top-[253px] overflow-y-auto">
-          {isLoggedIn && postsQuery.isPending && <p className="flex min-h-full items-center justify-center text-center text-sm text-[#A5A4A3]">게시글을 불러오는 중...</p>}
+        <section aria-label="커뮤니티 게시물" className="mx-6 mt-[27px] h-[321px] shrink-0 overflow-y-auto">
+          {postsQuery.isPending && <p className="flex min-h-full items-center justify-center text-center text-sm text-[#A5A4A3]">게시글을 불러오는 중...</p>}
           {postsQuery.isError && <div className="flex min-h-full flex-col items-center justify-center text-center text-sm text-[#797776]">
             <p role="alert">{postsQuery.error?.response?.data?.detail ?? "게시글을 불러오지 못했어요."}</p>
             <button type="button" onClick={() => postsQuery.refetch()} className="mt-2 text-[#33B8D7]">다시 시도</button>
           </div>}
-          {!isLoggedIn && <p className="flex min-h-full items-center justify-center text-center text-sm text-[#A5A4A3]">로그인 후 게시글을 확인할 수 있어요.</p>}
-          {!postsQuery.isPending && !postsQuery.isError && isLoggedIn && visiblePosts.length === 0 && (
+          {!postsQuery.isPending && !postsQuery.isError && visiblePosts.length === 0 && (
             <p className="flex min-h-full items-center justify-center text-center text-sm text-[#A5A4A3]">아직 게시글이 없어요.</p>
           )}
           {visiblePosts.map((post, index) => {
@@ -187,7 +191,7 @@ export default function CommunityPage() {
               )}
             </article>
           );})}
-          {isLoggedIn && !postsQuery.isError && pageCount > 1 && (
+          {!postsQuery.isError && pageCount > 1 && (
             <div className="flex items-center justify-center gap-5 py-3 text-sm font-medium text-[#797776]">
               <button type="button" disabled={page <= 1 || postsQuery.isFetching} onClick={() => setPage((current) => current - 1)} className="disabled:opacity-40">이전</button>
               <span>{page} / {pageCount}</span>
@@ -196,29 +200,44 @@ export default function CommunityPage() {
           )}
         </section>
 
-        <Card
+        {(premiumCard || !isLoggedIn) && <Card
           as="button"
           type="button"
-          onClick={() => navigate("/premium/onboarding/1")}
-          aria-label="멋사님 우산 챙기셨나요? 프리미엄 기능 소개 보기"
-          className="absolute left-1/2 top-[574px] h-[80px] w-[345px] max-w-[calc(100%-48px)] -translate-x-1/2 !rounded-[20px] !border-0 !p-0 text-left shadow-[0px_4px_4px_0px_rgba(0,0,0,0.1)]"
+          onClick={() => {
+            const targetUrl = premiumCard?.targetUrl ?? "/premium";
+            navigate(typeof targetUrl === "string" && targetUrl.startsWith("/") && !targetUrl.startsWith("//") ? targetUrl : "/premium");
+          }}
+          aria-label={`${premiumCard?.message ?? "맞춤형 행동 알림"} 프리미엄 기능 보기`}
+          className="relative mx-auto flex h-[80px] w-[345px] max-w-[calc(100%-48px)] shrink-0 items-center justify-between gap-3 !rounded-[20px] !border-0 !px-[27px] !py-4 text-left shadow-[0px_4px_4px_0px_rgba(0,0,0,0.1)]"
         >
           <div className="absolute inset-0 rounded-[20px] bg-gradient-to-r from-[rgba(240,227,255,0.2)] to-[rgba(5,196,240,0.2)]" />
-          <p className="absolute left-[27px] top-[17px] text-[16px] font-semibold leading-[1.5] tracking-[-0.48px] text-[#62605F]">
-            {premiumCard.message}
-          </p>
-          <p className="absolute left-[27px] top-[44px] text-[12px] font-medium leading-[1.5] tracking-[-0.36px] text-[#8F8E8D]">
-            {premiumCard.subMessage}
-          </p>
+          <div className="relative z-[1] min-w-0 flex-1">
+            <p className="break-words text-[16px] font-semibold leading-[1.5] tracking-[-0.48px] text-[#62605F]">
+              {premiumCard?.message ?? "맞춤형 행동 알림"}
+            </p>
+            <p className="mt-1 break-words text-[12px] font-medium leading-[1.5] tracking-[-0.36px] text-[#8F8E8D]">
+              {premiumCard?.subMessage ?? "날씨에 맞는 알림으로 외출을 준비해보세요"}
+            </p>
+          </div>
           <img
             src={diamondIcon}
             alt=""
             aria-hidden="true"
-            className="absolute right-[24px] top-[29px]"
+            className="relative z-[1] shrink-0"
           />
+        </Card>}
+
+        <Card
+          aria-label="광고 영역"
+          className="relative mx-auto mt-[14px] h-[80px] w-[345px] max-w-[calc(100%-48px)] shrink-0 !border-[#F3F3F3] !p-0 shadow-[0px_4px_4px_0px_rgba(0,0,0,0.1)]"
+        >
+          <div aria-hidden="true" className="absolute inset-0 rounded-[13px] bg-gradient-to-r from-[rgba(240,227,255,0.2)] to-[rgba(5,196,240,0.2)]" />
+          <p className="absolute left-[27px] top-1/2 -translate-y-1/2 text-[16px] font-semibold leading-[1.5] tracking-[-0.48px] text-[#62605F]">
+            광고 칸
+          </p>
         </Card>
 
-        <BottomNav />
+        <BottomNav bottomClassName="bottom-[15px]" />
       </main>
       <LoginRequiredModal
         isOpen={isLoginPromptOpen}

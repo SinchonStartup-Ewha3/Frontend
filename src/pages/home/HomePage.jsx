@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import BottomNav from "../../components/BottomNav";
@@ -92,6 +92,8 @@ export default function HomePage() {
     () => selectedRegion?.shortName ?? selectedRegion ?? currentUser?.region?.shortName ?? currentUser?.region ?? "서대문구 아현동",
   );
   const [isSelectingLocation, setIsSelectingLocation] = useState(false);
+  const messagePillRef = useRef(null);
+  const [messagePillOffset, setMessagePillOffset] = useState(0);
   const { locate, loading: locating } = useCurrentRegion();
   const { data: regionResults = [], isError: regionSearchFailed } =
     useRegionSearch(locationQuery);
@@ -117,6 +119,17 @@ export default function HomePage() {
   const normalizedQuery = locationQuery.trim();
   const isSearchingRegions = isSearchActive && hasEditedSearch && normalizedQuery.length > 0;
   const weather = homeData?.weather;
+  const message = homeData?.message ?? (isHomeLoading ? "날씨 정보를 불러오는 중..." : "오늘의 날씨를 확인해 보세요!");
+
+  useLayoutEffect(() => {
+    const pill = messagePillRef.current;
+    if (!pill) return undefined;
+    const updateHeight = () => setMessagePillOffset(Math.max(0, pill.getBoundingClientRect().height - 39));
+    updateHeight();
+    const observer = new ResizeObserver(updateHeight);
+    observer.observe(pill);
+    return () => observer.disconnect();
+  }, [message]);
   const forecast = [
     ...(weather
       ? [
@@ -141,9 +154,13 @@ export default function HomePage() {
   ];
 
   useEffect(() => {
-    const regionName = selectedRegion?.shortName ?? selectedRegion ?? homeData?.region?.shortName;
+    // 로그인 사용자의 저장 지역은 서버 응답을 기준으로 표시합니다.
+    // 비로그인 때 남은 Zustand 선택값이 로그인 계정의 위치를 덮어쓰지 않게 합니다.
+    const regionName = hasAccessToken
+      ? homeData?.region?.shortName ?? currentUser?.region?.shortName
+      : selectedRegion?.shortName ?? selectedRegion ?? homeData?.region?.shortName;
     if (regionName) setLocation(regionName);
-  }, [hasAccessToken, homeData?.region?.shortName, selectedRegion, selectedRegionCode]);
+  }, [hasAccessToken, currentUser?.region?.shortName, homeData?.region?.shortName, selectedRegion, selectedRegionCode]);
 
   const handleRegionSelection = async (region) => {
     if (isSelectingLocation) return;
@@ -230,7 +247,10 @@ export default function HomePage() {
 
   return (
     <MobileLayout>
-      <main className="relative mx-auto min-h-[852px] w-full max-w-[390px] overflow-hidden bg-white text-[#353331]">
+      <main
+        className="relative mx-auto w-full max-w-[390px] overflow-visible bg-white text-[#353331]"
+        style={{ minHeight: `${852 + messagePillOffset}px` }}
+      >
         <button
           type="button"
           onClick={() => {
@@ -271,12 +291,15 @@ export default function HomePage() {
             className="origin-top-left scale-[0.67] max-w-none"
           />
         </div>
-        <div className="absolute left-1/2 top-[459px] flex h-[39px] w-[229px] -translate-x-1/2 items-center justify-center rounded-full bg-gradient-to-r from-[#60E1FF] to-[#B1F0FE]">
-          <span className="whitespace-nowrap text-[16px] font-semibold tracking-[-0.48px] text-white">
-            {homeData?.message ?? (isHomeLoading ? "날씨 정보를 불러오는 중..." : "오늘의 날씨를 확인해 보세요!")}
+        <div
+          ref={messagePillRef}
+          className="absolute left-1/2 top-[459px] flex min-h-[39px] w-fit max-w-[calc(100%-48px)] -translate-x-1/2 items-center justify-center rounded-full bg-gradient-to-r from-[#60E1FF] to-[#B1F0FE] px-3 py-2 text-center"
+        >
+          <span className="break-words text-[16px] font-semibold leading-[1.35] tracking-[-0.48px] text-white">
+            {message}
           </span>
         </div>
-        <Card className="absolute left-1/2 top-[517px] h-[116px] w-[355px] -translate-x-1/2 !rounded-[20px] !border !border-[#E9E8E8]/60 !p-0">
+        <Card style={{ top: `${517 + messagePillOffset}px` }} className="absolute left-1/2 h-[116px] w-[355px] -translate-x-1/2 !rounded-[20px] !border !border-[#E9E8E8]/60 !p-0">
           <div className="absolute inset-x-[10px] top-[16px] flex gap-[5px] overflow-x-auto pb-2" aria-label="시간대별 날씨">
             {forecast.map((item, index) => (
               <div key={`${item.time}-${index}`} className="flex w-[55px] shrink-0 flex-col items-center">
@@ -320,7 +343,7 @@ export default function HomePage() {
             )}
           </div>
         </Card>
-        <Card className="absolute left-1/2 top-[645px] h-[80px] w-[345px] -translate-x-1/2 !rounded-[20px] !border-0 !p-0 shadow-[0px_4px_4px_0px_rgba(0,0,0,0.1)]">
+        <Card style={{ top: `${661 + messagePillOffset}px` }} className="absolute left-1/2 h-[80px] w-[345px] -translate-x-1/2 !rounded-[20px] !border-0 !p-0 shadow-[0px_4px_4px_0px_rgba(0,0,0,0.1)]">
           <div className="absolute inset-0 rounded-[20px] bg-gradient-to-r from-[rgba(240,227,255,0.2)] to-[rgba(5,196,240,0.2)]" />
           <p className="absolute left-[23px] top-[17px] text-[16px] font-semibold leading-[1.5] tracking-[-0.48px] text-[#62605F]">
             오늘의 날씨 운세

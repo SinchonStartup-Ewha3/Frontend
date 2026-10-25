@@ -2,7 +2,7 @@ import Button from "../../components/Button";
 import mapCharacter from "../../assets/images/map_character.svg";
 import mapIcon from "../../assets/icons/map_icon.svg";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import {useCurrentRegion} from "../../hooks/useLocation";
 import useLocationStore from "../../store/useLocationStore";
@@ -13,6 +13,14 @@ import queryKeys from "../../api/queryKeys";
 
 export default function LocationSetupPage() {
   const navigate = useNavigate();
+  const routeLocation = useLocation();
+  const returnPath = routeLocation.state?.from;
+  const finishLocationSetup = () => navigate(
+    typeof returnPath === "string" && returnPath.startsWith("/") && !returnPath.startsWith("//")
+      ? returnPath
+      : "/home",
+    { replace: true },
+  );
   const queryClient = useQueryClient();
   const { locate, loading, error } = useCurrentRegion();
   const selectRegion = useLocationStore((state) => state.selectRegion);
@@ -36,7 +44,7 @@ export default function LocationSetupPage() {
           lat: position.coords.latitude,
           lng: position.coords.longitude,
         });
-        navigate("/home", { replace: true });
+        finishLocationSetup();
       } catch (locationError) {
         setManualError(locationError.code === 1
           ? "위치 권한을 허용한 뒤 다시 시도해 주세요."
@@ -51,7 +59,7 @@ export default function LocationSetupPage() {
     if(!region) return;
 
     selectRegion(region);
-    navigate("/home", { replace: true });
+    finishLocationSetup();
   }
 
   const handleRegionSelect = async (_regionName, selection) => {
@@ -74,7 +82,7 @@ export default function LocationSetupPage() {
       }
       if (!localStorage.getItem("wee_access_token")) {
         selectRegion(region);
-        navigate("/home", { replace: true });
+        finishLocationSetup();
         return;
       }
       const user = await updateUserLocation({
@@ -83,7 +91,7 @@ export default function LocationSetupPage() {
       });
       setUser(user);
       queryClient.setQueryData(queryKeys.profile, user);
-      navigate("/home", { replace: true });
+      finishLocationSetup();
     } catch (requestError) {
       setManualError(
         requestError.response?.data?.regionCode?.[0] ??

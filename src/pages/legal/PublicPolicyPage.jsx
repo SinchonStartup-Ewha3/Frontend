@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import MobileLayout from "../../components/MobileLayout";
 import { LEGAL_DOCUMENTS, SUPPORT_EMAIL } from "../../constants/legalContent";
+import weeLogo from "../../assets/icons/logo.svg";
 
 const pages = {
   "/terms": LEGAL_DOCUMENTS.terms,
@@ -29,29 +30,36 @@ export default function PublicPolicyPage() {
   const page = pages[pathname] ?? pages["/terms"];
 
   return (
-    <MobileLayout>
-      <main className="mx-auto min-h-screen w-full max-w-[402px] bg-white px-6 pb-8 text-[#353331]">
-        <div className="flex h-[72px] items-center justify-between">
-          <Link to="/" className="text-lg font-bold">WEE</Link>
-          <Link to="/premium" className="text-sm text-[#797776]">WEE Premium</Link>
-        </div>
-        <article className="pt-5">
-          <h1 className="text-[26px] font-bold leading-[1.4] tracking-[-0.78px]">{page.title}</h1>
-          <p className="mt-4 text-sm leading-6 text-[#797776]">{page.intro}</p>
-          <div className="mt-8 space-y-7">
+    <MobileLayout className="!max-w-[402px]">
+      <main className="mx-auto min-h-screen w-full max-w-[402px] bg-white px-6 pb-12 text-[#353331]">
+        <header className="flex h-[118px] items-end pb-4">
+          <Link to="/" aria-label="WEE 첫 페이지로 이동" className="inline-flex items-center">
+            <img
+              src={weeLogo}
+              alt="WEE"
+              className="h-[31px] w-auto"
+              style={{ filter: "brightness(0) saturate(100%) invert(80%) sepia(28%) saturate(1492%) hue-rotate(154deg) brightness(101%) contrast(101%)" }}
+            />
+          </Link>
+        </header>
+        <article>
+          <p className="text-[14px] font-medium leading-[1.53] tracking-[-0.42px] text-[#D2D2D1]">{page.eyebrow}</p>
+          <h1 className="mt-[2px] text-[24px] font-semibold leading-[1.4] tracking-[-0.72px]">{page.title}</h1>
+          <p className="mt-[10px] text-[14px] leading-[1.53] tracking-[-0.42px] text-[#A5A4A3]">{page.intro}</p>
+          <div className="mt-[46px] space-y-[17px]">
             {page.sections.map(([heading, body]) => (
-              <section key={heading}>
-                <h2 className="text-base font-semibold">{heading}</h2>
+              <section key={heading} className="text-[14px] leading-[1.38] tracking-[-0.42px]">
+                <h2 className="font-medium text-[#797776]">{heading}</h2>
                 {pathname === "/contact" && heading === "이메일 문의" ? (
-                  <a href={`mailto:${SUPPORT_EMAIL}`} className="mt-2 inline-block text-sm text-[#238AA3] underline underline-offset-2">{body}</a>
+                  <a href={`mailto:${SUPPORT_EMAIL}`} className="mt-1 inline-block text-[#62605F] underline underline-offset-2">{body}</a>
                 ) : (
-                  <p className="mt-2 whitespace-pre-line text-sm leading-6 text-[#62605F]">{body}</p>
+                  <p className="whitespace-pre-line text-[#A5A4A3]">{body}</p>
                 )}
               </section>
             ))}
           </div>
         </article>
-        <nav aria-label="정책 및 고객지원" className="mt-12 flex flex-wrap gap-x-4 gap-y-2 border-t border-[#E9E8E8] pt-5 text-xs text-[#797776]">
+        <nav aria-label="정책 및 고객지원" className="mt-12 flex flex-wrap gap-x-4 gap-y-2 border-t border-[#E9E8E8] pt-5 text-xs text-[#A5A4A3]">
           {policyLinks.map(([label, href]) => <Link key={href} to={href} className="underline underline-offset-2">{label}</Link>)}
         </nav>
       </main>

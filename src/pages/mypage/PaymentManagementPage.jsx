@@ -3,6 +3,9 @@ import MobileLayout from "../../components/MobileLayout";
 import { usePremiumBillingQuery, useRefundRequestQuery } from "../../hooks/usePayment";
 import { PREMIUM_PLAN } from "../../constants/premium";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { fetchMyFortunePurchases } from "../../api/fortune";
+import queryKeys from "../../api/queryKeys";
 
 const cardClassName =
   "flex w-full flex-col gap-[15px] rounded-[13px] border-[1.5px] border-[#E9E8E8] bg-white px-4 py-[19px]";
@@ -19,6 +22,12 @@ export default function PaymentManagementPage() {
   const navigate = useNavigate();
   const { data, isLoading, isError } = usePremiumBillingQuery();
   const { data: refundRequest } = useRefundRequestQuery();
+  const fortunePurchasesQuery = useQuery({
+    queryKey: queryKeys.fortunePurchases,
+    queryFn: fetchMyFortunePurchases,
+    retry: false,
+  });
+  const fortunePurchases = fortunePurchasesQuery.data;
   const subscription = data?.subscription;
   const isActive = subscription?.isActive ?? subscription?.active;
   const canRequestRefund = Boolean(subscription?.canRequestRefund);
@@ -100,6 +109,46 @@ export default function PaymentManagementPage() {
               </>
             ) : (
               <p className="text-[14px] leading-[21px] text-[#797776]">이용 중인 구독이 없어요.</p>
+            )}
+          </article>
+
+          <h2 className="ml-[6px] mt-8 text-[24px] font-semibold leading-[1.4] tracking-[-0.72px]">
+            사주 패키지
+          </h2>
+          <article className={`${cardClassName} mt-[14px]`}>
+            <h3 className="text-[16px] font-bold leading-[21px] tracking-[-0.43px]">
+              보유 코인
+            </h3>
+            {fortunePurchasesQuery.isPending ? (
+              <p className="text-[14px] leading-[21px] text-[#797776]">이용권 정보를 불러오는 중...</p>
+            ) : fortunePurchasesQuery.isError ? (
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-[14px] leading-[21px] text-[#797776]">이용권 정보를 불러오지 못했어요.</p>
+                <button type="button" onClick={() => fortunePurchasesQuery.refetch()} className="shrink-0 text-[14px] text-[#5ADCF4] underline">다시 시도</button>
+              </div>
+            ) : (
+              <>
+                <p className="text-[14px] leading-[21px] tracking-[-0.43px]">
+                  {fortunePurchases?.coins?.remaining ?? 0} / {fortunePurchases?.coins?.total ?? 0}
+                </p>
+                <div className="h-px w-full bg-[#E9E8E8]" />
+                <h3 className="text-[16px] font-bold leading-[21px] tracking-[-0.43px]">구매한 패키지</h3>
+                <p className="text-[14px] leading-[21px] tracking-[-0.43px]">
+                  {fortunePurchases?.current?.product_title ?? "이용 중인 패키지가 없어요."}
+                </p>
+                {fortunePurchases?.upcoming?.length > 0 && (
+                  <p className="text-[13px] leading-[19px] text-[#797776]">
+                    다음 이용권: {fortunePurchases.upcoming[0].product_title} ({fortunePurchases.upcoming[0].active_from} 시작)
+                  </p>
+                )}
+                <div className="h-px w-full bg-[#E9E8E8]" />
+                <h3 className="text-[16px] font-bold leading-[21px] tracking-[-0.43px]">최근 결제일</h3>
+                <p className="text-[14px] leading-[21px] tracking-[-0.43px]">
+                  {fortunePurchases?.latest?.redeemed_at
+                    ? new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(fortunePurchases.latest.redeemed_at))
+                    : "-"}
+                </p>
+              </>
             )}
           </article>
 

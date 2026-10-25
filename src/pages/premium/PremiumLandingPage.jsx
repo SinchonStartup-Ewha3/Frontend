@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import Button from "../../components/Button";
 import MobileLayout from "../../components/MobileLayout";
 import PremiumCheckoutSheet from "../../components/PremiumCheckoutSheet";
@@ -22,13 +22,26 @@ const legalLinks = [
 
 export default function PremiumLandingPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [autoTransactionId, setAutoTransactionId] = useState("");
+
+  useEffect(() => {
+    const transactionId = searchParams.get("_ptxn");
+    if (!transactionId) return;
+    setAutoTransactionId(transactionId);
+    setIsCheckoutOpen(true);
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete("_ptxn");
+    setSearchParams(nextParams, { replace: true });
+  }, [searchParams, setSearchParams]);
 
   const handlePurchase = () => {
     if (!localStorage.getItem("wee_access_token")) {
       navigate("/login", { state: { from: "/premium" } });
       return;
     }
+    setAutoTransactionId("");
     setIsCheckoutOpen(true);
   };
 
@@ -36,10 +49,14 @@ export default function PremiumLandingPage() {
     <MobileLayout>
       <main className="mx-auto flex min-h-screen w-full max-w-[402px] flex-col bg-white px-6 pb-8 text-[#353331]">
         <header className="flex h-[72px] items-center justify-between">
-          <Link to="/" aria-label="WEE 홈" className="inline-flex items-center">
-            <img src={weeLogo} alt="WEE" className="h-6 w-auto brightness-0" />
+          <Link to="/home" aria-label="WEE 홈" className="inline-flex items-center">
+            <img
+              src={weeLogo}
+              alt="WEE"
+              className="h-6 w-auto"
+              style={{ filter: "brightness(0) saturate(100%) invert(80%) sepia(28%) saturate(1492%) hue-rotate(154deg) brightness(101%) contrast(101%)" }}
+            />
           </Link>
-          <Link to="/" className="text-sm font-medium text-[#797776]">서비스 홈</Link>
         </header>
 
         <section className="rounded-[24px] bg-[#EAFBFE] px-6 py-8 text-center">
@@ -84,7 +101,11 @@ export default function PremiumLandingPage() {
         {isCheckoutOpen && (
           <PremiumCheckoutSheet
             isOpen
-            onClose={() => setIsCheckoutOpen(false)}
+            initialTransactionId={autoTransactionId}
+            onClose={() => {
+              setIsCheckoutOpen(false);
+              setAutoTransactionId("");
+            }}
             onSuccess={() => navigate("/premium/welcome")}
           />
         )}

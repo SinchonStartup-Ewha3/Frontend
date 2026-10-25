@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import BottomSheet from "./BottomSheet";
 import angelFortune from "../assets/images/fortune/fortune_angel.svg";
 import travelerFortune from "../assets/images/fortune/fortune_traveler.svg";
@@ -17,17 +17,50 @@ const couponCharacters = [
 export default function CouponRegistrationSheet({ isOpen, onClose, onRegister }) {
   const [couponCode, setCouponCode] = useState("");
   const [couponMessage, setCouponMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isRegistered, setIsRegistered] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setCouponCode("");
+    setCouponMessage("");
+    setIsRegistered(false);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
-  const handleRegister = () => {
-    const code = couponCode.trim();
-    if (!code) {
+  const handleRegister = async () => {
+    if (isRegistered) {
+      onClose?.();
+      return;
+    }
+    const normalizedCode = couponCode.replace(/[\s-]/g, "").toUpperCase();
+    if (!normalizedCode) {
       setCouponMessage("쿠폰 코드를 입력해주세요.");
       return;
     }
-    onRegister?.(code);
-    onClose?.();
+    if (!/^[A-HJ-KM-NP-Z2-9]{6}$/.test(normalizedCode)) {
+      setCouponMessage("코드는 영문과 숫자 6자리로 입력해주세요. (0, O, 1, I, L 제외)");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setCouponMessage("");
+    try {
+      const result = await onRegister?.(normalizedCode);
+      const activeFrom = result?.active_from ? ` 이용 시작일: ${result.active_from}.` : "";
+      setCouponMessage(`${result?.product_title ?? "운세 이용권"} 등록 완료!${activeFrom}`);
+      setIsRegistered(true);
+    } catch (error) {
+      setCouponMessage(
+        error.response?.data?.detail ??
+          error.response?.data?.code?.[0] ??
+          error.message ??
+          "쿠폰을 등록하지 못했어요. 다시 시도해 주세요.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -39,7 +72,7 @@ export default function CouponRegistrationSheet({ isOpen, onClose, onRegister })
       showHeader={false}
       hideScrollbar
       backdropClassName="bg-[#D9D9D9]/75"
-      className="!h-[352px] !max-h-none !rounded-t-[30px] !bg-[#555]/55 !px-7 !pb-0 !pt-[25px] !shadow-none"
+      className="!h-[376px] !max-h-none !rounded-t-[30px] !bg-[#555]/55 !px-7 !pb-0 !pt-[25px] !shadow-none"
     >
       <div className="mb-[14px] flex h-[38px] items-center justify-between">
         <h2 className="text-[26px] font-semibold leading-[1.2] tracking-[-0.78px] text-white">
@@ -55,7 +88,7 @@ export default function CouponRegistrationSheet({ isOpen, onClose, onRegister })
         </button>
       </div>
 
-      <div className="relative mx-2 h-[228px] rounded-[20px] bg-[#555]/55">
+      <div className="relative mx-2 h-[252px] rounded-[20px] bg-[#555]/55">
         <p className="absolute left-[14px] right-[14px] top-[13px] text-center text-[12px] font-medium leading-[1.5] tracking-[-0.36px] text-[#E9E8E8]">
           테루테루 카드 속 코드를 등록해 날씨 운세를 볼 수 있어요.
         </p>
@@ -76,7 +109,13 @@ export default function CouponRegistrationSheet({ isOpen, onClose, onRegister })
             onChange={(event) => {
               setCouponCode(event.target.value);
               setCouponMessage("");
+              setIsRegistered(false);
             }}
+            disabled={isSubmitting || isRegistered}
+            autoCapitalize="characters"
+            autoCorrect="off"
+            spellCheck={false}
+            maxLength={12}
             placeholder="쿠폰 코드를 입력해주세요"
             className="h-[49px] w-full rounded-[15px] border-2 border-[#E9E8E8] bg-white px-[23px] text-[14px] font-semibold tracking-[-0.14px] text-[#353331] outline-none placeholder:text-[#BCBBBA] focus:border-[#60E1FF]"
           />
@@ -84,12 +123,13 @@ export default function CouponRegistrationSheet({ isOpen, onClose, onRegister })
         <button
           type="button"
           onClick={handleRegister}
-          className="absolute left-1/2 top-[174px] h-[36px] w-[193px] -translate-x-1/2 rounded-[10px] bg-[#60E1FF] text-[16px] font-semibold leading-[1.5] tracking-[-0.16px] text-white"
+          disabled={isSubmitting}
+          className="absolute left-1/2 top-[168px] h-[36px] w-[193px] -translate-x-1/2 rounded-[10px] bg-[#60E1FF] text-[16px] font-semibold leading-[1.5] tracking-[-0.16px] text-white disabled:opacity-60"
         >
-          등록
+          {isSubmitting ? "등록 중..." : isRegistered ? "확인" : "등록"}
         </button>
         {couponMessage && (
-          <p role="status" className="absolute inset-x-3 bottom-[5px] text-center text-[11px] leading-4 text-white">
+          <p role={isRegistered ? "status" : "alert"} className="absolute inset-x-3 bottom-[5px] text-center text-[11px] leading-4 text-white">
             {couponMessage}
           </p>
         )}

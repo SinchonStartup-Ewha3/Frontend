@@ -16,6 +16,8 @@ const queryKeys = {
   regions: (q) => ["regions", q],
   hourlyWeather: ["home", "weather", "hourly"],
   currentWeather: ["home", "weather", "current"],
+  todayFortune: ["fortune", "today"],
+  fortunePurchases: ["fortune", "purchases", "me"],
   home: ["home"],
   hydration: ["situations", "hydration"],
   // 로그인 사용자는 저장된 위치("me"), 비로그인은 선택한 지역코드별로 캐시를 따로 두기...~
