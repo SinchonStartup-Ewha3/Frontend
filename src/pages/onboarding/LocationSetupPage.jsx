@@ -1,16 +1,27 @@
 import Button from "../../components/Button";
 import mapCharacter from "../../assets/images/map_character.svg";
 import mapIcon from "../../assets/icons/map_icon.svg";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import {useCurrentRegion} from "../../hooks/useLocation";
 import useLocationStore from "../../store/useLocationStore";
+import useUserStore from "../../store/useUserStore";
+import LocationSearchSheet from "../../components/LocationSearchSheet";
+import { updateUserLocation } from "../../api/location";
+import queryKeys from "../../api/queryKeys";
 
 export default function LocationSetupPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { locate, loading, error } = useCurrentRegion();
   const selectRegion = useLocationStore((state) => state.selectRegion);
+  const setUser = useUserStore((state) => state.setUser);
+  const [isRegionSearchOpen, setIsRegionSearchOpen] = useState(false);
+  const [manualError, setManualError] = useState(null);
 
   const handleFindLocation = async () => {
+    setManualError(null);
     const region = await locate();
 
     if(!region) return;
@@ -18,6 +29,26 @@ export default function LocationSetupPage() {
     selectRegion(region);
     navigate("/home", { replace: true });
   }
+
+  const handleRegionSelect = async (_regionName, selection) => {
+    if (selection.locationMode !== "MANUAL" || !selection.region?.regionCode) return;
+    setManualError(null);
+    try {
+      const user = await updateUserLocation({
+        locationMode: "MANUAL",
+        regionCode: selection.region.regionCode,
+      });
+      setUser(user);
+      queryClient.setQueryData(queryKeys.profile, user);
+      navigate("/home", { replace: true });
+    } catch (requestError) {
+      setManualError(
+        requestError.response?.data?.regionCode?.[0] ??
+          requestError.response?.data?.location?.[0] ??
+          "지역을 설정하지 못했어요. 다시 시도해 주세요",
+      );
+    }
+  };
 
   return (
     <main className="relative mx-auto min-h-[852px] w-full max-w-[402px] overflow-hidden bg-white text-[#353331]">
@@ -49,12 +80,24 @@ export default function LocationSetupPage() {
           {loading ? "위치 확인 중...": "현재 위치로 찾기"}
         </Button>
 
-        {error && (
+        {(manualError || error) && (
           <p role="alert" className="mt-3 text-center text-sm text-red-500">
-            {error}
+            {manualError || error}
           </p>
         )}
+        <button
+          type="button"
+          onClick={() => setIsRegionSearchOpen(true)}
+          className="mt-3 w-full text-center text-sm font-medium text-[#797776] underline underline-offset-2"
+        >
+          지역을 직접 선택할게요
+        </button>
       </div>
+      <LocationSearchSheet
+        isOpen={isRegionSearchOpen}
+        onClose={() => setIsRegionSearchOpen(false)}
+        onSelect={handleRegionSelect}
+      />
     </main>
   );
 }

@@ -61,7 +61,7 @@ export default function ConsentPage() {
     if (location.state?.intent === "kakao") {
       navigate("/login", {
         replace: true,
-        state: { consentComplete: true, autoLogin: true, from: location.state.from },
+        state: { consentComplete: true, from: location.state.from },
       });
       return;
     }

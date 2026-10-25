@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import Button from "../../components/Button";
 import loginBackground from "../../assets/images/kakaologin_background.svg";
 import weeLogo from "../../assets/icons/logo.svg";
@@ -14,7 +14,6 @@ export default function LoginPage() {
   const location = useLocation();
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [loginError, setLoginError] = useState("");
-  const autoLoginStarted = useRef(false);
 
   const handleKakaoLogin = () => {
     setLoginError("");
@@ -58,13 +57,6 @@ export default function LoginPage() {
     });
   };
 
-  useEffect(() => {
-    if (location.state?.autoLogin && !autoLoginStarted.current) {
-      autoLoginStarted.current = true;
-      handleKakaoLogin();
-    }
-  }, [location.state]);
-
   return (
     <MobileLayout>
     <main className="relative mx-auto flex min-h-[852px] w-full max-w-[402px] flex-col overflow-hidden bg-[#7eafc8] text-white">
@@ -100,7 +92,13 @@ export default function LoginPage() {
           <Button
             variant="kakao"
             className="relative h-[44px] rounded-[10px] text-[18px] tracking-[-0.18px]"
-            onClick={() => navigate("/consent", { state: { intent: "kakao", from: location.state?.from } })}
+            onClick={() => {
+              if (location.state?.consentComplete) {
+                handleKakaoLogin();
+                return;
+              }
+              navigate("/consent", { state: { intent: "kakao", from: location.state?.from } });
+            }}
             disabled={isLoggingIn}
           >
             <span className="absolute left-[70px] flex h-[34px] w-[34px] items-center justify-center" aria-hidden="true">

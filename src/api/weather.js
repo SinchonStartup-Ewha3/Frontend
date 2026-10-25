@@ -2,7 +2,7 @@ import api from "./axios";
 import { USE_MOCK } from "./config";
 import { db, delay } from "../mocks/db";
 
-export const fetchHourlyWeather = async () => {
+export const fetchHourlyWeather = async ({ regionCode } = {}) => {
   if (USE_MOCK) {
     await delay();
     const region =
@@ -35,14 +35,16 @@ export const fetchHourlyWeather = async () => {
     return { region, items };
   }
 
-  const { data } = await api.get("/api/home/weather/hourly/");
+  const { data } = await api.get("/api/home/weather/hourly/", {
+    params: regionCode ? { regionCode } : undefined,
+  });
   return data;
 };
 
-export const fetchHomeData = async () => {
+export const fetchHomeData = async ({ regionCode, lat, lng, skipAuth = false } = {}) => {
   if (USE_MOCK) {
     await delay();
-    const { region, items: hourly } = await fetchHourlyWeather();
+    const { region, items: hourly } = await fetchHourlyWeather({ regionCode });
     const hour = new Date().getHours();
     const isNight = hour >= 18 || hour < 6;
     return {
@@ -71,6 +73,11 @@ export const fetchHomeData = async () => {
     };
   }
 
-  const { data } = await api.get("/api/home/");
+  const params = regionCode
+    ? { regionCode }
+    : lat != null && lng != null
+      ? { lat, lng }
+      : undefined;
+  const { data } = await api.get("/api/home/", { params, skipAuth });
   return data;
 };

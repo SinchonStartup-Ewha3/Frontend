@@ -29,6 +29,7 @@ const returnToLogin = () => {
 };
 
 api.interceptors.request.use((config) => {
+  if (config.skipAuth) return config;
   const accessToken = localStorage.getItem("wee_access_token");
   if (accessToken) {
     config.headers.Authorization = `Bearer ${accessToken}`;
