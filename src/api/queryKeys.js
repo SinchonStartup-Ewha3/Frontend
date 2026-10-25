@@ -4,6 +4,7 @@ const queryKeys = {
   alarmSettings: ["alarm-settings"],
   schedules: (type) => ["alarm-schedules", type],
   subscription: ["subscription"],
+  refundRequest: ["premium", "refund-request"],
   myPosts: ["posts", "mine"],
   myPostsPage: (page, pageSize) => ["posts", "mine", page, pageSize],
   myPost: (id) => ["posts", "mine", id],

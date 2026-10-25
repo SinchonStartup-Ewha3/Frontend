@@ -77,9 +77,13 @@ export default function HomePage() {
   const currentUser = useUserStore((state) => state.user);
   const selectedRegion = useLocationStore((state) => state.selected);
   const selectedRegionCode = selectedRegion?.regionCode;
+  const selectedCoordinates = useLocationStore((state) => state.coordinates);
   const hasAccessToken = Boolean(localStorage.getItem("wee_access_token"));
   const selectRegion = useLocationStore((state) => state.selectRegion);
-  const [isLocationPickerOpen, setIsLocationPickerOpen] = useState(false);
+  const setCoordinates = useLocationStore((state) => state.setCoordinates);
+  const [isLocationPickerOpen, setIsLocationPickerOpen] = useState(
+    () => !hasAccessToken && !selectedRegionCode && !selectedCoordinates,
+  );
   const [isLoginPromptOpen, setIsLoginPromptOpen] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [hasEditedSearch, setHasEditedSearch] = useState(false);
@@ -97,12 +101,14 @@ export default function HomePage() {
     isError: isHomeError,
     refetch: refetchHome,
   } = useQuery({
-    queryKey: [...queryKeys.home, hasAccessToken ? "me" : selectedRegionCode ?? "unselected"],
+    queryKey: [...queryKeys.home, hasAccessToken ? "me" : selectedRegionCode ?? selectedCoordinates?.lat ?? "unselected"],
     queryFn: () => fetchHomeData({
       regionCode: hasAccessToken ? undefined : selectedRegionCode,
+      lat: hasAccessToken ? undefined : selectedCoordinates?.lat,
+      lng: hasAccessToken ? undefined : selectedCoordinates?.lng,
       skipAuth: !hasAccessToken,
     }),
-    enabled: hasAccessToken || Boolean(selectedRegionCode),
+    enabled: hasAccessToken || Boolean(selectedRegionCode || selectedCoordinates),
     retry: false,
   });
   const toast = useToast();
@@ -137,7 +143,6 @@ export default function HomePage() {
   useEffect(() => {
     const regionName = selectedRegion?.shortName ?? selectedRegion ?? homeData?.region?.shortName;
     if (regionName) setLocation(regionName);
-    if (!hasAccessToken && !selectedRegionCode) setIsLocationPickerOpen(true);
   }, [hasAccessToken, homeData?.region?.shortName, selectedRegion, selectedRegionCode]);
 
   const handleRegionSelection = async (region) => {
@@ -193,7 +198,23 @@ export default function HomePage() {
 
   const handleLocate = async () => {
     if (!localStorage.getItem("wee_access_token")) {
-      toast.error("현재 위치 저장은 로그인 후 사용할 수 있어요. 지역 검색은 계속 이용할 수 있어요.");
+      try {
+        const position = await new Promise((resolve, reject) =>
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: false,
+            timeout: 8000,
+            maximumAge: 60_000,
+          }),
+        );
+        setCoordinates({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
+        setIsLocationPickerOpen(false);
+        queryClient.invalidateQueries({ queryKey: queryKeys.home });
+      } catch {
+        toast.error("현재 위치를 찾지 못했어요. 위치 권한을 확인해 주세요.");
+      }
       return;
     }
     const region = await locate();

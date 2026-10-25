@@ -14,15 +14,18 @@ const useLocationStore = create(
         "서울특별시 강남구",
       ], // 초기 mock
       selected: null,
+      coordinates: null,
       // 지역 선택 시 호출: 최근 검색 맨 앞으로 (중복 제거, 최대 5개)
       selectRegion: (region) =>
         set((state) => ({
           selected: region,
+          coordinates: null,
           recent: [region, ...state.recent.filter((r) => r !== region)].slice(
             0,
             MAX_RECENT,
           ),
         })),
+      setCoordinates: (coordinates) => set({ coordinates, selected: null }),
       clearRecent: () => set({ recent: [] }),
     }),
     { name: "wee:location" },

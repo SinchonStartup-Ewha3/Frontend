@@ -1,6 +1,6 @@
 import Header from "../../components/Header";
 import MobileLayout from "../../components/MobileLayout";
-import { useSubscriptionQuery } from "../../hooks/usePayment";
+import { useRefundRequestQuery, useSubscriptionQuery } from "../../hooks/usePayment";
 import { useNavigate } from "react-router-dom";
 
 const cardClassName =
@@ -17,10 +17,11 @@ const inactiveStatusMessages = {
 export default function PaymentManagementPage() {
   const navigate = useNavigate();
   const { data, isLoading, isError } = useSubscriptionQuery();
+  const { data: refundRequest } = useRefundRequestQuery();
   const subscription = data?.subscription;
   const fortunePass = data?.fortunePass;
   const isActive = subscription?.isActive ?? subscription?.active;
-  const canRequestRefund = subscription?.canRequestRefund ?? isActive;
+  const canRequestRefund = Boolean(subscription?.canRequestRefund);
   const purchasedAt = subscription?.purchasedAt ?? subscription?.paidAt;
   const paidAt = purchasedAt
     ? purchasedAt.slice(0, 10).replaceAll("-", ".")
@@ -65,7 +66,15 @@ export default function PaymentManagementPage() {
                     이용 만료일 | {expiresAtDisplay}
                   </p>
                 )}
-                {isActive && canRequestRefund ? (
+                {refundRequest ? (
+                  <button
+                    type="button"
+                    onClick={() => navigate("/mypage/refund")}
+                    className="self-start text-[14px] leading-[21px] tracking-[-0.43px] text-[#F35C4B]"
+                  >
+                    환불 상태 확인
+                  </button>
+                ) : isActive && canRequestRefund ? (
                   <button
                     type="button"
                     onClick={() => navigate("/mypage/refund")}
@@ -73,9 +82,9 @@ export default function PaymentManagementPage() {
                   >
                     환불 신청
                   </button>
-                ) : isActive ? (
+                ) : isActive && !canRequestRefund ? (
                   <p className="text-[14px] leading-[21px] tracking-[-0.43px] text-[#A5A4A3]">
-                    환불 요청 완료
+                    환불 요청이 불가능한 이용권이에요.
                   </p>
                 ) : subscription.status === "COMPLETED" && subscription.remainingSeconds === 0 ? (
                   <p className="text-[14px] leading-[21px] tracking-[-0.43px] text-[#A5A4A3]">

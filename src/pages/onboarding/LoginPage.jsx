@@ -5,7 +5,7 @@ import weeLogo from "../../assets/icons/logo.svg";
 import kakaoIcon from "../../assets/icons/kakao.svg";
 import Header from "../../components/Header";
 import MobileLayout from "../../components/MobileLayout";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { KAKAO_JS_KEY } from "../../api/config";
 import { loginWithKakao } from "../../api/auth";
 
@@ -85,20 +85,14 @@ export default function LoginPage() {
           <Button
             variant="primary"
             className="h-[44px] rounded-[10px] text-[18px] tracking-[-0.18px]"
-            onClick={() => navigate("/consent", { state: { intent: "guest" } })}
+            onClick={() => navigate("/location-setup", { replace: true })}
           >
             로그인 없이 시작하기
           </Button>
           <Button
             variant="kakao"
             className="relative h-[44px] rounded-[10px] text-[18px] tracking-[-0.18px]"
-            onClick={() => {
-              if (location.state?.consentComplete) {
-                handleKakaoLogin();
-                return;
-              }
-              navigate("/consent", { state: { intent: "kakao", from: location.state?.from } });
-            }}
+            onClick={handleKakaoLogin}
             disabled={isLoggingIn}
           >
             <span className="absolute left-[70px] flex h-[34px] w-[34px] items-center justify-center" aria-hidden="true">
@@ -113,8 +107,26 @@ export default function LoginPage() {
               {loginError}
             </p>
           )}
+          <p
+            className="mt-3 text-center text-[11px] font-medium leading-5 text-[#A6A2A0]"
+            style={{ textShadow: "0 1px 2px rgba(255,255,255,0.9)" }}
+          >
+            로그인하면 <Link to="/terms" className="font-semibold underline underline-offset-2">이용약관</Link>과{" "}
+            <Link to="/privacy" className="font-semibold underline underline-offset-2">개인정보처리방침</Link>에 동의한 것으로 봅니다.
+          </p>
         </div>
       </section>
+
+      <nav
+        aria-label="정책 및 고객지원"
+        className="absolute bottom-4 left-0 right-0 z-10 flex flex-wrap justify-center gap-x-3 gap-y-1 px-4 text-[11px] font-medium text-[#A6A2A0]"
+        style={{ textShadow: "0 1px 2px rgba(255,255,255,0.9)" }}
+      >
+        <Link to="/terms" className="underline underline-offset-2">이용약관</Link>
+        <Link to="/privacy" className="underline underline-offset-2">개인정보처리방침</Link>
+        <Link to="/refund" className="underline underline-offset-2">환불정책</Link>
+        <Link to="/contact" className="underline underline-offset-2">문의</Link>
+      </nav>
 
     </main>
     </MobileLayout>

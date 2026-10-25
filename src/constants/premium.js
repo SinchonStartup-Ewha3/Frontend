@@ -8,10 +8,10 @@ export const SURVEY_PROGRESS = [20, 40, 60, 80, 80];
 
 // 구독 상품 (Paddle priceId는 .env 로 넣기)
 export const PREMIUM_PLAN = {
-  name: "Wee 구독",
-  priceLabel: "2,500₩",
-  periodLabel: "3 weeks 구독권",
-  description: "Wee 구독으로\n맞춤형 행동 알림을 받아보세요.",
+  name: "WEE Premium",
+  priceLabel: "₩2,500",
+  periodLabel: "일회성 결제 · 결제 후 21일 이용 · 구독 및 자동 갱신 없음",
+  description: "WEE Premium으로\n날씨에 맞춘 생활 알림을 받아보세요.",
   priceId: import.meta.env.VITE_PADDLE_PRICE_PREMIUM ?? "",
 };
 

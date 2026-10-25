@@ -52,10 +52,6 @@ export default function CommunityPage() {
     subMessage: "이미 많은 사람들이 알림 기능을 사용하고 있어요",
     targetUrl: "/premium",
   };
-  const premiumTarget = typeof premiumCard.targetUrl === "string" &&
-    premiumCard.targetUrl.startsWith("/") && !premiumCard.targetUrl.startsWith("//")
-    ? premiumCard.targetUrl
-    : "/premium";
   const visiblePosts = postsQuery.data?.results ?? [];
   const pageCount = Math.max(1, Math.ceil((postsQuery.data?.count ?? 0) / 10));
 
@@ -203,8 +199,8 @@ export default function CommunityPage() {
         <Card
           as="button"
           type="button"
-          onClick={() => isLoggedIn ? navigate(premiumTarget) : (setLoginReturnTo(premiumTarget), setIsLoginPromptOpen(true))}
-          aria-label="멋사님 우산 챙기셨나요? Wee 결제 화면 열기"
+          onClick={() => navigate("/premium/onboarding/1")}
+          aria-label="멋사님 우산 챙기셨나요? 프리미엄 기능 소개 보기"
           className="absolute left-1/2 top-[574px] h-[80px] w-[345px] max-w-[calc(100%-48px)] -translate-x-1/2 !rounded-[20px] !border-0 !p-0 text-left shadow-[0px_4px_4px_0px_rgba(0,0,0,0.1)]"
         >
           <div className="absolute inset-0 rounded-[20px] bg-gradient-to-r from-[rgba(240,227,255,0.2)] to-[rgba(5,196,240,0.2)]" />

@@ -8,7 +8,7 @@ import {useCurrentRegion} from "../../hooks/useLocation";
 import useLocationStore from "../../store/useLocationStore";
 import useUserStore from "../../store/useUserStore";
 import LocationSearchSheet from "../../components/LocationSearchSheet";
-import { updateUserLocation } from "../../api/location";
+import { searchRegions, updateUserLocation } from "../../api/location";
 import queryKeys from "../../api/queryKeys";
 
 export default function LocationSetupPage() {
@@ -16,12 +16,36 @@ export default function LocationSetupPage() {
   const queryClient = useQueryClient();
   const { locate, loading, error } = useCurrentRegion();
   const selectRegion = useLocationStore((state) => state.selectRegion);
+  const setCoordinates = useLocationStore((state) => state.setCoordinates);
   const setUser = useUserStore((state) => state.setUser);
   const [isRegionSearchOpen, setIsRegionSearchOpen] = useState(false);
   const [manualError, setManualError] = useState(null);
 
   const handleFindLocation = async () => {
     setManualError(null);
+    if (!localStorage.getItem("wee_access_token")) {
+      try {
+        const position = await new Promise((resolve, reject) =>
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: false,
+            timeout: 8000,
+            maximumAge: 60_000,
+          }),
+        );
+        setCoordinates({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
+        navigate("/home", { replace: true });
+      } catch (locationError) {
+        setManualError(locationError.code === 1
+          ? "위치 권한을 허용한 뒤 다시 시도해 주세요."
+          : locationError.code === 3
+            ? "위치를 가져오는 데 너무 오래 걸려요. 다시 시도해 주세요."
+            : "현재 위치를 찾지 못했어요. 다시 시도해 주세요.");
+      }
+      return;
+    }
     const region = await locate();
 
     if(!region) return;
@@ -31,12 +55,31 @@ export default function LocationSetupPage() {
   }
 
   const handleRegionSelect = async (_regionName, selection) => {
-    if (selection.locationMode !== "MANUAL" || !selection.region?.regionCode) return;
+    if (!["MANUAL", "RECENT"].includes(selection.locationMode)) return;
     setManualError(null);
     try {
+      let region = selection.region;
+      if (!region?.regionCode) {
+        const candidates = await searchRegions(_regionName);
+        const normalizedName = _regionName.replace(/\s+/g, "");
+        region = candidates.find(
+          (candidate) =>
+            candidate.regionName.replace(/\s+/g, "") === normalizedName ||
+            candidate.shortName.replace(/\s+/g, "") === normalizedName,
+        ) ?? candidates[0];
+      }
+      if (!region?.regionCode) {
+        setManualError("지역을 찾지 못했어요. 검색해서 다시 선택해 주세요.");
+        return;
+      }
+      if (!localStorage.getItem("wee_access_token")) {
+        selectRegion(region);
+        navigate("/home", { replace: true });
+        return;
+      }
       const user = await updateUserLocation({
         locationMode: "MANUAL",
-        regionCode: selection.region.regionCode,
+        regionCode: region.regionCode,
       });
       setUser(user);
       queryClient.setQueryData(queryKeys.profile, user);
