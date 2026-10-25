@@ -38,12 +38,22 @@ export const useCurrentRegion = () => {
       return await reverseGeocode(position.coords);
     } catch (e) {
       // GeolocationPositionError.code: 1=권한거부, 2=위치불가, 3=시간초과
+      const responseData = e?.response?.data;
+      const apiMessage = [
+        responseData?.location,
+        responseData?.regionCode,
+        responseData?.detail,
+      ]
+        .flat()
+        .find((message) => typeof message === "string" && message.trim());
       const message =
-        e?.code === 1
+        apiMessage ?? (e?.code === 1
           ? "위치 권한이 꺼져 있어요. 브라우저 설정에서 허용해 주세요"
           : e?.code === 3
             ? "위치를 가져오는 데 너무 오래 걸려요. 다시 시도해 주세요"
-            : (e?.message ?? "현재 위치를 찾지 못했어요");
+            : e?.response
+              ? "현재 위치를 설정하지 못했어요. 다시 시도해 주세요"
+              : (e?.message ?? "현재 위치를 찾지 못했어요"));
       setError(message);
       return null;
     } finally {

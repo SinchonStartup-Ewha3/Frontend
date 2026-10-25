@@ -76,6 +76,8 @@ export default function HomePage() {
   const navigate = useNavigate();
   const currentUser = useUserStore((state) => state.user);
   const selectedRegion = useLocationStore((state) => state.selected);
+  const selectedRegionCode = selectedRegion?.regionCode;
+  const hasAccessToken = Boolean(localStorage.getItem("wee_access_token"));
   const selectRegion = useLocationStore((state) => state.selectRegion);
   const [isLocationPickerOpen, setIsLocationPickerOpen] = useState(false);
   const [isLoginPromptOpen, setIsLoginPromptOpen] = useState(false);
@@ -95,9 +97,12 @@ export default function HomePage() {
     isError: isHomeError,
     refetch: refetchHome,
   } = useQuery({
-    queryKey: queryKeys.home,
-    queryFn: fetchHomeData,
-    enabled: true,
+    queryKey: [...queryKeys.home, hasAccessToken ? "me" : selectedRegionCode ?? "unselected"],
+    queryFn: () => fetchHomeData({
+      regionCode: hasAccessToken ? undefined : selectedRegionCode,
+      skipAuth: !hasAccessToken,
+    }),
+    enabled: hasAccessToken || Boolean(selectedRegionCode),
     retry: false,
   });
   const toast = useToast();
@@ -132,7 +137,8 @@ export default function HomePage() {
   useEffect(() => {
     const regionName = selectedRegion?.shortName ?? selectedRegion ?? homeData?.region?.shortName;
     if (regionName) setLocation(regionName);
-  }, [homeData?.region?.shortName, selectedRegion]);
+    if (!hasAccessToken && !selectedRegionCode) setIsLocationPickerOpen(true);
+  }, [hasAccessToken, homeData?.region?.shortName, selectedRegion, selectedRegionCode]);
 
   const handleRegionSelection = async (region) => {
     if (isSelectingLocation) return;
