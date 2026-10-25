@@ -113,10 +113,32 @@ export const fetchSchedules = async (type) => {
     await delay(200);
     return db.schedules.filter((s) => s.type === type);
   }
-  const { data } = await api.get("/notifications/schedules", {
-    params: { type },
-  }); // TODO(BE)
-  return Array.isArray(data) ? data : data.schedules ?? data.results ?? [];
+  const { data } = await api.get("/api/situations/schedules/");
+  const schedules = Array.isArray(data) ? data : data.schedules ?? data.results ?? [];
+  return schedules
+    .map(toScheduleModel)
+    .sort((first, second) =>
+      String(first.time ?? "").localeCompare(String(second.time ?? "")) ||
+      Number(first.id ?? 0) - Number(second.id ?? 0),
+    );
+};
+
+// 외출 알림 일정 단건 조회 (수정 화면 초기값)
+export const fetchSchedule = async (scheduleId) => {
+  if (USE_MOCK) {
+    await delay(200);
+    const schedule = db.schedules.find(
+      (item) => String(item.scheduleId ?? item.id) === String(scheduleId),
+    );
+    if (!schedule) {
+      const error = new Error("일정을 찾을 수 없습니다.");
+      error.response = { status: 404 };
+      throw error;
+    }
+    return toScheduleModel(schedule);
+  }
+  const { data } = await api.get(`/api/situations/schedules/${scheduleId}/`);
+  return toScheduleModel(data);
 };
 
 // schedule 예) { type, name, days:["월","금"], time:"18:00", region, leadMinutes:60 }
@@ -144,7 +166,8 @@ export const deleteSchedule = async (id) => {
     persist();
     return { ok: true };
   }
-  await api.delete(`/notifications/schedules/${id}`); // TODO(BE)
+  await api.delete(`/api/situations/schedules/${id}/`);
+  // DELETE returns 204 No Content; there is no response body to parse.
   return { ok: true };
 };
 

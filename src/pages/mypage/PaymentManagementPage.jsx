@@ -1,6 +1,7 @@
 import Header from "../../components/Header";
 import MobileLayout from "../../components/MobileLayout";
-import { useRefundRequestQuery, useSubscriptionQuery } from "../../hooks/usePayment";
+import { usePremiumBillingQuery, useRefundRequestQuery } from "../../hooks/usePayment";
+import { PREMIUM_PLAN } from "../../constants/premium";
 import { useNavigate } from "react-router-dom";
 
 const cardClassName =
@@ -16,18 +17,16 @@ const inactiveStatusMessages = {
 
 export default function PaymentManagementPage() {
   const navigate = useNavigate();
-  const { data, isLoading, isError } = useSubscriptionQuery();
+  const { data, isLoading, isError } = usePremiumBillingQuery();
   const { data: refundRequest } = useRefundRequestQuery();
   const subscription = data?.subscription;
-  const fortunePass = data?.fortunePass;
   const isActive = subscription?.isActive ?? subscription?.active;
   const canRequestRefund = Boolean(subscription?.canRequestRefund);
   const purchasedAt = subscription?.purchasedAt ?? subscription?.paidAt;
   const paidAt = purchasedAt
     ? purchasedAt.slice(0, 10).replaceAll("-", ".")
     : subscription?.nextPaymentAt;
-  const usageCount = fortunePass?.remainingCount ?? fortunePass?.remainingUses;
-  const expiresAt = subscription?.premiumExpiresAt;
+  const expiresAt = subscription?.expiresAt ?? subscription?.premiumExpiresAt;
   const expiresAtDisplay = expiresAt
     ? new Intl.DateTimeFormat("ko-KR", {
         year: "numeric",
@@ -50,7 +49,7 @@ export default function PaymentManagementPage() {
 
           <article className={`${cardClassName} mt-[14px]`}>
             <h2 className="text-[16px] font-bold leading-[21px] tracking-[-0.43px]">
-              맞춤형 행동 알림
+              {subscription?.productName ?? "맞춤형 행동 알림"}
             </h2>
             {isLoading ? (
               <p className="text-[14px] leading-[21px] text-[#797776]">구독 정보를 불러오는 중...</p>
@@ -60,6 +59,9 @@ export default function PaymentManagementPage() {
               <>
                 <p className="text-[14px] leading-[21px] tracking-[-0.43px]">
                   결제일 | {paidAt ?? "정보 없음"}
+                </p>
+                <p className="text-[14px] leading-[21px] tracking-[-0.43px]">
+                  결제 금액 | {PREMIUM_PLAN.priceLabel}
                 </p>
                 {expiresAtDisplay && (
                   <p className="text-[14px] leading-[21px] tracking-[-0.43px]">
@@ -101,17 +103,6 @@ export default function PaymentManagementPage() {
             )}
           </article>
 
-          <h2 className="ml-[6px] mt-[31px] text-[24px] font-semibold leading-[1.4] tracking-[-0.72px]">
-            날씨 운세 이용권
-          </h2>
-          <article className={`${cardClassName} mt-[11px]`}>
-            <h3 className="text-[16px] font-bold leading-[21px] tracking-[-0.43px]">
-              날씨 운세
-            </h3>
-            <p className="text-[14px] leading-[21px] tracking-[-0.43px]">
-              {usageCount == null ? "이용권 정보가 없어요." : `사용 횟수 | ${usageCount}회`}
-            </p>
-          </article>
         </section>
       </main>
     </MobileLayout>

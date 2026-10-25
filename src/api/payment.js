@@ -32,6 +32,39 @@ export const fetchSubscription = async () => {
   };
 };
 
+// 마이페이지 결제 관리용: 최근 구매 및 환불 가능 여부
+export const fetchPremiumBilling = async () => {
+  if (USE_MOCK) {
+    await delay(200);
+    const mockSubscription = db.subscription?.active
+      ? {
+          purchaseId: 1,
+          productName: "맞춤형 행동 알림",
+          status: "COMPLETED",
+          purchasedAt: db.subscription.paidAt,
+          startedAt: db.subscription.paidAt,
+          expiresAt: null,
+          isActive: true,
+          remainingSeconds: null,
+          canRequestRefund: true,
+        }
+      : null;
+    return { subscription: mockSubscription };
+  }
+  const { data } = await api.get("/api/premium/billing/");
+  const subscription = data.subscription;
+  return {
+    subscription: subscription
+      ? {
+          ...subscription,
+          active: Boolean(subscription.isActive),
+          paidAt: subscription.purchasedAt,
+          premiumExpiresAt: subscription.expiresAt,
+        }
+      : null,
+  };
+};
+
 export const createPremiumCheckout = async () => {
   if (USE_MOCK) {
     await delay(200);

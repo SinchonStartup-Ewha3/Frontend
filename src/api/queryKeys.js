@@ -1,9 +1,12 @@
 // react-query 캐시 키 모음 (오타 방지 + invalidate 할 때 재사용)
 const queryKeys = {
   profile: ["profile"],
+  myPageSummary: ["mypage", "summary"],
   alarmSettings: ["alarm-settings"],
   schedules: (type) => ["alarm-schedules", type],
+  schedule: (scheduleId) => ["alarm-schedule", scheduleId],
   subscription: ["subscription"],
+  premiumBilling: ["premium", "billing"],
   refundRequest: ["premium", "refund-request"],
   myPosts: ["posts", "mine"],
   myPostsPage: (page, pageSize) => ["posts", "mine", page, pageSize],

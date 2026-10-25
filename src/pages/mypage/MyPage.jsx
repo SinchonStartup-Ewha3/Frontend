@@ -9,7 +9,7 @@ import PageLayout from "../../components/PageLayout";
 import PremiumCheckoutSheet from "../../components/PremiumCheckoutSheet";
 import chevronRightIcon from "../../assets/icons/chevron-right.svg";
 import lockIcon from "../../assets/icons/lock.svg";
-import { useProfileQuery } from "../../hooks/useProfile";
+import { useMyPageSummaryQuery } from "../../hooks/useProfile";
 import { useIsPremium } from "../../hooks/usePayment";
 
 const sectionHeadingClass = "text-[16px] leading-[21px] font-bold";
@@ -18,7 +18,7 @@ export default function MyPage() {
   const navigate = useNavigate();
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const isLoggedIn = Boolean(localStorage.getItem("wee_access_token"));
-  const { data: profile } = useProfileQuery({ enabled: isLoggedIn });
+  const { data: profile } = useMyPageSummaryQuery({ enabled: isLoggedIn });
   const { isPremium } = useIsPremium({ enabled: isLoggedIn });
 
   if (!isLoggedIn) {
@@ -94,7 +94,7 @@ export default function MyPage() {
                     titleClassName={`${isPremium ? "text-[18px] leading-[21px]" : "text-[16px] leading-[20px]"} font-bold`}
                   />
                   <span className="mt-[8px] block text-[14px] leading-[17px]">
-                    {profile?.region?.shortName ?? "지역을 설정해주세요"}
+                    {profile?.region?.regionName ?? profile?.region?.shortName ?? "지역을 설정해주세요"}
                   </span>
                 </span>
                 <img src={chevronRightIcon} alt="" />
@@ -152,10 +152,10 @@ export default function MyPage() {
                     작성한 게시물
                   </ListRow>
                   <ListRow
-                    onClick={() => navigate("/mypage/activity?type=liked")}
+                    onClick={() => navigate("/mypage/activity?type=saved")}
                     className="h-[29px] text-[14px] leading-[20px]"
                   >
-                    공감한 게시물
+                    저장한 게시물
                   </ListRow>
                 </div>
               </div>

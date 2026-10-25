@@ -13,7 +13,8 @@ import {
 export default function MyActivityPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const isLiked = ["liked", "saved"].includes(searchParams.get("type"));
+  const isSaved = searchParams.get("type") === "saved";
+  const isLiked = isSaved || searchParams.get("type") === "liked";
   const requestedPage = Number(searchParams.get("page") ?? 1);
   const page = Number.isInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
   const pageSize = 10;
@@ -37,13 +38,13 @@ export default function MyActivityPage() {
         <main className="min-h-screen px-[26px] pt-[73px] text-[#353331]">
           <Header back />
           <PageHeading
-            title={isLiked ? "공감한 게시물" : "작성한 게시물"}
+            title={isSaved ? "저장한 게시물" : isLiked ? "공감한 게시물" : "작성한 게시물"}
             className="mt-[18px]"
             titleClassName="!text-[24px] !leading-[1.4] !tracking-[-0.72px]"
           />
 
           <section
-            aria-label={isLiked ? "공감한 게시물 목록" : "작성한 게시물 목록"}
+            aria-label={isSaved ? "저장한 게시물 목록" : isLiked ? "공감한 게시물 목록" : "작성한 게시물 목록"}
             className="mt-[18px]"
           >
             {posts.map((post) => (
@@ -70,7 +71,7 @@ export default function MyActivityPage() {
             )}
             {!postsQuery.isLoading && !postsQuery.isError && posts.length === 0 && (
               <p className="py-8 text-center text-sm text-[#A5A4A3]">
-                {isLiked ? "공감한 게시물이 없어요." : "작성한 게시물이 없어요."}
+                {isSaved ? "저장한 게시물이 없어요." : isLiked ? "공감한 게시물이 없어요." : "작성한 게시물이 없어요."}
               </p>
             )}
           </section>

@@ -14,6 +14,40 @@ export const fetchProfile = async () => {
   return data;
 };
 
+// 마이페이지 첫 화면 프로필 요약
+export const fetchMyPageSummary = async () => {
+  if (USE_MOCK) {
+    await delay();
+    const region = db.user.region && typeof db.user.region === "object"
+      ? db.user.region
+      : db.user.region
+        ? { regionName: db.user.region }
+        : null;
+    return {
+      nickname: db.user.nickname,
+      profileImage: db.user.profileImage ?? null,
+      region: region
+        ? {
+            ...region,
+            shortName: region.shortName ?? region.regionName?.replace(/^[^ ]+\s*/, ""),
+          }
+        : null,
+    };
+  }
+  const { data } = await api.get("/api/mypage/summary/");
+  const profile = data.profile ?? {};
+  const region = profile.region;
+  return {
+    ...profile,
+    region: region
+      ? {
+          ...region,
+          shortName: region.regionName?.replace(/^[^ ]+\s*/, "") ?? "",
+        }
+      : null,
+  };
+};
+
 // 프로필 수정 (nickname, region, profileImage)
 export const updateProfile = async (payload) => {
   if (USE_MOCK) {

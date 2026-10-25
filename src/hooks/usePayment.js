@@ -5,6 +5,7 @@ import {
   confirmFortunePayment,
   createPremiumCheckout,
   fetchSubscription,
+  fetchPremiumBilling,
   fetchRefundRequest,
   requestRefund,
   savePremiumProfile,
@@ -27,6 +28,14 @@ export const useSubscriptionQuery = ({ enabled = true } = {}) => {
   }, [active, setPremium]);
   return query;
 };
+
+export const usePremiumBillingQuery = ({ enabled = true } = {}) =>
+  useQuery({
+    queryKey: queryKeys.premiumBilling,
+    queryFn: fetchPremiumBilling,
+    enabled,
+    retry: false,
+  });
 
 export const useRefundRequestQuery = ({ enabled = true } = {}) =>
   useQuery({
