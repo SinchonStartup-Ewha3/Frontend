@@ -5,6 +5,8 @@ import {
   confirmFortunePayment,
   createPremiumCheckout,
   fetchSubscription,
+  fetchPremiumBilling,
+  fetchRefundRequest,
   requestRefund,
   savePremiumProfile,
   waitForPremiumStatus,
@@ -26,6 +28,22 @@ export const useSubscriptionQuery = ({ enabled = true } = {}) => {
   }, [active, setPremium]);
   return query;
 };
+
+export const usePremiumBillingQuery = ({ enabled = true } = {}) =>
+  useQuery({
+    queryKey: queryKeys.premiumBilling,
+    queryFn: fetchPremiumBilling,
+    enabled,
+    retry: false,
+  });
+
+export const useRefundRequestQuery = ({ enabled = true } = {}) =>
+  useQuery({
+    queryKey: queryKeys.refundRequest,
+    queryFn: fetchRefundRequest,
+    enabled,
+    retry: false,
+  });
 
 // 프리미엄 여부 (마이페이지 잠금 화면 분기 등에서 사용)
 export const useIsPremium = ({ enabled = true } = {}) => {
@@ -70,5 +88,12 @@ export const useConfirmFortunePayment = () => {
 // 환불 요청
 export const useRequestRefund = () => {
   const invalidate = useInvalidateSubscription();
-  return useMutation({ mutationFn: requestRefund, onSuccess: invalidate });
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: requestRefund,
+    onSuccess: (data) => {
+      queryClient.setQueryData(queryKeys.refundRequest, data);
+      invalidate();
+    },
+  });
 };

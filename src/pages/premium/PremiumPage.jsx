@@ -1,11 +1,9 @@
-import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import BottomCTA from "../../components/BottomCTA";
 import Button from "../../components/Button";
 import Header from "../../components/Header";
 import MobileLayout from "../../components/MobileLayout";
 import PageHeading from "../../components/PageHeading";
-import PremiumCheckoutSheet from "../../components/PremiumCheckoutSheet";
 import { ALARM_TYPES } from "../../constants/alarmTypes";
 import outerIcon from "../../assets/icons/alarm-outer.svg";
 import exerciseIcon from "../../assets/icons/alarm-exercise.svg";
@@ -46,7 +44,6 @@ const INTRO_STEPS = [
 export default function PremiumPage() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const stepMatch = pathname.match(/\/premium\/onboarding\/(\d+)/);
   const step = stepMatch ? Number(stepMatch[1]) : 1;
   const progress = (step / INTRO_STEPS.length) * 100;
@@ -55,7 +52,7 @@ export default function PremiumPage() {
 
   const handleNext = () => {
     if (step === INTRO_STEPS.length) {
-      setIsCheckoutOpen(true);
+      navigate("/premium");
       return;
     }
     navigate(`/premium/onboarding/${step + 1}`);
@@ -135,14 +132,6 @@ export default function PremiumPage() {
             다음
           </Button>
         </BottomCTA>
-
-        {isCheckoutOpen && (
-          <PremiumCheckoutSheet
-            isOpen
-            onClose={() => setIsCheckoutOpen(false)}
-            onSuccess={() => navigate("/premium/welcome")}
-          />
-        )}
       </main>
     </MobileLayout>
   );

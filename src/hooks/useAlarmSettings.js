@@ -6,6 +6,7 @@ import {
   fetchAlarmSettings,
   patchAlarmSettings,
   fetchSchedules,
+  fetchSchedule,
   updateAlarmSettings,
 } from "../api/notification";
 import queryKeys from "../api/queryKeys";
@@ -53,6 +54,15 @@ export const useSchedulesQuery = (type) =>
     queryKey: queryKeys.schedules(type),
     queryFn: () => fetchSchedules(type),
     enabled: Boolean(type),
+  });
+
+// 일정 수정 화면에서 기존 일정 정보를 초기값으로 불러옴
+export const useScheduleQuery = (scheduleId) =>
+  useQuery({
+    queryKey: queryKeys.schedule(scheduleId),
+    queryFn: () => fetchSchedule(scheduleId),
+    enabled: scheduleId !== undefined && scheduleId !== null && String(scheduleId).length > 0,
+    retry: false,
   });
 
 export const useCreateSchedule = () => {

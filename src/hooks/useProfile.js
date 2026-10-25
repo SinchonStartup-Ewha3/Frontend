@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   fetchProfile,
+  fetchMyPageSummary,
   deleteProfileImage,
   updateNickname,
   updateProfile,
@@ -26,6 +27,14 @@ export const useProfileQuery = ({ enabled = true } = {}) => {
   }, [query.data, setUser]);
   return query;
 };
+
+// 마이페이지 첫 화면 프로필 요약. 프리미엄 상태는 별도 API에서 조회합니다.
+export const useMyPageSummaryQuery = ({ enabled = true } = {}) =>
+  useQuery({
+    queryKey: queryKeys.myPageSummary,
+    queryFn: fetchMyPageSummary,
+    enabled,
+  });
 
 // 프로필 수정 (닉네임 / 지역 / 프로필 사진)
 export const useUpdateProfile = () => {

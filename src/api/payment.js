@@ -22,12 +22,46 @@ export const fetchSubscription = async () => {
       active: isPremium,
       isActive: isPremium,
       status: isPremium ? "ACTIVE" : data.premiumExpiresAt ? "COMPLETED" : "NONE",
+      canRequestRefund: Boolean(data.canRequestRefund),
       paidAt: data.premiumStartedAt,
       purchasedAt: data.premiumStartedAt,
       premiumStartedAt: data.premiumStartedAt,
       premiumExpiresAt: data.premiumExpiresAt,
       remainingSeconds: data.remainingSeconds,
     },
+  };
+};
+
+// 마이페이지 결제 관리용: 최근 구매 및 환불 가능 여부
+export const fetchPremiumBilling = async () => {
+  if (USE_MOCK) {
+    await delay(200);
+    const mockSubscription = db.subscription?.active
+      ? {
+          purchaseId: 1,
+          productName: "맞춤형 행동 알림",
+          status: "COMPLETED",
+          purchasedAt: db.subscription.paidAt,
+          startedAt: db.subscription.paidAt,
+          expiresAt: null,
+          isActive: true,
+          remainingSeconds: null,
+          canRequestRefund: true,
+        }
+      : null;
+    return { subscription: mockSubscription };
+  }
+  const { data } = await api.get("/api/premium/billing/");
+  const subscription = data.subscription;
+  return {
+    subscription: subscription
+      ? {
+          ...subscription,
+          active: Boolean(subscription.isActive),
+          paidAt: subscription.purchasedAt,
+          premiumExpiresAt: subscription.expiresAt,
+        }
+      : null,
   };
 };
 
@@ -111,14 +145,38 @@ export const confirmFortunePayment = async ({ transactionId }) => {
 export const requestRefund = async (payload) => {
   if (USE_MOCK) {
     await delay(600);
-    db.refundRequests.push({
+    const result = {
+      refundRequestId: Date.now(),
+      purchaseId: 3,
       ...payload,
+      requestedAmount: 2380,
+      currencyCode: "KRW",
+      remainingSeconds: 20 * 24 * 60 * 60,
+      paddleAdjustmentId: "",
+      status: "REQUESTED",
+      rejectionReason: "",
       requestedAt: new Date().toISOString(),
-    });
-    db.subscription.active = false; // mock: 환불 요청하면 구독 해지로 처리
+      completedAt: null,
+    };
+    db.refundRequests.push(result);
     persist();
-    return { ok: true };
+    return result;
   }
-  const { data } = await api.post("api/premium/refund-requests", payload); // TODO(BE)
+  const { data } = await api.post("/api/premium/refund-requests/", payload);
+  return data;
+};
+
+export const fetchRefundRequest = async () => {
+  if (USE_MOCK) {
+    await delay(200);
+    const latest = db.refundRequests.at(-1);
+    if (!latest) {
+      const error = new Error("환불 요청 내역이 없습니다.");
+      error.response = { status: 404, data: { code: "REFUND_REQUEST_NOT_FOUND" } };
+      throw error;
+    }
+    return latest;
+  }
+  const { data } = await api.get("/api/premium/refund-requests/");
   return data;
 };

@@ -22,6 +22,7 @@ export const searchRegions = async (query) => {
   }
   const { data } = await api.get("/api/regions/", {
     params: { q: normalizedQuery },
+    skipAuth: true,
   });
   return data;
 };

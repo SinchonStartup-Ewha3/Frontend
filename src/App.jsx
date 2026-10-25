@@ -6,7 +6,6 @@ import queryKeys from "./api/queryKeys";
 import useUserStore from "./store/useUserStore";
 import Button from "./components/Button";
 import LoginPage from "./pages/onboarding/LoginPage.jsx";
-import ConsentPage from "./pages/onboarding/ConsentPage.jsx";
 import LoginCompletePage from "./pages/onboarding/LoginCompletePage.jsx";
 import NicknamePage from "./pages/onboarding/NicknamePage.jsx";
 import LocationSetupPage from "./pages/onboarding/LocationSetupPage.jsx";
@@ -23,6 +22,8 @@ import LaundrySituationDetail from "./pages/situation/LaundrySituationDetail.jsx
 import RunningSituationDetail from "./pages/situation/RunningSituationDetail.jsx";
 import CommunityWritePage from "./pages/community/CommunityWritePage.jsx";
 import PremiumPage from "./pages/premium/PremiumPage.jsx";
+import PremiumLandingPage from "./pages/premium/PremiumLandingPage.jsx";
+import PublicPolicyPage from "./pages/legal/PublicPolicyPage.jsx";
 import PremiumSurveyPage from "./pages/premium/PremiumSurveyPage.jsx";
 import PremiumSurveyCompletePage from "./pages/premium/PremiumSurveyCompletePage.jsx";
 import PremiumWelcomePage from "./pages/premium/PremiumWelcomePage.jsx";
@@ -110,10 +111,9 @@ export default function App() {
     <Routes>
       <Route path="/" element={<LoginPage />} />
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/consent" element={<ConsentPage />} />
       <Route path="/login-complete" element={<RequireAuth><LoginCompletePage /></RequireAuth>} />
       <Route path="/nickname" element={<RequireAuth><NicknamePage /></RequireAuth>} />
-      <Route path="/location-setup" element={<RequireAuth><LocationSetupPage /></RequireAuth>} />
+      <Route path="/location-setup" element={<LocationSetupPage />} />
       <Route path="/home" element={<HomePage />} />
       <Route path="/weather-fortune" element={<RequireAuth><WeatherFortunePage /></RequireAuth>} />
       <Route path="/weather-fortune/calendar" element={<RequireAuth><WeatherFortuneCalendarPage /></RequireAuth>} />
@@ -123,10 +123,15 @@ export default function App() {
       <Route path="/weather-fortune/result" element={<RequireAuth><WeatherFortuneResultPage /></RequireAuth>} />
       <Route path="/community" element={<CommunityPage />} />
       <Route path="/community/write" element={<RequireAuth><CommunityWritePage /></RequireAuth>} />
-      <Route path="/premium" element={<RequireAuth><PremiumPage /></RequireAuth>} />
-      <Route path="/premium/onboarding/2" element={<RequireAuth><PremiumPage /></RequireAuth>} />
-      <Route path="/premium/onboarding/3" element={<RequireAuth><PremiumPage /></RequireAuth>} />
-      <Route path="/premium/onboarding/4" element={<RequireAuth><PremiumPage /></RequireAuth>} />
+      <Route path="/premium" element={<PremiumLandingPage />} />
+      <Route path="/terms" element={<PublicPolicyPage />} />
+      <Route path="/privacy" element={<PublicPolicyPage />} />
+      <Route path="/refund" element={<PublicPolicyPage />} />
+      <Route path="/contact" element={<PublicPolicyPage />} />
+      <Route path="/premium/onboarding/1" element={<PremiumPage />} />
+      <Route path="/premium/onboarding/2" element={<PremiumPage />} />
+      <Route path="/premium/onboarding/3" element={<PremiumPage />} />
+      <Route path="/premium/onboarding/4" element={<PremiumPage />} />
       <Route path="/premium/survey" element={<RequireAuth><PremiumSurveyPage /></RequireAuth>} />
       <Route path="/premium/survey/complete" element={<RequireAuth><PremiumSurveyCompletePage /></RequireAuth>} />
       <Route path="/premium/welcome" element={<RequireAuth><PremiumWelcomePage /></RequireAuth>} />

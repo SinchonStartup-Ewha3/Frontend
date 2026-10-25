@@ -16,7 +16,6 @@ import useUserStore from "../../store/useUserStore";
 import {
   useProfileQuery,
   useUpdateNickname,
-  useDeleteProfileImage,
   useUploadProfileImage,
   useWithdraw,
 } from "../../hooks/useProfile";
@@ -29,7 +28,6 @@ export default function ProfileEditPage() {
   const { data: profile } = useProfileQuery();
   const updateNickname = useUpdateNickname();
   const uploadImage = useUploadProfileImage();
-  const deleteImage = useDeleteProfileImage();
   const withdraw = useWithdraw();
   const toast = useToast();
   const [nickname, setNickname] = useState("김멋사");
@@ -41,7 +39,7 @@ export default function ProfileEditPage() {
   useEffect(() => {
     if (!profile) return;
     setNickname(profile.nickname ?? "");
-    setRegion(profile.region?.shortName ?? profile.region ?? "");
+    setRegion(profile.region?.regionName ?? profile.region?.shortName ?? profile.region ?? "");
     setProfileImage(profile.profileImage ?? "");
   }, [profile]);
 
@@ -91,21 +89,6 @@ export default function ProfileEditPage() {
     });
   };
 
-  const handleDeletePhoto = () => {
-    if (uploadImage.isPending || deleteImage.isPending) return;
-    deleteImage.mutate(undefined, {
-      onSuccess: (user) => {
-        setProfileImage(user.profileImage ?? "");
-        toast.success(
-          user.profileImage
-            ? "카카오 프로필 사진으로 변경했어요."
-            : "기본 프로필 사진으로 변경했어요.",
-        );
-      },
-      onError: () => toast.error("프로필 사진을 삭제하지 못했어요."),
-    });
-  };
-
   const handleLocationSelect = async (regionName, selection = {}) => {
     setRegion(regionName);
     if (selection.locationMode === "GPS") {
@@ -126,7 +109,7 @@ export default function ProfileEditPage() {
         ) ?? candidates[0];
       }
       if (!selectedRegion?.regionCode) {
-        setRegion(profile?.region?.shortName ?? "");
+        setRegion(profile?.region?.regionName ?? profile?.region?.shortName ?? "");
         toast.error("지역을 찾지 못했어요. 검색해서 다시 선택해 주세요.");
         return;
       }
@@ -137,10 +120,10 @@ export default function ProfileEditPage() {
       });
       setUser(user);
       queryClient.setQueryData(queryKeys.profile, user);
-      setRegion(user.region?.shortName ?? regionName);
+      setRegion(user.region?.regionName ?? user.region?.shortName ?? regionName);
       toast.success("지역을 변경했어요.");
     } catch (error) {
-      setRegion(profile?.region?.shortName ?? "");
+      setRegion(profile?.region?.regionName ?? profile?.region?.shortName ?? "");
       toast.error(
         error.response?.data?.regionCode?.[0] ??
           error.response?.data?.location?.[0] ??
@@ -161,7 +144,7 @@ export default function ProfileEditPage() {
   };
 
   return (
-    <MobileLayout>
+    <MobileLayout className="!max-w-[402px]">
       <PageLayout nav={false} className="!px-0 !pb-0">
         <main className="px-6 pt-[73px] text-[#1F1C1A]">
           <Header back />
@@ -171,47 +154,40 @@ export default function ProfileEditPage() {
             size={147}
             editable
             onEdit={() => {
-              if (!uploadImage.isPending && !deleteImage.isPending) {
+              if (!uploadImage.isPending) {
                 photoInputRef.current?.click();
               }
             }}
             className="mx-auto -mt-[4px]"
           />
-          <div>
-            <input
-              ref={photoInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              onChange={handlePhotoChange}
-              className="hidden"
-            />
-            <button
-              type="button"
-              onClick={handleDeletePhoto}
-              disabled={uploadImage.isPending || deleteImage.isPending}
-              className="mx-auto mt-3 block text-sm font-semibold text-[#797776] disabled:opacity-50"
-            >
-              {deleteImage.isPending
-                ? "사진 삭제 중..."
-                : "카카오 프로필 사진으로 되돌리기"}
-            </button>
-          </div>
+          <input
+            ref={photoInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            onChange={handlePhotoChange}
+            className="hidden"
+          />
 
           <form
-            className="mt-[25px] flex flex-col gap-[18px]"
+            className="mt-[25px] flex w-[345px] max-w-full flex-col gap-[20px]"
             onSubmit={(event) => {
               event.preventDefault();
               handleSave();
             }}
           >
             <FormField
-              label="ID"
+              label={(
+                <>
+                  로그인 계정 <span className="text-[16px] text-[#797776]">(수정 불가)</span>
+                </>
+              )}
               value={
                 profile?.loginAccount
                   ? profile.loginAccount.displayId ??
                     profile.loginAccount.email ??
+                    profile.email ??
                     "카카오 계정"
-                  : "연결된 계정 없음"
+                  : profile?.email ?? "카카오 계정"
               }
               readOnly
               className="!mb-0"
@@ -237,7 +213,7 @@ export default function ProfileEditPage() {
               inputClassName="!h-[60px] !cursor-pointer !rounded-[15px] !border-2 !px-6 !text-[16px] !font-semibold !text-[#1F1C1A]"
             />
 
-            <div className="mt-[48px] space-y-[10px]">
+            <div className="mt-[47px] space-y-[10px]">
               <Button type="submit" disabled={updateNickname.isPending || uploadImage.isPending}>
                 {uploadImage.isPending
                   ? "사진 업로드 중..."
