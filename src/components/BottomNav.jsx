@@ -31,9 +31,9 @@ const ITEMS = [
   },
 ];
 
-const BottomNav = ({ activeTo }) => {
+const BottomNav = ({ activeTo, bottomClassName = "bottom-[2.875rem]" }) => {
   return (
-    <nav className="fixed bottom-[2.875rem] left-1/2 -translate-x-1/2 w-63 h-13.5 rounded-[28.55819rem] border-[1.771px] border-solid border-[#E9E8E8] bg-white grid grid-cols-4 place-items-center">
+    <nav className={`fixed ${bottomClassName} left-1/2 -translate-x-1/2 w-63 h-13.5 rounded-[28.55819rem] border-[1.771px] border-solid border-[#E9E8E8] bg-white grid grid-cols-4 place-items-center`}>
       {ITEMS.map((item) => (
         <NavLink
           key={item.to}

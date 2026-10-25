@@ -1,17 +1,29 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import BottomSheet from "./BottomSheet";
 import Button from "./Button";
 import { PREMIUM_PLAN } from "../constants/premium";
 import { useCreatePremiumCheckout, useRefreshPremiumStatus } from "../hooks/usePayment";
 import usePaddleCheckout from "../hooks/usePaddleCheckout";
-import premiumCharacter from "../assets/images/premium_character.svg";
+import premiumCharacter from "../assets/images/premium-checkout/premium-alert-mascot.png";
 
-export default function PremiumCheckoutSheet({ isOpen, onClose, onSuccess }) {
+export default function PremiumCheckoutSheet({ isOpen, onClose, onSuccess, initialTransactionId = "" }) {
   const [paymentError, setPaymentError] = useState("");
   const [pendingTransactionId, setPendingTransactionId] = useState(null);
+  const autoOpenedTransactionId = useRef("");
   const { open: openCheckout, ready, loading, error: paddleError } = usePaddleCheckout();
   const createCheckout = useCreatePremiumCheckout();
   const refreshStatus = useRefreshPremiumStatus();
+
+  useEffect(() => {
+    if (!isOpen || !ready || !initialTransactionId || autoOpenedTransactionId.current === initialTransactionId) return;
+    autoOpenedTransactionId.current = initialTransactionId;
+    setPaymentError("");
+    setPendingTransactionId(initialTransactionId);
+    openCheckout({ transactionId: initialTransactionId }).catch((error) => {
+      setPendingTransactionId(null);
+      setPaymentError(error?.message || "결제창을 열지 못했어요. 다시 시도해 주세요.");
+    });
+  }, [initialTransactionId, isOpen, openCheckout, ready]);
 
   const handlePayment = async () => {
     setPaymentError("");
@@ -29,7 +41,12 @@ export default function PremiumCheckoutSheet({ isOpen, onClose, onSuccess }) {
       }
       setPendingTransactionId(checkout.transactionId);
     } catch (error) {
-      setPaymentError(error?.message || "결제 중 문제가 발생했어요. 다시 시도해 주세요.");
+      setPaymentError(
+        error.response?.data?.detail ??
+          (error.response?.status === 401
+            ? "로그인 정보가 만료됐어요. 다시 로그인해 주세요."
+            : error?.message || "결제 중 문제가 발생했어요. 다시 시도해 주세요."),
+      );
     }
   };
 
@@ -55,60 +72,60 @@ export default function PremiumCheckoutSheet({ isOpen, onClose, onSuccess }) {
   return (
     <BottomSheet
       isOpen={isOpen}
-      title="WEE Premium 결제"
+      title="Wee 결제"
       onClose={onClose}
       showHandle={false}
       showHeader={false}
       hideScrollbar
       backdropClassName="bg-[#D9D9D9]/75"
-      className="!h-[319px] !max-h-none !rounded-t-[30px] !bg-[#555]/55 !px-7 !pb-7 !pt-[25px] !shadow-none"
+      className="!h-[319px] !max-h-none !rounded-t-[30px] !bg-[rgba(67,67,67,0.4)] !px-[27px] !pb-[29px] !pt-[25px] !shadow-none"
     >
-      <div className="mb-[30px] flex h-[38px] items-center justify-between">
+      <div className="mb-[26px] flex h-[38px] items-center justify-between">
         <h2 className="text-[26px] font-semibold leading-[1.2] tracking-[-0.78px] text-white">
-          WEE Premium 결제
+          Wee 결제
         </h2>
         <button
           type="button"
           aria-label="결제창 닫기"
           onClick={onClose}
-          className="flex h-6 w-6 items-center justify-center rounded-full bg-white/70 text-[12px] leading-none text-[#797776]"
+          className="flex h-6 w-6 items-center justify-center rounded-full bg-white/70 text-[12px] font-semibold leading-none text-[#8F8E8D]"
         >
           ×
         </button>
       </div>
 
-      <div className="-mb-6 rounded-[20px] bg-[#555]/55 px-10 pb-6 pt-[18px]">
-        <div className="flex h-[54px] items-center gap-3">
+      <div className="-mb-6 mx-[9px] min-h-[201px] rounded-[20px] bg-[#575757]/60 px-[28px] pb-4 pt-[14px]">
+        <div className="flex min-h-[58px] items-center gap-3">
           <img
             src={premiumCharacter}
             alt=""
-            className="h-[52px] w-[52px] shrink-0 object-contain"
+            className="h-[58px] w-[50px] shrink-0 object-contain"
           />
           <p className="text-[14px] font-medium leading-[1.5] tracking-[-0.28px] text-white">
-            WEE Premium 일회성 이용권으로<br />날씨에 맞춘 생활 알림을 받아보세요.
+            WEE Premium으로<br />맞춤형 행동 알림을 받아보세요.
           </p>
         </div>
-        <div className="mt-[10px] border-t border-white/50 pt-[6px]">
+        <div className="mt-[8px] border-t border-white/50 pt-[6px]">
           <p className="text-[14px] font-semibold leading-5 tracking-[-0.28px] text-white">
-            {PREMIUM_PLAN.priceLabel} · 결제 후 21일 이용
+            {PREMIUM_PLAN.priceLabel}
           </p>
-          <p className="mt-[2px] text-[12px] leading-[18px] tracking-[-0.24px] text-white">
-            구독 및 자동 갱신이 아닙니다.
+          <p className="text-[12px] leading-[18px] tracking-[-0.24px] text-white">
+            21일 이용권 · 일회성 결제 · 자동 갱신 없음
           </p>
         </div>
         {paymentError && (
-          <p role="alert" className="mt-2 text-center text-xs text-white">
+          <p role="alert" className="mt-2 text-center text-[11px] leading-4 text-white">
             {paymentError}
           </p>
         )}
         {!paymentError && paddleError && (
-          <p role="alert" className="mt-2 text-center text-xs text-white">{paddleError}</p>
+          <p role="alert" className="mt-2 text-center text-[11px] leading-4 text-white">{paddleError}</p>
         )}
         <Button
           variant="white"
           onClick={handlePayment}
           disabled={!ready || loading || createCheckout.isPending || refreshStatus.isPending}
-          className="mt-[10px] h-[38px] rounded-[7px] text-[14px] font-semibold tracking-[-0.14px] disabled:opacity-60"
+          className="mx-auto mt-[12px] !h-[38px] !w-[240px] rounded-[7px] text-[14px] font-semibold tracking-[-0.14px] disabled:opacity-60"
         >
           {loading || createCheckout.isPending || refreshStatus.isPending ? "결제 중..." : "Wee 결제하기"}
         </Button>

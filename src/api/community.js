@@ -17,7 +17,7 @@ export const createCommunityPost = async ({ content, tag, image, location }) => 
   formData.append("content", content.trim());
   formData.append("tag", tag);
   if (location) {
-    formData.append("locationMode", "GPS");
+    formData.append("locationMode", "CURRENT");
     formData.append("lat", String(location.latitude));
     formData.append("lng", String(location.longitude));
   }
