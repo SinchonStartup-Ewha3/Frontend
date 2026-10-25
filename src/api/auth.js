@@ -6,6 +6,10 @@ export const loginWithKakao = async (kakaoAccessToken) => {
   const { data } = await api.post("/api/auth/social-login/", {
     provider: "KAKAO",
     access_token: kakaoAccessToken,
+  }, {
+    // Social login exchanges the Kakao token for JWTs in the response body;
+    // browser cookies are not part of this endpoint's authentication contract.
+    withCredentials: false,
   });
 
   return data;
