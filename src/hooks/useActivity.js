@@ -7,6 +7,7 @@ import {
   fetchLikedPosts,
   unlikePost,
 } from "../api/activity";
+import { updateCommunityPost } from "../api/community";
 import queryKeys from "../api/queryKeys";
 
 // 내가 작성한 게시물 목록 / 상세
@@ -36,6 +37,22 @@ export const useDeleteMyPost = () => {
   });
 };
 
+// 내 게시물 수정 (PATCH). 성공하면 관련 목록/상세 캐시를 새로고침
+// -> 다 끝날 때까지 기다렸다가 화면 이동해서, 상세 화면에 옛날 내용이 잠깐 보이지 않게 해요
+export const useUpdateMyPost = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: updateCommunityPost,
+    retry: false,
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.myPosts }), // 내 글 목록 + 상세
+        queryClient.invalidateQueries({ queryKey: queryKeys.likedPosts }), // 좋아요한 글 목록
+        queryClient.invalidateQueries({ queryKey: queryKeys.communityPosts }), // 커뮤니티 피드
+      ]),
+  });
+};
+
 // 좋아요한 게시물 목록
 export const useLikedPostsQuery = (page = 1, pageSize = 10, enabled = true) =>
   useQuery({
@@ -52,14 +69,20 @@ export const useUnlikePost = () => {
     retry: false,
     onMutate: async (id) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.likedPosts });
-      const previous = queryClient.getQueriesData({ queryKey: queryKeys.likedPosts });
+      const previous = queryClient.getQueriesData({
+        queryKey: queryKeys.likedPosts,
+      });
       queryClient.setQueriesData({ queryKey: queryKeys.likedPosts }, (old) =>
-        old ? { ...old, results: (old.results ?? []).filter((p) => p.id !== id) } : old,
+        old
+          ? { ...old, results: (old.results ?? []).filter((p) => p.id !== id) }
+          : old,
       );
       return { previous };
     },
     onError: (_e, _id, ctx) => {
-      ctx?.previous?.forEach(([key, data]) => queryClient.setQueryData(key, data));
+      ctx?.previous?.forEach(([key, data]) =>
+        queryClient.setQueryData(key, data),
+      );
     },
     onSettled: () =>
       queryClient.invalidateQueries({ queryKey: queryKeys.likedPosts }),
