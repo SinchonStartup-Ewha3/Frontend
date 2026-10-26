@@ -23,6 +23,16 @@ const queryKeys = {
   // 로그인 사용자는 저장된 위치("me"), 비로그인은 선택한 지역코드별로 캐시를 따로 두기...~
   laundry: (regionCode) => ["situations", "laundry", regionCode ?? "me"],
   running: (regionCode) => ["situations", "running", regionCode ?? "me"],
+  // 커뮤니티: 피드(태그/페이지별) + 날씨 문구(로그인은 "me", 비로그인은 지역코드/좌표별)
+  communityPosts: ["community", "posts"],
+  communityPostsPage: (tag, page, pageSize) => [
+    "community",
+    "posts",
+    tag,
+    page,
+    pageSize,
+  ],
+  communityWeatherCopy: (scope) => ["community", "weather-copy", scope],
 };
 
 export default queryKeys;

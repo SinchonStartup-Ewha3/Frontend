@@ -57,7 +57,12 @@ export default function MyPostDetailPage() {
 
               {(post.tagLabel || post.region) && (
                 <p className="mt-[12px] text-[13px] leading-[18px] text-[#8F8E8D]">
-                  {[post.tagLabel, typeof post.region === "string" ? post.region : post.region?.shortName]
+                  {[
+                    post.tagLabel,
+                    typeof post.region === "string"
+                      ? post.region
+                      : post.region?.shortName,
+                  ]
                     .filter(Boolean)
                     .join(" · ")}
                 </p>
@@ -95,9 +100,21 @@ export default function MyPostDetailPage() {
 
         {post && (
           <BottomCTA bottomClassName="bottom-[124px]">
-            <Button onClick={() => setIsDeleteDialogOpen(true)} disabled={deletePost.isPending}>
-              {deletePost.isPending ? "삭제 중..." : "삭제하기"}
-            </Button>
+            <div className="flex gap-3">
+              <Button
+                variant="soft"
+                onClick={() => navigate(`/community/edit/${postId}`)}
+                disabled={deletePost.isPending}
+              >
+                수정하기
+              </Button>
+              <Button
+                onClick={() => setIsDeleteDialogOpen(true)}
+                disabled={deletePost.isPending}
+              >
+                {deletePost.isPending ? "삭제 중..." : "삭제하기"}
+              </Button>
+            </div>
           </BottomCTA>
         )}
         <ConfirmDialog
