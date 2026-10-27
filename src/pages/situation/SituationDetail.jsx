@@ -15,12 +15,36 @@ import {
   useSituationLocation,
 } from "../../hooks/useSituation";
 import { getErrorMessage } from "../../utils/situation";
-import raindropCharacter from "../../assets/images/raindrop_character.svg";
+import hydration0 from "../../assets/images/hydration-0.png";
+import hydration10 from "../../assets/images/hydration-10.png";
+import hydration20 from "../../assets/images/hydration-20.png";
+import hydration30 from "../../assets/images/hydration-30.png";
+import hydration40 from "../../assets/images/hydration-40.png";
+import hydration50 from "../../assets/images/hydration-50.png";
+import hydration60 from "../../assets/images/hydration-60.png";
+import hydration70 from "../../assets/images/hydration-70.png";
+import hydration80 from "../../assets/images/hydration-80.png";
+import hydration90 from "../../assets/images/hydration-90.png";
+import hydration100 from "../../assets/images/hydration-100.png";
 import skincareCharacter from "../../assets/images/skincare_character.svg";
 import waterWaveBack from "../../assets/images/water-record-wave-back.svg";
 import waterWaveFront from "../../assets/images/water-record-wave-front.svg";
+import weeLogo from "../../assets/icons/logo.svg";
 
 const categories = ["수분", "빨래", "러닝"];
+const hydrationImages = [
+  hydration0,
+  hydration10,
+  hydration20,
+  hydration30,
+  hydration40,
+  hydration50,
+  hydration60,
+  hydration70,
+  hydration80,
+  hydration90,
+  hydration100,
+];
 
 const pad = (value) => String(value).padStart(2, "0");
 // Date -> "14:47"
@@ -78,6 +102,7 @@ const SituationDetail = () => {
       Math.round(data?.percent ?? (waterAmount / recommendedMl) * 100),
     ),
   );
+  const hydrationImage = hydrationImages[Math.round(progress / 10)];
 
   // 시간별 그래프: 막대 0번이 1시, 23번이 24시(=0시) 구간
   const hourlyAmountMap = {};
@@ -182,6 +207,12 @@ const SituationDetail = () => {
   return (
     <MobileLayout>
       <main className="relative mx-auto min-h-[1060px] w-full max-w-[390px] overflow-hidden bg-white text-[#353331]">
+        <img
+          src={weeLogo}
+          alt="WEE"
+          className="absolute left-6 top-[28px] h-[24px] w-auto"
+          style={{ filter: "brightness(0) saturate(100%) invert(80%) sepia(28%) saturate(1492%) hue-rotate(154deg) brightness(101%) contrast(101%)" }}
+        />
         <div className="absolute left-[24px] right-[24px] top-[28px]">
           <Header />
         </div>
@@ -217,13 +248,13 @@ const SituationDetail = () => {
         </h1>
 
         <div
-          className="absolute left-1/2 top-[208px] h-[192px] w-[156px] -translate-x-1/2"
+          className="absolute left-1/2 top-[188px] h-[222px] w-[198px] -translate-x-1/2"
           aria-label={`권장량의 ${progress}%를 섭취했어요`}
           role="img"
         >
           <img
-            src={raindropCharacter}
-            alt=""
+            src={hydrationImage}
+            alt={`수분 섭취량 ${Math.round(progress / 10) * 10}% 물방울`}
             className="absolute inset-0 h-full w-full object-contain"
           />
         </div>
@@ -347,18 +378,26 @@ const SituationDetail = () => {
         >
           <div className="mt-2">
             <Card className="relative mx-auto h-[205px] w-full max-w-[319px] !overflow-hidden !rounded-[16px] !border-[0.5px] !border-[#BCBBBA] !p-0 shadow-[0px_4px_45px_0px_rgba(27,169,225,0.08)]">
-              <img
-                src={waterWaveBack}
-                alt=""
+              <div
                 aria-hidden="true"
-                className="pointer-events-none absolute bottom-[-149px] left-[-265px]"
-              />
-              <img
-                src={waterWaveFront}
-                alt=""
-                aria-hidden="true"
-                className="pointer-events-none absolute bottom-[-111px] left-[-116px]"
-              />
+                className="pointer-events-none absolute inset-x-0 bottom-0 h-[140px] overflow-hidden"
+              >
+                <div
+                  className="absolute inset-x-0 bottom-0 bg-[#5DCCFC]/35 transition-[height] duration-700 ease-out motion-reduce:transition-none"
+                  style={{ height: `${progress}%` }}
+                >
+                  <img
+                    src={waterWaveBack}
+                    alt=""
+                    className="absolute -top-[8px] left-[-8%] h-[20px] w-[116%]"
+                  />
+                  <img
+                    src={waterWaveFront}
+                    alt=""
+                    className="absolute -top-[4px] left-[-4%] h-[16px] w-[108%] opacity-80"
+                  />
+                </div>
+              </div>
               <div className="absolute left-[19px] top-[9px] z-10">
                 <p className="text-[20px] font-medium leading-8 text-[#1F1C1A]">
                   {currentTime}

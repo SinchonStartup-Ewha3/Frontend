@@ -17,6 +17,7 @@ import {
 import useToast from "../../hooks/useToast";
 import queryKeys from "../../api/queryKeys";
 import useLocationStore from "../../store/useLocationStore";
+import weeLogo from "../../assets/icons/logo.svg";
 
 const categories = [
   { label: "가디건", value: "cardigan" },
@@ -176,6 +177,12 @@ export default function CommunityPage() {
   return (
     <MobileLayout>
       <main className="relative mx-auto flex min-h-[852px] w-full max-w-[390px] flex-col bg-white pb-0 text-[#353331]">
+        <img
+          src={weeLogo}
+          alt="WEE"
+          className="absolute left-6 top-[28px] h-[24px] w-auto"
+          style={{ filter: "brightness(0) saturate(100%) invert(80%) sepia(28%) saturate(1492%) hue-rotate(154deg) brightness(101%) contrast(101%)" }}
+        />
         <header className="mx-6 pt-[96px]">
           {headline && (
             <h1 className="break-words text-[28px] font-semibold leading-[1.4] tracking-[-0.84px]">
@@ -292,7 +299,14 @@ export default function CommunityPage() {
             const likePending = pendingLikeIds.has(Number(postId));
             return (
               <article key={postId} className="relative h-[110px]">
-                <div className="absolute left-0 top-0 h-[76px] w-[78px] rounded-[13px] bg-[#E9E8E8]/60">
+                <div className="absolute left-0 top-0 h-[76px] w-[78px] overflow-hidden rounded-[13px] bg-[#E9E8E8]/60">
+                  {(post.imageUrl ?? post.image) && (
+                    <img
+                      src={post.imageUrl ?? post.image}
+                      alt="게시물 사진"
+                      className="absolute inset-0 h-full w-full object-cover"
+                    />
+                  )}
                   <button
                     type="button"
                     disabled={likePending}
@@ -323,13 +337,6 @@ export default function CommunityPage() {
                   </button>
                 </div>
                 <p className="absolute left-[99px] right-0 top-[5px] line-clamp-2 text-[16px] font-medium leading-[1.38] tracking-[-0.48px] text-[#4C4A48]">
-                  {post.imageUrl && (
-                    <img
-                      src={post.imageUrl}
-                      alt=""
-                      className="mr-2 inline-block h-8 w-8 rounded object-cover align-middle"
-                    />
-                  )}
                   {postMessage}
                 </p>
                 <div className="absolute left-[99px] top-[55px] flex items-center gap-[7px] whitespace-nowrap text-[12px] font-medium leading-[1.5] tracking-[-0.36px] text-[#A5A4A3]">

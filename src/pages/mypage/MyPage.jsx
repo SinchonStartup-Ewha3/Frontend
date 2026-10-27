@@ -7,23 +7,15 @@ import MobileLayout from "../../components/MobileLayout";
 import PageHeading from "../../components/PageHeading";
 import PageLayout from "../../components/PageLayout";
 import PremiumCheckoutSheet from "../../components/PremiumCheckoutSheet";
+import weeLogo from "../../assets/icons/logo.svg";
 import chevronRightIcon from "../../assets/icons/chevron-right.svg";
 import lockIcon from "../../assets/icons/lock.svg";
-import outerAlarmIcon from "../../assets/icons/alarm-outer.svg";
-import exerciseAlarmIcon from "../../assets/icons/alarm-exercise.svg";
-import laundryAlarmIcon from "../../assets/icons/alarm-laundry.svg";
-import umbrellaAlarmIcon from "../../assets/icons/alarm-umbrella.svg";
+import diamondIcon from "../../assets/icons/diamond.svg";
 import { useMyPageSummaryQuery } from "../../hooks/useProfile";
 import { useIsPremium } from "../../hooks/usePayment";
 import { logoutFromService } from "../../api/auth";
 
 const sectionHeadingClass = "text-[16px] leading-[21px] font-bold";
-const premiumBenefits = [
-  { title: "옷차림 알림", icon: outerAlarmIcon },
-  { title: "운동하기 좋은 시간", icon: exerciseAlarmIcon },
-  { title: "빨래 알림", icon: laundryAlarmIcon },
-  { title: "우산 알림", icon: umbrellaAlarmIcon },
-];
 
 export default function MyPage() {
   const navigate = useNavigate();
@@ -36,7 +28,13 @@ export default function MyPage() {
     return (
       <MobileLayout>
         <PageLayout className="!px-0">
-          <main className="px-[21px] pt-[106px] text-[#353331]">
+          <main className="relative px-[21px] pt-[106px] text-[#353331]">
+            <img
+              src={weeLogo}
+              alt="WEE"
+              className="absolute left-[21px] top-[43px] h-[24px] w-auto"
+              style={{ filter: "brightness(0) saturate(100%) invert(80%) sepia(28%) saturate(1492%) hue-rotate(154deg) brightness(101%) contrast(101%)" }}
+            />
             <div className="flex flex-col gap-[18px]">
               <Card highlighted className="!rounded-[13px] !p-0">
                 <button
@@ -57,34 +55,22 @@ export default function MyPage() {
                 </button>
               </Card>
 
-              <Card className="!overflow-hidden !rounded-[20px] !border-[#E4F5F9] !bg-[#F5FCFD] !p-4">
-                <h2 className="mt-5 text-[20px] font-bold leading-[1.4] tracking-[-0.6px] text-[#353331]">
-                  날씨에 맞춘 하루,
-                  <br />
-                  프리미엄 알림으로 준비해요
-                </h2>
-                <p className="mt-2 text-[14px] leading-[21px] text-[#797776]">
-                  내 위치와 일정에 맞춰 필요한 순간에 알려드려요.
-                </p>
-                <ul className="mt-4 grid grid-cols-2 gap-2 text-[12px] font-semibold leading-[17px] text-[#62605F]">
-                  {premiumBenefits.map(({ title, icon }) => (
-                    <li key={title} className="flex min-h-[58px] items-center gap-2 rounded-[12px] bg-white px-2.5 py-2">
-                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#E5F9FD]">
-                        <img src={icon} alt="" className="h-5 w-5" />
-                      </span>
-                      <span>{title}</span>
-                    </li>
-                  ))}
-                </ul>
-                <Button
-                  onClick={() => navigate("/consent", { state: { intent: "kakao", from: "/mypage" } })}
-                  className="mt-4 !h-[48px] !rounded-[12px] text-[16px] font-bold"
+              <Card highlighted className="!rounded-[13px] !p-0">
+                <button
+                  type="button"
+                  onClick={() => navigate("/premium")}
+                  className="flex min-h-[77px] w-full items-center justify-between gap-3 rounded-[13px] px-[17px] text-left"
                 >
-                  로그인하고 프리미엄 시작하기
-                </Button>
-                <p className="mt-2 text-center text-[12px] leading-[18px] text-[#8F8E8D]">
-                  프리미엄 이용권은 로그인 후 구독할 수 있어요.
-                </p>
+                  <span className="min-w-0">
+                    <span className="block text-[16px] font-bold leading-[20px] text-[#353331]">
+                      프리미엄 구독하기
+                    </span>
+                    <span className="mt-[8px] block text-[14px] leading-[17px] text-[#797776]">
+                      내 위치와 일정에 맞춰 필요한 순간에 알려드려요.
+                    </span>
+                  </span>
+                  <img src={diamondIcon} alt="" aria-hidden="true" className="h-[24px] w-[25px] shrink-0" />
+                </button>
               </Card>
             </div>
           </main>
@@ -96,7 +82,13 @@ export default function MyPage() {
   return (
     <MobileLayout>
       <PageLayout className="!px-0">
-        <main className="px-[21px] pt-[106px] text-[#353331]">
+        <main className="relative px-[21px] pt-[106px] text-[#353331]">
+          <img
+            src={weeLogo}
+            alt="WEE"
+            className="absolute left-[21px] top-[43px] h-[24px] w-auto"
+            style={{ filter: "brightness(0) saturate(100%) invert(80%) sepia(28%) saturate(1492%) hue-rotate(154deg) brightness(101%) contrast(101%)" }}
+          />
           <div className="flex flex-col gap-[18px]">
             <Card
               highlighted

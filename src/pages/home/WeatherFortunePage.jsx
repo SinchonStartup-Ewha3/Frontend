@@ -56,6 +56,7 @@ export default function WeatherFortunePage() {
   const handleCouponRegister = async (code) => {
     const result = await redeemFortuneCoupon(code);
     await queryClient.invalidateQueries({ queryKey: queryKeys.todayFortune });
+    await queryClient.invalidateQueries({ queryKey: queryKeys.fortunePurchases });
     return result;
   };
 

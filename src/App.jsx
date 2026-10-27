@@ -45,7 +45,8 @@ import RefundAccountPage from "./pages/mypage/RefundAccountPage.jsx";
 import MyActivityPage from "./pages/mypage/MyActivityPage.jsx";
 import MyPostDetailPage from "./pages/mypage/MyPostDetailPage.jsx";
 import LoginRequiredModal from "./components/LoginRequiredModal.jsx";
-import { initializeOneSignal, loginOneSignalUser } from "./push/oneSignal";
+import { USE_MOCK } from "./api/config";
+import { loginOneSignalUser } from "./push/oneSignal";
 
 export default function App() {
   const navigate = useNavigate();
@@ -61,13 +62,7 @@ export default function App() {
   });
 
   useEffect(() => {
-    initializeOneSignal().catch((error) =>
-      console.warn("OneSignal 초기화 실패", error),
-    );
-  }, []);
-
-  useEffect(() => {
-    if (!token || !profileQuery.data) return;
+    if (USE_MOCK || !token || !profileQuery.data) return;
     const djangoUserId =
       profileQuery.data.userId ?? profileQuery.data.id ?? profileQuery.data.pk;
     if (djangoUserId === undefined || djangoUserId === null) return;

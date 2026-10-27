@@ -20,6 +20,24 @@ const inactiveStatusMessages = {
   REFUNDED: "환불이 완료되었어요.",
   CHARGEBACK: "결제가 취소되었어요.",
 };
+const formatFortuneDate = (value) =>
+  typeof value === "string" && value.length >= 10
+    ? value.slice(0, 10).replaceAll("-", ".")
+    : null;
+const formatFortuneRedeemedAt = (value) => {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return new Intl.DateTimeFormat("ko-KR", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(date);
+};
 
 export default function PaymentManagementPage() {
   const navigate = useNavigate();
@@ -36,6 +54,13 @@ export default function PaymentManagementPage() {
   const hasFortuneVoucher = Boolean(
     fortunePurchases?.current || fortunePurchases?.latest || fortunePurchases?.upcoming?.length,
   );
+  const activeFortunePurchase =
+    fortunePurchases?.current ??
+    fortunePurchases?.latest ??
+    fortunePurchases?.upcoming?.[0];
+  const activeFrom = formatFortuneDate(activeFortunePurchase?.active_from);
+  const activeUntil = formatFortuneDate(activeFortunePurchase?.active_until);
+  const redeemedAt = formatFortuneRedeemedAt(activeFortunePurchase?.redeemed_at);
   const subscription = data?.subscription;
   const isActive = subscription?.isActive ?? subscription?.active;
   const canPurchasePremium = !isLoading && !isError && !isActive;
@@ -155,9 +180,31 @@ export default function PaymentManagementPage() {
               </div>
             ) : (
               <>
-                <p className="text-[14px] leading-[21px] tracking-[-0.43px]">
-                  사용 횟수 | {fortunePurchases?.coins?.remaining ?? 0}회
-                </p>
+                {activeFortunePurchase?.product_title && (
+                  <p className="text-[14px] leading-[21px] tracking-[-0.43px]">
+                    이용권 | {activeFortunePurchase.product_title}
+                  </p>
+                )}
+                {activeFortunePurchase?.duration_days != null && (
+                  <p className="text-[14px] leading-[21px] tracking-[-0.43px]">
+                    이용 기간 | {activeFortunePurchase.duration_days}일
+                  </p>
+                )}
+                {activeFortunePurchase?.remaining_days != null && (
+                  <p className="text-[14px] leading-[21px] tracking-[-0.43px]">
+                    남은 기간 | {activeFortunePurchase.remaining_days}일
+                  </p>
+                )}
+                {(activeFrom || activeUntil) && (
+                  <p className="text-[14px] leading-[21px] tracking-[-0.43px]">
+                    이용 기간 | {activeFrom ?? "-"} ~ {activeUntil ?? "-"}
+                  </p>
+                )}
+                {redeemedAt && (
+                  <p className="text-[14px] leading-[21px] tracking-[-0.43px]">
+                    최근 결제일 | {redeemedAt}
+                  </p>
+                )}
                 {!hasFortuneVoucher && (
                   <p className="text-[13px] leading-[19px] text-[#797776]">
                     등록된 운세 쿠폰 이용권이 없어요.
