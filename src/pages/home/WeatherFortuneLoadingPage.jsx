@@ -1,9 +1,32 @@
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import Button from "../../components/Button";
 import MobileLayout from "../../components/MobileLayout";
 import loadingCloud from "../../assets/images/fortune/loading_cloud.png";
 import sleepingCharacter from "../../assets/images/fortune/loading_sleeping_character.png";
 import loadingDots from "../../assets/icons/loading-dots.svg";
+import { fetchTodayFortune } from "../../api/fortune";
+import queryKeys from "../../api/queryKeys";
 
 export default function WeatherFortuneLoadingPage() {
+  const navigate = useNavigate();
+  const fortuneQuery = useQuery({
+    queryKey: queryKeys.todayFortune,
+    queryFn: fetchTodayFortune,
+    retry: false,
+  });
+
+  useEffect(() => {
+    if (fortuneQuery.data) navigate("/weather-fortune/result", { replace: true });
+    else if (
+      fortuneQuery.error?.response?.status === 409 &&
+      fortuneQuery.error?.response?.data?.code === "FORTUNE_PROFILE_REQUIRED"
+    ) {
+      navigate("/weather-fortune/calendar", { replace: true });
+    }
+  }, [fortuneQuery.data, fortuneQuery.error, navigate]);
+
   return (
     <MobileLayout>
       <main
@@ -35,12 +58,21 @@ export default function WeatherFortuneLoadingPage() {
           style={{ top: 323, left: "50%", width: 304, height: 160, transform: "translateX(-50%)" }}
           className="absolute max-w-none object-contain"
         />
-        <img
-          src={loadingDots}
-          alt="분석 중"
-          style={{ top: 585, left: "50%", width: 48, height: 48, transform: "translateX(-50%)" }}
-          className="absolute animate-pulse"
-        />
+        {fortuneQuery.isPending ? (
+          <img
+            src={loadingDots}
+            alt="분석 중"
+            style={{ top: 585, left: "50%", width: 48, height: 48, transform: "translateX(-50%)" }}
+            className="absolute animate-pulse"
+          />
+        ) : fortuneQuery.isError && fortuneQuery.error?.response?.status !== 409 ? (
+          <div className="absolute left-6 right-6 top-[575px] flex flex-col items-center gap-3 text-center">
+            <p role="alert" className="text-sm text-[#797776]">운세를 불러오지 못했어요. 다시 시도해주세요.</p>
+            <Button onClick={() => fortuneQuery.refetch()} className="!h-[44px] !w-full text-base">
+              다시 시도
+            </Button>
+          </div>
+        ) : null}
       </main>
     </MobileLayout>
   );

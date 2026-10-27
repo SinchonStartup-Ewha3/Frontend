@@ -23,24 +23,28 @@ const legalLinks = [
 export default function PremiumLandingPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const hasAccessToken = Boolean(localStorage.getItem("wee_access_token"));
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [autoTransactionId, setAutoTransactionId] = useState("");
 
   useEffect(() => {
     const transactionId = searchParams.get("_ptxn");
     if (!transactionId) return;
+    if (!hasAccessToken) {
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.delete("_ptxn");
+      setSearchParams(nextParams, { replace: true });
+      return;
+    }
     setAutoTransactionId(transactionId);
     setIsCheckoutOpen(true);
     const nextParams = new URLSearchParams(searchParams);
     nextParams.delete("_ptxn");
     setSearchParams(nextParams, { replace: true });
-  }, [searchParams, setSearchParams]);
+  }, [hasAccessToken, searchParams, setSearchParams]);
 
   const handlePurchase = () => {
-    if (!localStorage.getItem("wee_access_token")) {
-      navigate("/login", { state: { from: "/premium" } });
-      return;
-    }
+    if (!hasAccessToken) return;
     setAutoTransactionId("");
     setIsCheckoutOpen(true);
   };
@@ -81,18 +85,28 @@ export default function PremiumLandingPage() {
           </ul>
         </section>
 
-        <section className="mt-8 rounded-2xl bg-[#F7F7F7] p-5 text-center" aria-label="상품 가격 및 이용 기간">
-          <h2 className="text-lg font-bold">{PREMIUM_PLAN.name}</h2>
-          <p className="mt-3 text-[28px] font-bold">{PREMIUM_PLAN.priceLabel}</p>
-          <p className="mt-2 text-sm text-[#62605F]">일회성 결제 · 결제 후 21일 이용</p>
-          <p className="mt-1 text-xs text-[#8F8E8D]">구독 및 자동 갱신이 아닙니다.</p>
-          <Button onClick={handlePurchase} className="mt-5 h-11 rounded-[10px] text-base">
-            로그인 후 결제하기
-          </Button>
-          <p className="mt-3 text-xs leading-5 text-[#8F8E8D]">
-            결제 진행 시 Paddle Checkout으로 이동합니다. Paddle은 결제 처리자(Merchant of Record)입니다.
-          </p>
-        </section>
+        {hasAccessToken ? (
+          <section className="mt-8 rounded-2xl bg-[#F7F7F7] p-5 text-center" aria-label="상품 가격 및 이용 기간">
+            <h2 className="text-lg font-bold">{PREMIUM_PLAN.name}</h2>
+            <p className="mt-3 text-[28px] font-bold">{PREMIUM_PLAN.priceLabel}</p>
+            <p className="mt-2 text-sm text-[#62605F]">일회성 결제 · 결제 후 21일 이용</p>
+            <p className="mt-1 text-xs text-[#8F8E8D]">구독 및 자동 갱신이 아닙니다.</p>
+            <Button onClick={handlePurchase} className="mt-5 h-11 rounded-[10px] text-base">
+              프리미엄 이용하기
+            </Button>
+            <p className="mt-3 text-xs leading-5 text-[#8F8E8D]">
+              결제 진행 시 Paddle Checkout으로 이동합니다. Paddle은 결제 처리자(Merchant of Record)입니다.
+            </p>
+          </section>
+        ) : (
+          <section className="mt-8 rounded-2xl border border-[#D9F4FA] bg-[#F5FCFD] p-5" aria-label="프리미엄 이용 안내">
+            <h2 className="text-base font-bold">프리미엄 기능 안내</h2>
+            <p className="mt-2 text-sm leading-6 text-[#62605F]">
+              프리미엄은 로그인 후 구독할 수 있어요. 구독하면 내 위치와 생활 일정에 맞춘
+              옷차림·운동·빨래·우산 알림을 받아볼 수 있습니다.
+            </p>
+          </section>
+        )}
 
         <nav aria-label="정책 및 고객지원" className="mt-auto flex flex-wrap justify-center gap-x-4 gap-y-2 pt-8 text-xs text-[#797776]">
           {legalLinks.map(([label, href]) => <Link key={href} to={href} className="underline underline-offset-2">{label}</Link>)}

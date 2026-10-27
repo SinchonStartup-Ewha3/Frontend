@@ -21,7 +21,9 @@ const LocationSearchSheet = ({ isOpen, onClose, selected, onSelect }) => {
 
   const recent = useLocationStore((s) => s.recent);
   const selectRegion = useLocationStore((s) => s.selectRegion);
-  const { data: results = [] } = useRegionSearch(query);
+  const hasRecent = Boolean(localStorage.getItem("wee_access_token")) && recent.length > 0;
+  const selectedName = typeof selected === "string" ? selected : selected?.regionName;
+  const { data: results = [], isFetching: isSearchingRegions, isError: hasSearchError, refetch: retrySearch } = useRegionSearch(query);
   const { locate, loading: locating } = useCurrentRegion();
 
   const isSearching = focused || query.length > 0;
@@ -74,7 +76,19 @@ const LocationSearchSheet = ({ isOpen, onClose, selected, onSelect }) => {
         {isSearching ? (
           // ── 검색 결과 ──
           <ul className="mt-4">
-            {query.trim() && results.length === 0 && (
+            {query.trim().length < 2 && (
+              <li className="py-6 text-center text-sm text-[#A5A4A3]">두 글자 이상 입력해주세요</li>
+            )}
+            {query.trim().length >= 2 && isSearchingRegions && (
+              <li className="py-6 text-center text-sm text-[#A5A4A3]">지역을 검색하고 있어요...</li>
+            )}
+            {query.trim().length >= 2 && hasSearchError && (
+              <li className="py-6 text-center text-sm text-[#A5A4A3]">
+                지역을 검색하지 못했어요. {" "}
+                <button type="button" onClick={() => retrySearch()} className="text-main underline">다시 시도</button>
+              </li>
+            )}
+            {query.trim().length >= 2 && !isSearchingRegions && !hasSearchError && results.length === 0 && (
               <li className="py-6 text-center text-sm text-[#A5A4A3]">검색 결과가 없어요</li>
             )}
             {results.map((region) => (
@@ -103,23 +117,31 @@ const LocationSearchSheet = ({ isOpen, onClose, selected, onSelect }) => {
               {locating ? "위치 확인 중..." : "현재 위치로 찾기"}
             </Button>
 
-            <h3 className="mt-[27px] text-base font-semibold text-[#4C4A48]">최근 검색</h3>
-            <ul className="mt-[17px]">
-              {recent.length === 0 && <li className="py-4 text-sm text-[#A5A4A3]">최근 검색한 지역이 없어요</li>}
-              {recent.map((region) => (
-                <li key={region}>
-                  <button
-                    type="button"
-                    onClick={() => pick(region, "RECENT")}
-                    className="flex h-[49px] w-full items-center gap-[13px] px-3 text-left text-base font-medium tracking-[-0.02em] text-[#797776]"
-                  >
-                    <img src={timeIcon} alt="" className="h-[17px] w-[17px] shrink-0" />
-                    <span className="flex-1">{region}</span>
-                    {region === selected && <img src={checkIcon} alt="선택됨" className="h-3 w-[17px]" />}
-                  </button>
-                </li>
-              ))}
-            </ul>
+            {hasRecent && (
+              <>
+                <h3 className="mt-[27px] text-base font-semibold text-[#4C4A48]">최근 검색</h3>
+                <ul className="mt-[17px]">
+                  {recent.map((region) => {
+                    const regionName = typeof region === "string" ? region : region?.regionName;
+                    const regionKey = typeof region === "string" ? region : region?.regionCode ?? regionName;
+
+                    return (
+                      <li key={regionKey}>
+                        <button
+                          type="button"
+                          onClick={() => pick(region, "RECENT")}
+                          className="flex h-[49px] w-full items-center gap-[13px] px-3 text-left text-base font-medium tracking-[-0.02em] text-[#797776]"
+                        >
+                          <img src={timeIcon} alt="" className="h-[17px] w-[17px] shrink-0" />
+                          <span className="flex-1">{regionName}</span>
+                          {regionName === selectedName && <img src={checkIcon} alt="선택됨" className="h-3 w-[17px]" />}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </>
+            )}
           </>
         )}
       </div>

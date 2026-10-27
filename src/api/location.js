@@ -24,7 +24,13 @@ export const searchRegions = async (query) => {
     params: { q: normalizedQuery },
     skipAuth: true,
   });
-  return data;
+  // API가 배열 또는 { results: [...] } / { data: [...] } 형태로 응답해도
+  // 화면에서는 동일하게 지역 목록으로 다룹니다.
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.results)) return data.results;
+  if (Array.isArray(data?.regions)) return data.regions;
+  if (Array.isArray(data?.data)) return data.data;
+  return [];
 };
 
 // 사용자 위치를 GPS 좌표 또는 검색한 행정구역 코드로 설정

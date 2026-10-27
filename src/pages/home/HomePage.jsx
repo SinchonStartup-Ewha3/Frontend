@@ -66,16 +66,11 @@ const getCharacterImage = (state) => {
   }
 };
 
-const recentLocations = [
-  "서울 특별시 서대문구 아현동",
-  "부산광역시 사하구",
-  "서울 특별시 강남구",
-];
-
 export default function HomePage() {
   const navigate = useNavigate();
   const currentUser = useUserStore((state) => state.user);
   const selectedRegion = useLocationStore((state) => state.selected);
+  const recentLocations = useLocationStore((state) => state.recent);
   const selectedRegionCode = selectedRegion?.regionCode;
   const selectedCoordinates = useLocationStore((state) => state.coordinates);
   const hasAccessToken = Boolean(localStorage.getItem("wee_access_token"));
@@ -162,6 +157,13 @@ export default function HomePage() {
     if (regionName) setLocation(regionName);
   }, [hasAccessToken, currentUser?.region?.shortName, homeData?.region?.shortName, selectedRegion, selectedRegionCode]);
 
+  useEffect(() => {
+    // 비로그인 GPS 좌표를 홈 API가 행정구역으로 변환해 주면,
+    // 상황 탭에서도 같은 지역을 조회할 수 있도록 지역 코드를 저장합니다.
+    if (hasAccessToken || !selectedCoordinates || !homeData?.region?.regionCode) return;
+    selectRegion(homeData.region);
+  }, [hasAccessToken, homeData?.region, selectRegion, selectedCoordinates]);
+
   const handleRegionSelection = async (region) => {
     if (isSelectingLocation) return;
     if (!localStorage.getItem("wee_access_token")) {
@@ -179,6 +181,7 @@ export default function HomePage() {
       });
       setUser(user);
       queryClient.setQueryData(queryKeys.profile, user);
+      selectRegion(region);
       queryClient.invalidateQueries({ queryKey: queryKeys.home });
       setLocation(user.region?.shortName ?? region.shortName);
       setIsLocationPickerOpen(false);
@@ -439,9 +442,11 @@ export default function HomePage() {
                 >
                   {locating ? "위치 확인 중..." : "현재 위치로 찾기"}
                 </Button>
-                <h2 className="absolute left-6 top-[191px] text-[18px] font-semibold leading-[1.5] tracking-[-0.54px] text-[#4C4A48]">
-                  최근 검색
-                </h2>
+                {hasAccessToken && recentLocations.length > 0 && (
+                  <h2 className="absolute left-6 top-[191px] text-[18px] font-semibold leading-[1.5] tracking-[-0.54px] text-[#4C4A48]">
+                    최근 검색
+                  </h2>
+                )}
               </>
             )}
             <div className={`absolute ${isSearchActive ? "left-[30px] right-[30px] top-[126px]" : "left-6 right-6 top-[232px]"}`}>
@@ -460,7 +465,7 @@ export default function HomePage() {
                   검색 결과가 없어요.
                 </p>
               )}
-              {(isSearchingRegions ? regionResults : recentLocations).map((item) => {
+              {(isSearchingRegions ? regionResults : hasAccessToken ? recentLocations : []).map((item) => {
                 const isSearchResult = typeof item !== "string";
                 const label = isSearchResult ? item.regionName : item;
                 const shortLocation = isSearchResult
