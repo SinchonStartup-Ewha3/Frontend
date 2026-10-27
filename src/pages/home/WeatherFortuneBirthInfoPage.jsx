@@ -2,6 +2,7 @@ import { useLayoutEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Button from "../../components/Button";
 import MobileLayout from "../../components/MobileLayout";
+import { FORTUNE_CALENDARS } from "../../constants/fortune";
 
 const initialDate = { year: 2004, month: 12, day: 6 };
 const yearOptions = Array.from({ length: 127 }, (_, index) => 1900 + index);
@@ -85,7 +86,7 @@ function DateWheel({ column, value, values, onChange }) {
 export default function WeatherFortuneBirthInfoPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [calendar, setCalendar] = useState(location.state?.calendar ?? "양력");
+  const [calendarType, setCalendarType] = useState(location.state?.calendarType ?? "SOLAR");
   const [date, setDate] = useState(initialDate);
   const daysInMonth = new Date(date.year, date.month, 0).getDate();
   const wheelColumns = dateColumns.map((column) => ({
@@ -127,19 +128,16 @@ export default function WeatherFortuneBirthInfoPage() {
           role="group"
           aria-label="달력 종류"
           style={{ top: 284 }}
-          className="absolute left-6 right-6 flex h-[44px] rounded-[10px] bg-[#F4F4F4] p-0"
+          className="absolute left-6 right-6 grid h-[52px] grid-cols-3 gap-1 rounded-[10px] bg-[#F4F4F4] p-1"
         >
-          {[
-            { label: "양력", value: "양력" },
-            { label: "음력", value: "음력" },
-          ].map((option) => (
+          {FORTUNE_CALENDARS.map((option) => (
             <button
               key={option.value}
               type="button"
-              aria-pressed={calendar === option.value}
-              onClick={() => setCalendar(option.value)}
-              className={`h-[44px] flex-1 rounded-[10px] border text-[18px] font-semibold leading-[1.5] tracking-[-0.18px] ${
-                calendar === option.value
+              aria-pressed={calendarType === option.value}
+              onClick={() => setCalendarType(option.value)}
+              className={`rounded-[8px] border text-[14px] font-semibold leading-[1.4] tracking-[-0.18px] ${
+                calendarType === option.value
                   ? "border-main bg-[#E5FAFF] text-main"
                   : "border-transparent text-[#D2D2D1]"
               }`}
@@ -173,7 +171,7 @@ export default function WeatherFortuneBirthInfoPage() {
 
         <Button
           variant="primary"
-          onClick={() => navigate("/weather-fortune/birth-time", { state: { calendar, date } })}
+          onClick={() => navigate("/weather-fortune/birth-time", { state: { calendarType, date } })}
           className="absolute left-1/2 top-[696px] !h-[44px] !w-[345px] -translate-x-1/2 rounded-[10px] text-[18px] tracking-[-0.18px]"
         >
           다음
@@ -181,7 +179,7 @@ export default function WeatherFortuneBirthInfoPage() {
 
         <Button
           variant="ghost"
-          onClick={() => navigate("/weather-fortune/calendar", { state: { calendar } })}
+          onClick={() => navigate("/weather-fortune/calendar", { state: { calendarType } })}
           className="absolute left-1/2 top-[750px] !h-[44px] !w-[345px] -translate-x-1/2 rounded-[10px] text-[18px] tracking-[-0.18px]"
         >
           이전

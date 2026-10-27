@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Button from "../../components/Button";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import Avatar from "../../components/Avatar";
@@ -12,6 +12,8 @@ import PageLayout from "../../components/PageLayout";
 import useToast from "../../hooks/useToast";
 import { searchRegions, updateUserLocation } from "../../api/location";
 import queryKeys from "../../api/queryKeys";
+import { fetchFortuneProfile } from "../../api/fortune";
+import { FORTUNE_CALENDARS } from "../../constants/fortune";
 import useUserStore from "../../store/useUserStore";
 import {
   useProfileQuery,
@@ -26,6 +28,12 @@ export default function ProfileEditPage() {
   const setUser = useUserStore((state) => state.setUser);
   const photoInputRef = useRef(null);
   const { data: profile } = useProfileQuery();
+  const fortuneProfileQuery = useQuery({
+    queryKey: queryKeys.fortuneProfile,
+    queryFn: fetchFortuneProfile,
+    retry: false,
+    enabled: Boolean(localStorage.getItem("wee_access_token")),
+  });
   const updateNickname = useUpdateNickname();
   const uploadImage = useUploadProfileImage();
   const withdraw = useWithdraw();
@@ -35,6 +43,22 @@ export default function ProfileEditPage() {
   const [profileImage, setProfileImage] = useState("");
   const [showWithdrawDialog, setShowWithdrawDialog] = useState(false);
   const [showLocationSearch, setShowLocationSearch] = useState(false);
+  const loginEmail =
+    profile?.loginAccount?.email ??
+    profile?.email ??
+    profile?.loginAccount?.displayId ??
+    "카카오 계정";
+  const fortuneProfile = fortuneProfileQuery.data;
+  const fortuneCalendarLabel = FORTUNE_CALENDARS.find(
+    (calendar) => calendar.value === fortuneProfile?.calendar_type,
+  )?.label;
+  const fortuneBirthSummary = fortuneProfile
+    ? `${fortuneCalendarLabel ?? ""} ${fortuneProfile.birth_date?.replaceAll("-", ".") ?? ""} · ${fortuneProfile.birth_time_unknown ? "시간 모름" : fortuneProfile.birth_time?.slice(0, 5) ?? "시간 정보 없음"}`.trim()
+    : fortuneProfileQuery.error?.response?.status === 404
+      ? "등록된 생년월일 정보가 없어요"
+      : fortuneProfileQuery.isPending
+        ? "불러오는 중..."
+        : "생년월일 정보를 불러오지 못했어요";
 
   useEffect(() => {
     if (!profile) return;
@@ -181,14 +205,7 @@ export default function ProfileEditPage() {
                   로그인 계정 <span className="text-[16px] text-[#797776]">(수정 불가)</span>
                 </>
               )}
-              value={
-                profile?.loginAccount
-                  ? profile.loginAccount.displayId ??
-                    profile.loginAccount.email ??
-                    profile.email ??
-                    "카카오 계정"
-                  : profile?.email ?? "카카오 계정"
-              }
+              value={loginEmail}
               readOnly
               className="!mb-0"
               labelClassName="!mb-[15px] !text-[18px] !leading-[22px]"
@@ -211,6 +228,18 @@ export default function ProfileEditPage() {
               className="!mb-0"
               labelClassName="!mb-[15px] !text-[18px] !leading-[22px]"
               inputClassName="!h-[60px] !cursor-pointer !rounded-[15px] !border-2 !px-6 !text-[16px] !font-semibold !text-[#1F1C1A]"
+            />
+            <FormField
+              label={(
+                <>
+                  운세 생년월일 <span className="text-[16px] text-[#797776]">(수정 불가)</span>
+                </>
+              )}
+              value={fortuneBirthSummary}
+              readOnly
+              className="!mb-0"
+              labelClassName="!mb-[15px] !text-[18px] !leading-[22px]"
+              inputClassName="!h-[60px] !rounded-[15px] !border-2 !px-6 !text-[16px] !font-semibold !text-[#1F1C1A]"
             />
 
             <div className="mt-[47px] space-y-[10px]">

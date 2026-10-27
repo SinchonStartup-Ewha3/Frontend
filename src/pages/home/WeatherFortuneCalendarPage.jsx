@@ -2,22 +2,21 @@ import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Button from "../../components/Button";
 import MobileLayout from "../../components/MobileLayout";
-
-const calendarOptions = ["양력", "음력"];
+import { FORTUNE_CALENDARS } from "../../constants/fortune";
 
 export default function WeatherFortuneCalendarPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [calendar, setCalendar] = useState(location.state?.calendar ?? null);
+  const [calendarType, setCalendarType] = useState(location.state?.calendarType ?? null);
   const [errorMessage, setErrorMessage] = useState("");
 
   const handleNext = () => {
-    if (!calendar) {
-      setErrorMessage("양력 또는 음력을 선택해주세요.");
+    if (!calendarType) {
+      setErrorMessage("달력 종류를 선택해주세요.");
       return;
     }
 
-    navigate("/weather-fortune/birth-info", { state: { calendar } });
+    navigate("/weather-fortune/birth-info", { state: { calendarType } });
   };
 
   return (
@@ -39,24 +38,24 @@ export default function WeatherFortuneCalendarPage() {
         <div
           role="group"
           aria-label="달력 종류 선택"
-          className="absolute left-6 right-6 top-[283px] flex h-[44px] rounded-[10px] bg-[#F4F4F4]"
+          className="absolute left-6 right-6 top-[283px] grid h-[52px] grid-cols-3 gap-1 rounded-[10px] bg-[#F4F4F4] p-1"
         >
-          {calendarOptions.map((option) => (
+          {FORTUNE_CALENDARS.map((option) => (
             <button
-              key={option}
+              key={option.value}
               type="button"
-              aria-pressed={calendar === option}
+              aria-pressed={calendarType === option.value}
               onClick={() => {
-                setCalendar(option);
+                setCalendarType(option.value);
                 setErrorMessage("");
               }}
-              className={`flex-1 rounded-[10px] text-[18px] font-semibold leading-[1.5] tracking-[-0.18px] ${
-                calendar === option
+              className={`rounded-[8px] text-[14px] font-semibold leading-[1.4] tracking-[-0.18px] ${
+                calendarType === option.value
                   ? "border border-main bg-[#E5FAFF] text-main"
                   : "text-[#D2D2D1]"
               }`}
             >
-              {option}
+              {option.label}
             </button>
           ))}
         </div>

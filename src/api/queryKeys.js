@@ -17,6 +17,7 @@ const queryKeys = {
   hourlyWeather: ["home", "weather", "hourly"],
   currentWeather: ["home", "weather", "current"],
   todayFortune: ["fortune", "today"],
+  fortuneProfile: ["fortune", "profile"],
   fortunePurchases: ["fortune", "purchases", "me"],
   home: ["home"],
   hydration: ["situations", "hydration"],

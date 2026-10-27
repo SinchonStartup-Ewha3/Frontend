@@ -9,10 +9,21 @@ import PageLayout from "../../components/PageLayout";
 import PremiumCheckoutSheet from "../../components/PremiumCheckoutSheet";
 import chevronRightIcon from "../../assets/icons/chevron-right.svg";
 import lockIcon from "../../assets/icons/lock.svg";
+import outerAlarmIcon from "../../assets/icons/alarm-outer.svg";
+import exerciseAlarmIcon from "../../assets/icons/alarm-exercise.svg";
+import laundryAlarmIcon from "../../assets/icons/alarm-laundry.svg";
+import umbrellaAlarmIcon from "../../assets/icons/alarm-umbrella.svg";
 import { useMyPageSummaryQuery } from "../../hooks/useProfile";
 import { useIsPremium } from "../../hooks/usePayment";
+import { logoutFromService } from "../../api/auth";
 
 const sectionHeadingClass = "text-[16px] leading-[21px] font-bold";
+const premiumBenefits = [
+  { title: "옷차림 알림", icon: outerAlarmIcon },
+  { title: "운동하기 좋은 시간", icon: exerciseAlarmIcon },
+  { title: "빨래 알림", icon: laundryAlarmIcon },
+  { title: "우산 알림", icon: umbrellaAlarmIcon },
+];
 
 export default function MyPage() {
   const navigate = useNavigate();
@@ -46,29 +57,37 @@ export default function MyPage() {
                 </button>
               </Card>
 
-              <Card className="!rounded-[13px] !px-[16px] !py-[14px]">
-                <p className="text-[14px] leading-[20px] text-[#797776]">
-                  프리미엄 구독으로 맞춤형 기능을 이용해보세요.
+              <Card className="!overflow-hidden !rounded-[20px] !border-[#E4F5F9] !bg-[#F5FCFD] !p-4">
+                <h2 className="mt-5 text-[20px] font-bold leading-[1.4] tracking-[-0.6px] text-[#353331]">
+                  날씨에 맞춘 하루,
+                  <br />
+                  프리미엄 알림으로 준비해요
+                </h2>
+                <p className="mt-2 text-[14px] leading-[21px] text-[#797776]">
+                  내 위치와 일정에 맞춰 필요한 순간에 알려드려요.
                 </p>
+                <ul className="mt-4 grid grid-cols-2 gap-2 text-[12px] font-semibold leading-[17px] text-[#62605F]">
+                  {premiumBenefits.map(({ title, icon }) => (
+                    <li key={title} className="flex min-h-[58px] items-center gap-2 rounded-[12px] bg-white px-2.5 py-2">
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#E5F9FD]">
+                        <img src={icon} alt="" className="h-5 w-5" />
+                      </span>
+                      <span>{title}</span>
+                    </li>
+                  ))}
+                </ul>
                 <Button
-                  className="mt-[14px]"
-                  onClick={() => setIsCheckoutOpen(true)}
+                  onClick={() => navigate("/consent", { state: { intent: "kakao", from: "/mypage" } })}
+                  className="mt-4 !h-[48px] !rounded-[12px] text-[16px] font-bold"
                 >
-                  프리미엄 구독하기
+                  로그인하고 프리미엄 시작하기
                 </Button>
+                <p className="mt-2 text-center text-[12px] leading-[18px] text-[#8F8E8D]">
+                  프리미엄 이용권은 로그인 후 구독할 수 있어요.
+                </p>
               </Card>
             </div>
           </main>
-          {isCheckoutOpen && (
-            <PremiumCheckoutSheet
-              isOpen
-              onClose={() => setIsCheckoutOpen(false)}
-              onSuccess={() => {
-                setIsCheckoutOpen(false);
-                navigate("/premium/welcome");
-              }}
-            />
-          )}
         </PageLayout>
       </MobileLayout>
     );
@@ -110,14 +129,19 @@ export default function MyPage() {
                 알림 일정 관리
               </ListRow>
               {!isPremium && (
-                <div className="pointer-events-none absolute inset-x-[14px] top-[7px] z-10 flex h-[39px] items-center justify-center gap-[8px] bg-[rgba(255,255,255,0.86)] backdrop-blur-[2px]">
+                <button
+                  type="button"
+                  onClick={() => setIsCheckoutOpen(true)}
+                  aria-label="프리미엄 구독하기"
+                  className="absolute inset-x-[14px] top-[7px] z-10 flex h-[39px] items-center justify-center gap-[8px] bg-[rgba(255,255,255,0.86)] backdrop-blur-[2px]"
+                >
                   <span className="flex h-6 w-6 shrink-0 items-center justify-center">
                     <img src={lockIcon} alt="" />
                   </span>
                   <p className="whitespace-nowrap text-[14px] leading-[19px] text-[#797776]">
                     알림 구독 유저를 위한 기능이에요
                   </p>
-                </div>
+                </button>
               )}
             </Card>
 
@@ -160,9 +184,25 @@ export default function MyPage() {
                 </div>
               </div>
             </Card>
-
           </div>
+          <Button
+            variant="white"
+            onClick={logoutFromService}
+            className="mt-[24px] h-[44px] border border-[#E9E8E8] text-[16px] text-[#797776]"
+          >
+            로그아웃
+          </Button>
         </main>
+        {isCheckoutOpen && (
+          <PremiumCheckoutSheet
+            isOpen
+            onClose={() => setIsCheckoutOpen(false)}
+            onSuccess={() => {
+              setIsCheckoutOpen(false);
+              navigate("/premium/welcome");
+            }}
+          />
+        )}
       </PageLayout>
     </MobileLayout>
   );

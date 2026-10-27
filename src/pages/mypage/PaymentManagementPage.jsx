@@ -1,9 +1,12 @@
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Header from "../../components/Header";
+import Button from "../../components/Button";
 import MobileLayout from "../../components/MobileLayout";
+import PremiumCheckoutSheet from "../../components/PremiumCheckoutSheet";
 import { usePremiumBillingQuery, useRefundRequestQuery } from "../../hooks/usePayment";
 import { PREMIUM_PLAN } from "../../constants/premium";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import { fetchMyFortunePurchases } from "../../api/fortune";
 import queryKeys from "../../api/queryKeys";
 
@@ -20,6 +23,8 @@ const inactiveStatusMessages = {
 
 export default function PaymentManagementPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const { data, isLoading, isError } = usePremiumBillingQuery();
   const { data: refundRequest } = useRefundRequestQuery();
   const fortunePurchasesQuery = useQuery({
@@ -28,8 +33,12 @@ export default function PaymentManagementPage() {
     retry: false,
   });
   const fortunePurchases = fortunePurchasesQuery.data;
+  const hasFortuneVoucher = Boolean(
+    fortunePurchases?.current || fortunePurchases?.latest || fortunePurchases?.upcoming?.length,
+  );
   const subscription = data?.subscription;
   const isActive = subscription?.isActive ?? subscription?.active;
+  const canPurchasePremium = !isLoading && !isError && !isActive;
   const canRequestRefund = Boolean(subscription?.canRequestRefund);
   const purchasedAt = subscription?.purchasedAt ?? subscription?.paidAt;
   const paidAt = purchasedAt
@@ -106,18 +115,36 @@ export default function PaymentManagementPage() {
                     {inactiveStatusMessages[subscription.status] ?? "현재 이용 중인 구독이 아니에요."}
                   </p>
                 )}
+                {canPurchasePremium && (
+                  <Button
+                    onClick={() => setIsCheckoutOpen(true)}
+                    className="h-[44px] rounded-[10px] text-[14px]"
+                  >
+                    프리미엄 구독 결제하러 가기
+                  </Button>
+                )}
               </>
             ) : (
-              <p className="text-[14px] leading-[21px] text-[#797776]">이용 중인 구독이 없어요.</p>
+              <>
+                <p className="text-[14px] leading-[21px] text-[#797776]">이용 중인 구독이 없어요.</p>
+                {canPurchasePremium && (
+                  <Button
+                    onClick={() => setIsCheckoutOpen(true)}
+                    className="h-[44px] rounded-[10px] text-[14px]"
+                  >
+                    프리미엄 구독 결제하러 가기
+                  </Button>
+                )}
+              </>
             )}
           </article>
 
           <h2 className="ml-[6px] mt-8 text-[24px] font-semibold leading-[1.4] tracking-[-0.72px]">
-            사주 패키지
+            날씨 운세 이용권
           </h2>
           <article className={`${cardClassName} mt-[14px]`}>
             <h3 className="text-[16px] font-bold leading-[21px] tracking-[-0.43px]">
-              보유 코인
+              날씨 운세
             </h3>
             {fortunePurchasesQuery.isPending ? (
               <p className="text-[14px] leading-[21px] text-[#797776]">이용권 정보를 불러오는 중...</p>
@@ -129,30 +156,29 @@ export default function PaymentManagementPage() {
             ) : (
               <>
                 <p className="text-[14px] leading-[21px] tracking-[-0.43px]">
-                  {fortunePurchases?.coins?.remaining ?? 0} / {fortunePurchases?.coins?.total ?? 0}
+                  사용 횟수 | {fortunePurchases?.coins?.remaining ?? 0}회
                 </p>
-                <div className="h-px w-full bg-[#E9E8E8]" />
-                <h3 className="text-[16px] font-bold leading-[21px] tracking-[-0.43px]">구매한 패키지</h3>
-                <p className="text-[14px] leading-[21px] tracking-[-0.43px]">
-                  {fortunePurchases?.current?.product_title ?? "이용 중인 패키지가 없어요."}
-                </p>
-                {fortunePurchases?.upcoming?.length > 0 && (
+                {!hasFortuneVoucher && (
                   <p className="text-[13px] leading-[19px] text-[#797776]">
-                    다음 이용권: {fortunePurchases.upcoming[0].product_title} ({fortunePurchases.upcoming[0].active_from} 시작)
+                    등록된 운세 쿠폰 이용권이 없어요.
                   </p>
                 )}
-                <div className="h-px w-full bg-[#E9E8E8]" />
-                <h3 className="text-[16px] font-bold leading-[21px] tracking-[-0.43px]">최근 결제일</h3>
-                <p className="text-[14px] leading-[21px] tracking-[-0.43px]">
-                  {fortunePurchases?.latest?.redeemed_at
-                    ? new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(fortunePurchases.latest.redeemed_at))
-                    : "-"}
-                </p>
               </>
             )}
           </article>
 
         </section>
+        {isCheckoutOpen && (
+          <PremiumCheckoutSheet
+            isOpen
+            onClose={() => setIsCheckoutOpen(false)}
+            onSuccess={async () => {
+              setIsCheckoutOpen(false);
+              await queryClient.invalidateQueries({ queryKey: queryKeys.premiumBilling });
+              navigate("/premium/welcome");
+            }}
+          />
+        )}
       </main>
     </MobileLayout>
   );

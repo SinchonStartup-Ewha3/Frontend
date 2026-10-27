@@ -11,7 +11,7 @@ import angelCharacter from "../../assets/images/fortune/fortune_angel.svg";
 import crownCharacter from "../../assets/images/fortune/fortune_crown.svg";
 import detectiveCharacter from "../../assets/images/fortune/fortune_detective.svg";
 import travelerCharacter from "../../assets/images/fortune/fortune_traveler.svg";
-import { fetchTodayFortune, redeemFortuneCoupon } from "../../api/fortune";
+import { fetchFortuneProfile, fetchTodayFortune, redeemFortuneCoupon } from "../../api/fortune";
 import queryKeys from "../../api/queryKeys";
 
 const luckCharacters = {
@@ -26,12 +26,26 @@ export default function WeatherFortunePage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isCouponDialogOpen, setIsCouponDialogOpen] = useState(false);
+  const isLoggedIn = Boolean(localStorage.getItem("wee_access_token"));
+  const profileQuery = useQuery({
+    queryKey: queryKeys.fortuneProfile,
+    queryFn: fetchFortuneProfile,
+    retry: false,
+    enabled: isLoggedIn,
+  });
   const fortuneQuery = useQuery({
     queryKey: queryKeys.todayFortune,
     queryFn: fetchTodayFortune,
     retry: false,
+    enabled: !isLoggedIn || profileQuery.isSuccess,
   });
   const fortune = fortuneQuery.data;
+
+  useEffect(() => {
+    if (profileQuery.error?.response?.status === 404 && profileQuery.error?.response?.data?.code === "FORTUNE_PROFILE_NOT_FOUND") {
+      navigate("/weather-fortune/calendar", { replace: true });
+    }
+  }, [profileQuery.error, navigate]);
 
   useEffect(() => {
     if (fortuneQuery.error?.response?.status === 409 && fortuneQuery.error?.response?.data?.code === "FORTUNE_PROFILE_REQUIRED") {
@@ -96,13 +110,13 @@ export default function WeatherFortunePage() {
         <Button
           variant="white"
           onClick={() => navigate("/weather-fortune/result")}
-          disabled={fortuneQuery.isPending || fortuneQuery.isError}
+          disabled={(isLoggedIn && (profileQuery.isPending || profileQuery.isError)) || fortuneQuery.isPending || fortuneQuery.isError}
           className="absolute left-1/2 top-[611px] !h-[44px] !w-[345px] -translate-x-1/2 rounded-[10px] text-[18px] tracking-[-0.18px]"
         >
-          {fortuneQuery.isPending ? "운세를 불러오는 중..." : "오늘의 운세 보기"}
+          {(isLoggedIn && profileQuery.isPending) || fortuneQuery.isPending ? "운세를 불러오는 중..." : "오늘의 운세 보기"}
         </Button>
-        {fortuneQuery.isError && (
-          <button type="button" onClick={() => fortuneQuery.refetch()} className="absolute left-1/2 top-[658px] -translate-x-1/2 text-xs text-[#797776] underline">
+        {((isLoggedIn && profileQuery.isError) || fortuneQuery.isError) && (
+          <button type="button" onClick={() => isLoggedIn && profileQuery.isError ? profileQuery.refetch() : fortuneQuery.refetch()} className="absolute left-1/2 top-[658px] -translate-x-1/2 text-xs text-[#797776] underline">
             다시 시도
           </button>
         )}
