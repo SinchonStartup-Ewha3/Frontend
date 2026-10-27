@@ -16,6 +16,7 @@ import {
   getErrorMessage,
 } from "../../utils/situation";
 import runningCharacter from "../../assets/images/running_character.svg";
+import weeLogo from "../../assets/icons/logo.svg";
 
 const categories = ["수분", "빨래", "러닝"];
 
@@ -154,6 +155,12 @@ const RunningSituationDetail = () => {
   return (
     <MobileLayout>
       <main className="relative mx-auto min-h-[1000px] w-full max-w-[390px] overflow-hidden bg-white pb-[120px] text-[#353331]">
+        <img
+          src={weeLogo}
+          alt="WEE"
+          className="absolute left-6 top-[28px] h-[24px] w-auto"
+          style={{ filter: "brightness(0) saturate(100%) invert(80%) sepia(28%) saturate(1492%) hue-rotate(154deg) brightness(101%) contrast(101%)" }}
+        />
         <div className="absolute left-[24px] right-[24px] top-[28px]">
           <Header />
         </div>
@@ -270,7 +277,7 @@ const RunningSituationDetail = () => {
               />
               <StatBox
                 label="체감온도"
-                value={formatTemperature(overview?.feelsLike)}
+                value={formatTemperature(overview?.feelsLike ?? overview?.feels_like)}
                 {...statBoxProps}
               />
               <StatBox

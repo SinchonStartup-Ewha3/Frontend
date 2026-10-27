@@ -16,6 +16,7 @@ import {
   getErrorMessage,
 } from "../../utils/situation";
 import laundryCharacter from "../../assets/images/laundry_character.svg";
+import weeLogo from "../../assets/icons/logo.svg";
 
 const categories = ["수분", "빨래", "러닝"];
 
@@ -42,6 +43,12 @@ const LaundrySituationDetail = () => {
   return (
     <MobileLayout>
       <main className="relative mx-auto min-h-[1134px] w-full max-w-[390px] overflow-hidden bg-white text-[#353331]">
+        <img
+          src={weeLogo}
+          alt="WEE"
+          className="absolute left-6 top-[28px] h-[24px] w-auto"
+          style={{ filter: "brightness(0) saturate(100%) invert(80%) sepia(28%) saturate(1492%) hue-rotate(154deg) brightness(101%) contrast(101%)" }}
+        />
         <div className="absolute left-[24px] right-[24px] top-[28px]">
           <Header />
         </div>

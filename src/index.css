@@ -41,3 +41,21 @@ input {
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+.thin-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #b1f0fe transparent;
+}
+
+.thin-scrollbar::-webkit-scrollbar {
+  height: 3px;
+}
+
+.thin-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.thin-scrollbar::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #b1f0fe;
+}

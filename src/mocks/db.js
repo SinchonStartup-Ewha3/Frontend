@@ -24,7 +24,7 @@ const createSeed = () => ({
   },
   // 날씨 운세 이용권
   fortunePass: {
-    packageName: "21 days Package",
+    packageName: "21일 이용권",
     lastPaidAt: "2026.09.27",
   },
   // 알림 종류별 ON/OFF

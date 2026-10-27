@@ -15,12 +15,6 @@ export const PREMIUM_PLAN = {
   priceId: import.meta.env.VITE_PADDLE_PRICE_PREMIUM ?? "",
 };
 
-// 날씨 운세 이용권 패키지 추가 구매용(일단 남겨놓음)
-export const FORTUNE_PACKAGE = {
-  name: "21 days Package",
-  priceId: import.meta.env.VITE_PADDLE_PRICE_FORTUNE ?? "",
-};
-
 // 설문 Q1~Q3 (단일 선택)
 // key: 서버에 보낼 답변 키 / options: 선택지
 export const SURVEY_QUESTIONS = [

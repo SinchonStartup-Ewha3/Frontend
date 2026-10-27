@@ -29,6 +29,7 @@ import useToast from "../../hooks/useToast";
 import useUserStore from "../../store/useUserStore";
 import useLocationStore from "../../store/useLocationStore";
 import LoginRequiredModal from "../../components/LoginRequiredModal";
+import weeLogo from "../../assets/icons/logo.svg";
 
 const formatTemperature = (value) =>
   value == null ? "--" : `${Number(value).toFixed(1).replace(/\.0$/, "")}°`;
@@ -251,9 +252,15 @@ export default function HomePage() {
   return (
     <MobileLayout>
       <main
-        className="relative mx-auto w-full max-w-[390px] overflow-visible bg-white text-[#353331]"
-        style={{ minHeight: `${852 + messagePillOffset}px` }}
+        className="relative mx-auto w-full max-w-[390px] overflow-visible bg-white pb-[120px] text-[#353331]"
+        style={{ minHeight: `${972 + messagePillOffset}px` }}
       >
+        <img
+          src={weeLogo}
+          alt="WEE"
+          className="absolute left-[27px] top-[34px] h-[24px] w-auto"
+          style={{ filter: "brightness(0) saturate(100%) invert(80%) sepia(28%) saturate(1492%) hue-rotate(154deg) brightness(101%) contrast(101%)" }}
+        />
         <button
           type="button"
           onClick={() => {
@@ -280,7 +287,7 @@ export default function HomePage() {
           {formatTemperature(weather?.temperature)}
         </p>
         <div className="absolute left-[155px] top-[129px]">
-          <p className="whitespace-nowrap text-[12px] font-semibold leading-[normal] text-[#1F1C1A]">체감기온 {formatTemperature(weather?.feelsLike)}</p>
+          <p className="whitespace-nowrap text-[12px] font-semibold leading-[normal] text-[#1F1C1A]">체감기온 {formatTemperature(weather?.feelsLike ?? weather?.feels_like)}</p>
           <p className="mt-[2px] flex items-center gap-[7px] whitespace-nowrap text-[10px] font-medium leading-[normal] text-[#1F1C1A]">
             <span>{formatTemperature(weather?.minTemperature)}</span>
             <span className="h-[2px] w-[18px] rounded-full bg-gradient-to-r from-[#60E1FF] to-[#B1F0FE]" />
@@ -296,14 +303,14 @@ export default function HomePage() {
         </div>
         <div
           ref={messagePillRef}
-          className="absolute left-1/2 top-[459px] flex min-h-[39px] w-fit max-w-[calc(100%-48px)] -translate-x-1/2 items-center justify-center rounded-full bg-gradient-to-r from-[#60E1FF] to-[#B1F0FE] px-3 py-2 text-center"
+          className="absolute left-1/2 top-[449px] flex min-h-[39px] w-max max-w-[320px] -translate-x-1/2 items-center justify-center rounded-full bg-gradient-to-r from-[#60E1FF] to-[#B1F0FE] px-3 py-2 text-center"
         >
           <span className="break-words text-[16px] font-semibold leading-[1.35] tracking-[-0.48px] text-white">
             {message}
           </span>
         </div>
-        <Card style={{ top: `${517 + messagePillOffset}px` }} className="absolute left-1/2 h-[116px] w-[355px] -translate-x-1/2 !rounded-[20px] !border !border-[#E9E8E8]/60 !p-0">
-          <div className="absolute inset-x-[10px] top-[16px] flex gap-[5px] overflow-x-auto pb-2" aria-label="시간대별 날씨">
+        <Card style={{ top: `${517 + messagePillOffset}px` }} className="absolute left-1/2 h-[117px] w-[345px] -translate-x-1/2 !rounded-[20px] !border !border-[#E9E8E8]/60 !p-0">
+          <div className="thin-scrollbar absolute inset-x-[10px] top-[16px] flex gap-[5px] overflow-x-auto pb-2" aria-label="시간대별 날씨">
             {forecast.map((item, index) => (
               <div key={`${item.time}-${index}`} className="flex w-[55px] shrink-0 flex-col items-center">
                 <span className="whitespace-nowrap text-[12px] font-medium leading-none text-[#4C4A48]">
@@ -346,19 +353,19 @@ export default function HomePage() {
             )}
           </div>
         </Card>
-        <Card style={{ top: `${661 + messagePillOffset}px` }} className="absolute left-1/2 h-[80px] w-[345px] -translate-x-1/2 !rounded-[20px] !border-0 !p-0 shadow-[0px_4px_4px_0px_rgba(0,0,0,0.1)]">
-          <div className="absolute inset-0 rounded-[20px] bg-gradient-to-r from-[rgba(240,227,255,0.2)] to-[rgba(5,196,240,0.2)]" />
-          <p className="absolute left-[23px] top-[17px] text-[16px] font-semibold leading-[1.5] tracking-[-0.48px] text-[#62605F]">
+        <Card style={{ top: `${661 + messagePillOffset}px` }} className="absolute left-1/2 h-[80px] w-[345px] -translate-x-1/2 !rounded-[20px] !border !border-[#F3F3F3] !p-0 shadow-[0px_4px_4px_0px_rgba(0,0,0,0.1)]">
+          <div className="absolute inset-0 rounded-[20px] bg-gradient-to-r from-[rgba(240,227,255,0.2)] to-[rgba(5,196,240,0.2)] opacity-60" />
+          <p className="absolute left-[19px] top-[21px] text-[16px] font-semibold leading-[1.5] tracking-[-0.48px] text-[#62605F]">
             오늘의 날씨 운세
           </p>
-          <p className="absolute left-[23px] top-[44px] text-[12px] font-medium leading-[1.5] tracking-[-0.36px] text-[#8F8E8D]">
+          <p className="absolute left-[19px] top-[45px] text-[12px] font-medium leading-[1.5] tracking-[-0.36px] text-[#8F8E8D]">
             오늘 나의 날씨 운세는 몇점일까?
           </p>
           <img
             src={starIcon}
             alt=""
             aria-hidden="true"
-            className="absolute right-[24px] top-[27px] max-w-none"
+            className="absolute right-[33px] top-[27px] max-w-none"
           />
           <button
             type="button"

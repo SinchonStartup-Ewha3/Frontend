@@ -4,23 +4,20 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import BottomNav from "../../components/BottomNav";
 import CouponRegistrationSheet from "../../components/CouponRegistrationSheet";
 import MobileLayout from "../../components/MobileLayout";
-import rainyFortune from "../../assets/images/fortune/fortune_rain.svg";
-import sunshineFortune from "../../assets/images/fortune/fortune_sunshine.svg";
+import angelFortune from "../../assets/images/fortune/fortune_angel.svg";
 import travelerFortune from "../../assets/images/fortune/fortune_traveler.svg";
-import detectiveFortune from "../../assets/images/fortune/fortune_detective.svg";
 import crownFortune from "../../assets/images/fortune/fortune_crown.svg";
+import detectiveFortune from "../../assets/images/fortune/fortune_detective.svg";
 import wizardFortune from "../../assets/images/fortune/fortune_wizard.svg";
 import { fetchTodayFortune, redeemFortuneCoupon } from "../../api/fortune";
 import queryKeys from "../../api/queryKeys";
 
-const weatherCharacters = {
-  CLEAR: sunshineFortune,
-  PARTLY_CLOUDY: travelerFortune,
-  CLOUDY: detectiveFortune,
-  RAIN: rainyFortune,
-  SHOWER: rainyFortune,
-  SLEET: rainyFortune,
-  SNOW: crownFortune,
+const luckCharacters = {
+  GREAT: crownFortune,
+  GOOD: angelFortune,
+  NORMAL: travelerFortune,
+  CAUTION: detectiveFortune,
+  BAD: wizardFortune,
 };
 
 export default function WeatherFortuneResultPage() {
@@ -50,6 +47,7 @@ export default function WeatherFortuneResultPage() {
   const handleCouponRegister = async (code) => {
     const result = await redeemFortuneCoupon(code);
     await queryClient.invalidateQueries({ queryKey: queryKeys.todayFortune });
+    await queryClient.invalidateQueries({ queryKey: queryKeys.fortunePurchases });
     return result;
   };
 
@@ -85,7 +83,7 @@ export default function WeatherFortuneResultPage() {
         </h1>
 
         <div className="absolute left-1/2 top-[209px] h-[182px] w-[167px] -translate-x-1/2 overflow-hidden">
-          <img src={weatherCharacters[fortune?.weather_condition] ?? wizardFortune} alt={`${fortune?.weather_label ?? "오늘 날씨"} 운세 캐릭터`} className="h-full w-full object-contain" />
+          <img src={luckCharacters[fortune?.luck_level] ?? travelerFortune} alt={`${fortune?.luck_label ?? "오늘 운세"} 테루테루 캐릭터`} className="h-full w-full object-contain" />
         </div>
 
         <section aria-label="오늘의 행운 정보" className="absolute left-6 right-6 top-[414px] grid grid-cols-3 gap-[14px]">
