@@ -137,12 +137,9 @@ export default function CommunityWritePage() {
                       current === tag.value ? "" : tag.value,
                     )
                   }
-                  className={`flex h-[36px] items-center gap-[5px] rounded-full border px-[12px] text-[14px] font-semibold leading-[1.5] tracking-[-0.42px] ${active ? "border-[#60E1FF] bg-[#60E1FF] text-white" : "border-[#D2D2D1] bg-white text-[#A5A4A3]"}`}
+                  className={`flex h-[36px] items-center justify-center rounded-full border px-[12px] text-center text-[14px] font-semibold leading-[1.5] tracking-[-0.42px] ${active ? "border-[#60E1FF] bg-[#60E1FF] text-white" : "border-[#D2D2D1] bg-white text-[#A5A4A3]"}`}
                 >
                   {tag.label}
-                  <span aria-hidden="true" className="text-[15px] font-normal">
-                    ×
-                  </span>
                 </button>
               );
             })}

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Button from "../../components/Button";
 import MobileLayout from "../../components/MobileLayout";
-import { FORTUNE_CALENDARS } from "../../constants/fortune";
+import { FORTUNE_CALENDAR_SELECTIONS } from "../../constants/fortune";
 
 export default function WeatherFortuneCalendarPage() {
   const navigate = useNavigate();
@@ -32,15 +32,15 @@ export default function WeatherFortuneCalendarPage() {
           style={{ top: 215 }}
           className="absolute left-6 right-6 whitespace-nowrap text-[18px] font-medium leading-[1.38] tracking-[-0.54px] text-[#D2D2D1]"
         >
-          양력, 음력을 선택해주세요
+          양력, 음력
         </p>
 
         <div
           role="group"
           aria-label="달력 종류 선택"
-          className="absolute left-6 right-6 top-[283px] grid h-[52px] grid-cols-3 gap-1 rounded-[10px] bg-[#F4F4F4] p-1"
+          className="absolute left-5 right-5 top-[268px] grid h-[42px] grid-cols-2 gap-0 rounded-[10px] bg-[#F4F4F4] p-0"
         >
-          {FORTUNE_CALENDARS.map((option) => (
+          {FORTUNE_CALENDAR_SELECTIONS.map((option) => (
             <button
               key={option.value}
               type="button"
@@ -49,7 +49,7 @@ export default function WeatherFortuneCalendarPage() {
                 setCalendarType(option.value);
                 setErrorMessage("");
               }}
-              className={`rounded-[8px] text-[14px] font-semibold leading-[1.4] tracking-[-0.18px] ${
+              className={`rounded-[10px] text-[14px] font-semibold leading-[1.4] tracking-[-0.18px] ${
                 calendarType === option.value
                   ? "border border-main bg-[#E5FAFF] text-main"
                   : "text-[#D2D2D1]"

@@ -15,6 +15,13 @@ export const PREMIUM_PLAN = {
   priceId: import.meta.env.VITE_PADDLE_PRICE_PREMIUM ?? "",
 };
 
+export const PREMIUM_BANK_TRANSFER_PENDING_KEY = "wee:premium-bank-transfer-pending";
+export const PREMIUM_BANK_TRANSFER_ACCOUNT = {
+  bankName: "목업은행",
+  accountNumber: "000-000-00-000000",
+  accountHolder: "위더 (목업)",
+};
+
 // 설문 Q1~Q3 (단일 선택)
 // key: 서버에 보낼 답변 키 / options: 선택지
 export const SURVEY_QUESTIONS = [

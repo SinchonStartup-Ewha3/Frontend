@@ -2,10 +2,27 @@ import Button from "../../components/Button";
 import Header from "../../components/Header";
 import MobileLayout from "../../components/MobileLayout";
 import completeCharacter from "../../assets/images/login_complete_character.svg";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import useUserStore from "../../store/useUserStore";
 
 export default function LoginCompletePage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const user = useUserStore((state) => state.user);
+
+  const isNicknameSet =
+    user?.isNicknameSet ??
+    Boolean(user?.nickname && !user.nickname.startsWith("user_"));
+  const isOnboarded =
+    user?.isOnboarded ?? Boolean(isNicknameSet && user?.region);
+  const handleContinue = () => {
+    const nextPath = !isNicknameSet
+      ? "/nickname"
+      : !isOnboarded
+        ? "/location-setup"
+        : location.state?.from ?? "/home";
+    navigate(nextPath, { replace: true });
+  };
 
   return (
     <MobileLayout>
@@ -38,7 +55,7 @@ export default function LoginCompletePage() {
 
       <div className="absolute left-6 top-[696px] w-[calc(100%-48px)] max-w-[345px]">
         <Button variant="primary" 
-        onClick={() => navigate("/nickname")}
+        onClick={handleContinue}
         className="h-[44px] rounded-[10px] text-[18px] tracking-[-0.18px]">
           다음
         </Button>

@@ -438,8 +438,8 @@ export default function CommunityPage() {
         isOpen={isLoginPromptOpen}
         onClose={() => setIsLoginPromptOpen(false)}
         onLogin={() =>
-          navigate("/consent", {
-            state: { intent: "kakao", from: loginReturnTo },
+          navigate("/login", {
+            state: { from: loginReturnTo },
           })
         }
       />

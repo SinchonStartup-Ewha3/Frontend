@@ -7,20 +7,8 @@ import CouponRegistrationSheet from "../../components/CouponRegistrationSheet";
 import Header from "../../components/Header";
 import MobileLayout from "../../components/MobileLayout";
 import wizardCharacter from "../../assets/images/fortune/fortune_wizard.svg";
-import angelCharacter from "../../assets/images/fortune/fortune_angel.svg";
-import crownCharacter from "../../assets/images/fortune/fortune_crown.svg";
-import detectiveCharacter from "../../assets/images/fortune/fortune_detective.svg";
-import travelerCharacter from "../../assets/images/fortune/fortune_traveler.svg";
 import { fetchFortuneProfile, fetchTodayFortune, redeemFortuneCoupon } from "../../api/fortune";
 import queryKeys from "../../api/queryKeys";
-
-const luckCharacters = {
-  GREAT: crownCharacter,
-  GOOD: angelCharacter,
-  NORMAL: travelerCharacter,
-  CAUTION: detectiveCharacter,
-  BAD: wizardCharacter,
-};
 
 export default function WeatherFortunePage() {
   const navigate = useNavigate();
@@ -94,17 +82,21 @@ export default function WeatherFortunePage() {
 
         <Card className="absolute left-1/2 top-[277px] z-10 h-[268px] w-[188px] -translate-x-1/2 !rounded-[23px] !border-0 !p-0 shadow-[0_3px_5px_rgba(53,51,49,0.12)]">
           <p className="absolute left-0 right-0 top-[24px] text-center text-[14px] font-semibold leading-[1.38] tracking-[-0.42px] text-[#62605F]">
-            {fortune?.title ?? (fortuneQuery.isPending ? "오늘의 운세를 불러오는 중" : "오늘 운세")}
+            오늘 운수 매우 좋은
+            <br />
+            테루테루
           </p>
           <div className="absolute left-1/2 top-[72px] h-[134px] w-[111px] -translate-x-1/2">
             <img
-              src={luckCharacters[fortune?.luck_level] ?? travelerCharacter}
+              src={wizardCharacter}
               alt={`${fortune?.luck_label ?? "오늘 운세"} 테루테루 캐릭터`}
               className="absolute left-1/2 top-0 max-w-none -translate-x-1/2 origin-top scale-[0.621]"
             />
           </div>
           <p className="absolute left-0 right-0 top-[210px] text-center text-[12px] font-medium leading-[1.5] tracking-[-0.36px] text-[#A5A4A3]">
-            {fortune?.summary ?? (fortuneQuery.isError ? "운세를 불러오지 못했어요." : "오늘의 운세를 준비하고 있어요.")}
+            오늘은 아주 멋진 날이
+            <br />
+            기대될 예정입니다
           </p>
         </Card>
 

@@ -54,7 +54,7 @@ function TimeWheel({ column, value, onChange }) {
               if (wheelRef.current) wheelRef.current.scrollTop = index * 44;
               onChange(item);
             }}
-            style={{ height: 44, scrollSnapAlign: "start" }}
+            style={{ height: 44, scrollSnapAlign: "center" }}
             className={`block w-full shrink-0 text-center text-[16px] leading-[44px] ${
               item === value ? "font-medium text-[#353331]" : "font-normal text-[#1F1C1A]/60"
             }`}

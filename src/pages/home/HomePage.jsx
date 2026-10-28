@@ -294,7 +294,7 @@ export default function HomePage() {
             <span>{formatTemperature(weather?.maxTemperature)}</span>
           </p>
         </div>
-        <div className="absolute left-1/2 top-[217px] h-[218px] w-[201px] -translate-x-1/2 overflow-hidden">
+        <div className="absolute left-1/2 top-[217px] h-[218px] w-[248px] -translate-x-1/2">
           <img
             src={getCharacterImage(homeData?.character?.state)}
             alt={homeData?.character?.label ?? "오늘의 날씨 캐릭터"}
@@ -518,7 +518,7 @@ export default function HomePage() {
       <LoginRequiredModal
         isOpen={isLoginPromptOpen}
         onClose={() => setIsLoginPromptOpen(false)}
-        onLogin={() => navigate("/consent", { state: { intent: "kakao", from: "/weather-fortune" } })}
+        onLogin={() => navigate("/login", { state: { from: "/weather-fortune" } })}
       />
     </MobileLayout>
   );

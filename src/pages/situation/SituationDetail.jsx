@@ -307,8 +307,8 @@ const SituationDetail = () => {
                     <button
                       type="button"
                       onClick={() =>
-                        navigate("/consent", {
-                          state: { intent: "kakao", from: "/situation" },
+                        navigate("/login", {
+                          state: { from: "/situation" },
                         })
                       }
                       className="mt-[4px] font-semibold text-[#1BA9E1] underline"
@@ -362,8 +362,8 @@ const SituationDetail = () => {
           isOpen={isLoginPromptOpen}
           onClose={() => setIsLoginPromptOpen(false)}
           onLogin={() =>
-            navigate("/consent", {
-              state: { intent: "kakao", from: "/situation" },
+            navigate("/login", {
+              state: { from: "/situation" },
             })
           }
         />
