@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Button from "../../components/Button";
 import Header from "../../components/Header";
 import MobileLayout from "../../components/MobileLayout";
@@ -10,13 +10,11 @@ import {
 
 export default function PremiumBankTransferPage() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const isLocalPreview = import.meta.env.DEV && new URLSearchParams(location.search).get("preview") === "1";
   const [depositorName, setDepositorName] = useState("");
 
   const continueToSurvey = () => {
     if (!depositorName.trim()) return;
-    navigate(isLocalPreview ? "/premium/survey?preview=1" : "/premium/survey", {
+    navigate("/premium/survey", {
       state: {
         bankTransferManual: true,
         depositorName: depositorName.trim(),

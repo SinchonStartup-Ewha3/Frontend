@@ -78,7 +78,6 @@ export default function PaymentManagementPage() {
   const isTransferPending = !isActive && (
     pendingTransfer?.status === "PENDING" ||
     location.state?.bankTransferManual === true ||
-    location.state?.bankTransferPreview === true ||
     subscription?.status === "PENDING"
   );
   const canPurchasePremium = !isLoading && !isError && !entitlementQuery.isError && !isCheckingEntitlement && !isActive && !isTransferPending;
@@ -130,9 +129,13 @@ export default function PaymentManagementPage() {
             ) : isError ? (
               <p className="text-[14px] leading-[21px] text-[#797776]">구독 정보를 불러오지 못했어요.</p>
             ) : isTransferPending ? (
-              <>
-                <p className="text-[16px] font-medium leading-[21px] text-[#19BBD8]">입금 확인 중</p>
-              </>
+              <button
+                type="button"
+                onClick={() => navigate("/premium/bank-transfer/pending")}
+                className="self-start text-[16px] font-medium leading-[21px] text-[#19BBD8]"
+              >
+                입금 확인 중
+              </button>
             ) : isActive && !subscription ? (
               <p className="text-[14px] leading-[21px] text-[#19BBD8]">프리미엄 이용 중</p>
             ) : subscription ? (

@@ -346,17 +346,7 @@ function RequireAuth({ children }) {
   const location = useLocation();
   const navigate = useNavigate();
   const token = localStorage.getItem("wee_access_token");
-  const localPremiumPreviewPaths = [
-    "/premium/payment-method",
-    "/premium/bank-transfer",
-    "/premium/survey",
-    "/premium/bank-transfer/pending",
-  ];
-  const isLocalPremiumPreview =
-    import.meta.env.DEV &&
-    new URLSearchParams(location.search).get("preview") === "1" &&
-    localPremiumPreviewPaths.includes(location.pathname);
-  if (token || isLocalPremiumPreview) return children;
+  if (token) return children;
   const returnTo = `${location.pathname}${location.search}`;
   return (
     <LoginRequiredModal

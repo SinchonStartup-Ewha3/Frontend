@@ -6,7 +6,7 @@ import { useCreatePremiumCheckout, useRefreshPremiumStatus } from "../hooks/useP
 import usePaddleCheckout from "../hooks/usePaddleCheckout";
 import premiumCharacter from "../assets/images/premium-checkout/premium-alert-mascot.png";
 
-export default function PremiumCheckoutSheet({ isOpen, onClose, onSuccess, initialTransactionId = "", previewOnly = false }) {
+export default function PremiumCheckoutSheet({ isOpen, onClose, onSuccess, initialTransactionId = "" }) {
   const [paymentError, setPaymentError] = useState("");
   const [pendingTransactionId, setPendingTransactionId] = useState(null);
   const autoOpenedTransactionId = useRef("");
@@ -15,7 +15,7 @@ export default function PremiumCheckoutSheet({ isOpen, onClose, onSuccess, initi
   const refreshStatus = useRefreshPremiumStatus();
 
   useEffect(() => {
-    if (previewOnly || !isOpen || !ready || !initialTransactionId || autoOpenedTransactionId.current === initialTransactionId) return;
+    if (!isOpen || !ready || !initialTransactionId || autoOpenedTransactionId.current === initialTransactionId) return;
     autoOpenedTransactionId.current = initialTransactionId;
     setPaymentError("");
     setPendingTransactionId(initialTransactionId);
@@ -23,10 +23,9 @@ export default function PremiumCheckoutSheet({ isOpen, onClose, onSuccess, initi
       setPendingTransactionId(null);
       setPaymentError(error?.message || "결제창을 열지 못했어요. 다시 시도해 주세요.");
     });
-  }, [initialTransactionId, isOpen, openCheckout, previewOnly, ready]);
+  }, [initialTransactionId, isOpen, openCheckout, ready]);
 
   const handlePayment = async () => {
-    if (previewOnly) return;
     setPaymentError("");
     try {
       const checkout = await createCheckout.mutateAsync();
@@ -53,7 +52,6 @@ export default function PremiumCheckoutSheet({ isOpen, onClose, onSuccess, initi
 
   useEffect(() => {
     const handleCheckoutCompleted = (event) => {
-      if (previewOnly) return;
       const result = event.detail;
       if (!pendingTransactionId) return;
       if (result.transactionId && result.transactionId !== pendingTransactionId) return;
@@ -69,7 +67,7 @@ export default function PremiumCheckoutSheet({ isOpen, onClose, onSuccess, initi
     };
     window.addEventListener("wee:paddle-checkout-completed", handleCheckoutCompleted);
     return () => window.removeEventListener("wee:paddle-checkout-completed", handleCheckoutCompleted);
-  }, [onSuccess, pendingTransactionId, previewOnly]);
+  }, [onSuccess, pendingTransactionId]);
 
   return (
     <BottomSheet
@@ -126,14 +124,12 @@ export default function PremiumCheckoutSheet({ isOpen, onClose, onSuccess, initi
         <Button
           variant="white"
           onClick={handlePayment}
-          disabled={previewOnly || !ready || loading || createCheckout.isPending || refreshStatus.isPending}
+          disabled={!ready || loading || createCheckout.isPending || refreshStatus.isPending}
           className="mx-auto mt-[12px] !h-[38px] !w-[240px] rounded-[7px] text-[14px] font-semibold tracking-[-0.14px] disabled:opacity-60"
         >
-          {previewOnly
-            ? "결제 화면 미리보기"
-            : loading || createCheckout.isPending || refreshStatus.isPending
-              ? "결제 중..."
-              : "Wee 결제하기"}
+          {loading || createCheckout.isPending || refreshStatus.isPending
+            ? "결제 중..."
+            : "Wee 결제하기"}
         </Button>
       </div>
     </BottomSheet>
