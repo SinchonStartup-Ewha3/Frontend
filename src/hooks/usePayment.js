@@ -1,5 +1,6 @@
 // 결제 기능 관련 custom hook
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   confirmFortunePayment,
@@ -14,13 +15,17 @@ import {
 import queryKeys from "../api/queryKeys";
 import useUserStore from "../store/useUserStore";
 
-// 구독/이용권 정보. 결과로 isPremium 도 전역에 반영.
-export const useSubscriptionQuery = ({ enabled = true, refetchOnMount } = {}) => {
+// 구독/이용권 정보. 결과로 isPremium 도 전역에 반영
+export const useSubscriptionQuery = ({
+  enabled = true,
+  refetchOnMount = "always",
+} = {}) => {
   const setPremium = useUserStore((s) => s.setPremium);
   const query = useQuery({
     queryKey: queryKeys.subscription,
     queryFn: fetchSubscription,
     enabled,
+    staleTime: 0, // 관리자 수동 부여 등 서버 변경을 바로 반영
     refetchOnMount,
   });
   const active = query.data?.subscription?.active;
@@ -55,13 +60,34 @@ export const useIsPremium = ({ enabled = true } = {}) => {
   };
 };
 
+// 결제 화면 진입 시 서버 isPremium 을 먼저 확인하고, true 이면 설문으로
+// (진입 시점 1회만 판단: 결제 직후 흐름은 각 페이지가 직접 이동)
+export const useRedirectIfPremium = ({ enabled = true } = {}) => {
+  const navigate = useNavigate();
+  const query = useSubscriptionQuery({ enabled });
+  const done = useRef(false);
+  const [isChecking, setIsChecking] = useState(enabled);
+  useEffect(() => {
+    if (!enabled) {
+      setIsChecking(false);
+      return;
+    }
+    if (done.current || query.isFetching) return;
+    done.current = true;
+    setIsChecking(false);
+    if (query.data?.subscription?.active)
+      navigate("/premium/survey", { replace: true });
+  }, [enabled, query.isFetching, query.data, navigate]);
+  return { isChecking };
+};
+
 const useInvalidateSubscription = () => {
   const queryClient = useQueryClient();
   return () =>
     queryClient.invalidateQueries({ queryKey: queryKeys.subscription });
 };
 
-// 거래 생성은 백엔드가 담당하고 권한 갱신은 웹훅 반영 상태를 재조회한다.
+// 거래 생성은 백엔드가 담당하고 권한 갱신은 웹훅 반영 상태를 재조회
 export const useCreatePremiumCheckout = () => {
   return useMutation({ mutationFn: createPremiumCheckout });
 };
