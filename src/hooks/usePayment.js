@@ -15,12 +15,13 @@ import queryKeys from "../api/queryKeys";
 import useUserStore from "../store/useUserStore";
 
 // 구독/이용권 정보. 결과로 isPremium 도 전역에 반영.
-export const useSubscriptionQuery = ({ enabled = true } = {}) => {
+export const useSubscriptionQuery = ({ enabled = true, refetchOnMount } = {}) => {
   const setPremium = useUserStore((s) => s.setPremium);
   const query = useQuery({
     queryKey: queryKeys.subscription,
     queryFn: fetchSubscription,
     enabled,
+    refetchOnMount,
   });
   const active = query.data?.subscription?.active;
   useEffect(() => {

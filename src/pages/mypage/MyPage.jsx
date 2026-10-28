@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Card from "../../components/Card";
 import Button from "../../components/Button";
@@ -6,7 +5,6 @@ import ListRow from "../../components/ListRow";
 import MobileLayout from "../../components/MobileLayout";
 import PageHeading from "../../components/PageHeading";
 import PageLayout from "../../components/PageLayout";
-import PremiumCheckoutSheet from "../../components/PremiumCheckoutSheet";
 import weeLogo from "../../assets/icons/logo.svg";
 import chevronRightIcon from "../../assets/icons/chevron-right.svg";
 import lockIcon from "../../assets/icons/lock.svg";
@@ -16,10 +14,12 @@ import { useIsPremium } from "../../hooks/usePayment";
 import { logoutFromService } from "../../api/auth";
 
 const sectionHeadingClass = "text-[16px] leading-[21px] font-bold";
+const guestActionButtonClass = "flex h-[77px] w-full items-center justify-between gap-3 rounded-[13px] px-[17px] text-left text-[#353331]";
+const guestActionTitleClass = "block text-[16px] leading-[20px] font-bold text-[#353331]";
+const guestActionDescriptionClass = "mt-[8px] block text-[14px] leading-[17px] text-[#797776]";
 
 export default function MyPage() {
   const navigate = useNavigate();
-  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const isLoggedIn = Boolean(localStorage.getItem("wee_access_token"));
   const { data: profile } = useMyPageSummaryQuery({ enabled: isLoggedIn });
   const { isPremium } = useIsPremium({ enabled: isLoggedIn });
@@ -39,19 +39,16 @@ export default function MyPage() {
               <Card highlighted className="!rounded-[13px] !p-0">
                 <button
                   type="button"
-                  onClick={() => navigate("/consent", { state: { intent: "kakao", from: "/mypage" } })}
-                  className="flex min-h-[77px] w-full items-center justify-between px-[17px] text-left"
+                  onClick={() => navigate("/login", { state: { from: "/mypage" } })}
+                  className={guestActionButtonClass}
                 >
-                  <span>
-                    <PageHeading
-                      title="비회원"
-                      titleClassName="text-[16px] leading-[20px] font-bold"
-                    />
-                    <span className="mt-[8px] block text-[14px] leading-[17px]">
+                  <span className="min-w-0">
+                    <span className={guestActionTitleClass}>비회원</span>
+                    <span className={guestActionDescriptionClass}>
                       로그인 / 회원가입 하러 가기
                     </span>
                   </span>
-                  <img src={chevronRightIcon} alt="" />
+                  <img src={chevronRightIcon} alt="" aria-hidden="true" className="shrink-0" />
                 </button>
               </Card>
 
@@ -59,13 +56,13 @@ export default function MyPage() {
                 <button
                   type="button"
                   onClick={() => navigate("/premium")}
-                  className="flex min-h-[77px] w-full items-center justify-between gap-3 rounded-[13px] px-[17px] text-left"
+                  className={guestActionButtonClass}
                 >
                   <span className="min-w-0">
-                    <span className="block text-[16px] font-bold leading-[20px] text-[#353331]">
+                    <span className={guestActionTitleClass}>
                       프리미엄 구독하기
                     </span>
-                    <span className="mt-[8px] block text-[14px] leading-[17px] text-[#797776]">
+                    <span className={guestActionDescriptionClass}>
                       내 위치와 일정에 맞춰 필요한 순간에 알려드려요.
                     </span>
                   </span>
@@ -123,7 +120,7 @@ export default function MyPage() {
               {!isPremium && (
                 <button
                   type="button"
-                  onClick={() => setIsCheckoutOpen(true)}
+                  onClick={() => navigate("/premium/payment-method")}
                   aria-label="프리미엄 구독하기"
                   className="absolute inset-x-[14px] top-[7px] z-10 flex h-[39px] items-center justify-center gap-[8px] bg-[rgba(255,255,255,0.86)] backdrop-blur-[2px]"
                 >
@@ -185,16 +182,6 @@ export default function MyPage() {
             로그아웃
           </Button>
         </main>
-        {isCheckoutOpen && (
-          <PremiumCheckoutSheet
-            isOpen
-            onClose={() => setIsCheckoutOpen(false)}
-            onSuccess={() => {
-              setIsCheckoutOpen(false);
-              navigate("/premium/welcome");
-            }}
-          />
-        )}
       </PageLayout>
     </MobileLayout>
   );

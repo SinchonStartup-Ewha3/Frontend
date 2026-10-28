@@ -30,6 +30,9 @@ import CommunityWritePage from "./pages/community/CommunityWritePage.jsx";
 import CommunityEditPage from "./pages/community/CommunityEditPage.jsx";
 import PremiumPage from "./pages/premium/PremiumPage.jsx";
 import PremiumLandingPage from "./pages/premium/PremiumLandingPage.jsx";
+import PremiumPaymentMethodPage from "./pages/premium/PremiumPaymentMethodPage.jsx";
+import PremiumBankTransferPage from "./pages/premium/PremiumBankTransferPage.jsx";
+import PremiumDepositPendingPage from "./pages/premium/PremiumDepositPendingPage.jsx";
 import PublicPolicyPage from "./pages/legal/PublicPolicyPage.jsx";
 import PremiumSurveyPage from "./pages/premium/PremiumSurveyPage.jsx";
 import PremiumSurveyCompletePage from "./pages/premium/PremiumSurveyCompletePage.jsx";
@@ -83,6 +86,7 @@ export default function App() {
 
     setUser(user);
     hasResolvedSession.current = true;
+    if (location.pathname === "/login-complete") return;
     if (!isNicknameSet) navigate("/nickname", { replace: true });
     else if (!isOnboarded) navigate("/location-setup", { replace: true });
     else if (location.pathname === "/" || location.pathname === "/login") {
@@ -200,6 +204,30 @@ export default function App() {
         }
       />
       <Route path="/premium" element={<PremiumLandingPage />} />
+      <Route
+        path="/premium/payment-method"
+        element={
+          <RequireAuth>
+            <PremiumPaymentMethodPage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/premium/bank-transfer"
+        element={
+          <RequireAuth>
+            <PremiumBankTransferPage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/premium/bank-transfer/pending"
+        element={
+          <RequireAuth>
+            <PremiumDepositPendingPage />
+          </RequireAuth>
+        }
+      />
       <Route path="/terms" element={<PublicPolicyPage />} />
       <Route path="/privacy" element={<PublicPolicyPage />} />
       <Route path="/refund" element={<PublicPolicyPage />} />
@@ -318,14 +346,24 @@ function RequireAuth({ children }) {
   const location = useLocation();
   const navigate = useNavigate();
   const token = localStorage.getItem("wee_access_token");
-  if (token) return children;
+  const localPremiumPreviewPaths = [
+    "/premium/payment-method",
+    "/premium/bank-transfer",
+    "/premium/survey",
+    "/premium/bank-transfer/pending",
+  ];
+  const isLocalPremiumPreview =
+    import.meta.env.DEV &&
+    new URLSearchParams(location.search).get("preview") === "1" &&
+    localPremiumPreviewPaths.includes(location.pathname);
+  if (token || isLocalPremiumPreview) return children;
   const returnTo = `${location.pathname}${location.search}`;
   return (
     <LoginRequiredModal
       isOpen
       onClose={() => navigate("/home", { replace: true })}
       onLogin={() =>
-        navigate("/consent", { state: { intent: "kakao", from: returnTo } })
+        navigate("/login", { state: { from: returnTo } })
       }
     />
   );

@@ -2,7 +2,7 @@ import { useLayoutEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Button from "../../components/Button";
 import MobileLayout from "../../components/MobileLayout";
-import { FORTUNE_CALENDARS } from "../../constants/fortune";
+import { FORTUNE_CALENDAR_SELECTIONS } from "../../constants/fortune";
 
 const initialDate = { year: 2004, month: 12, day: 6 };
 const yearOptions = Array.from({ length: 127 }, (_, index) => 1900 + index);
@@ -67,7 +67,7 @@ function DateWheel({ column, value, values, onChange }) {
               if (wheelRef.current) wheelRef.current.scrollTop = values.indexOf(item) * 44;
               onChange(item);
             }}
-            style={{ height: 44, scrollSnapAlign: "start" }}
+            style={{ height: 44, scrollSnapAlign: "center" }}
             className={`block w-full shrink-0 text-center text-[16px] leading-[44px] ${
               item === value
                 ? "font-medium text-[#353331]"
@@ -128,15 +128,15 @@ export default function WeatherFortuneBirthInfoPage() {
           role="group"
           aria-label="달력 종류"
           style={{ top: 284 }}
-          className="absolute left-6 right-6 grid h-[52px] grid-cols-3 gap-1 rounded-[10px] bg-[#F4F4F4] p-1"
+          className="absolute left-5 right-5 grid h-[42px] grid-cols-2 gap-0 rounded-[10px] bg-[#F4F4F4] p-0"
         >
-          {FORTUNE_CALENDARS.map((option) => (
+          {FORTUNE_CALENDAR_SELECTIONS.map((option) => (
             <button
               key={option.value}
               type="button"
               aria-pressed={calendarType === option.value}
               onClick={() => setCalendarType(option.value)}
-              className={`rounded-[8px] border text-[14px] font-semibold leading-[1.4] tracking-[-0.18px] ${
+              className={`rounded-[10px] border text-[14px] font-semibold leading-[1.4] tracking-[-0.18px] ${
                 calendarType === option.value
                   ? "border-main bg-[#E5FAFF] text-main"
                   : "border-transparent text-[#D2D2D1]"

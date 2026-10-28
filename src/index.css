@@ -27,6 +27,17 @@ body {
   word-break: keep-all;
 }
 
+@media (max-width: 767px) {
+  .mobile-layout-content {
+    max-width: none !important;
+  }
+
+  .mobile-layout-content > main,
+  .mobile-layout-content > div > main {
+    max-width: none !important;
+  }
+}
+
 /* 모바일 입력창 포커스 시 확대 방지 + 탭 하이라이트 제거 추가...! 하는 게 좋을 거 같아서 */
 button,
 input {

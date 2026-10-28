@@ -1,31 +1,75 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Button from "../../components/Button";
 import MobileLayout from "../../components/MobileLayout";
 import loadingCloud from "../../assets/images/fortune/loading_cloud.png";
 import sleepingCharacter from "../../assets/images/fortune/loading_sleeping_character.png";
 import loadingDots from "../../assets/icons/loading-dots.svg";
-import { fetchTodayFortune } from "../../api/fortune";
+import { createFortuneProfile, fetchTodayFortune } from "../../api/fortune";
 import queryKeys from "../../api/queryKeys";
 
 export default function WeatherFortuneLoadingPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const queryClient = useQueryClient();
+  const profilePayload = location.state?.profilePayload;
+  const [attempt, setAttempt] = useState(0);
+  const [preparationError, setPreparationError] = useState(null);
   const fortuneQuery = useQuery({
     queryKey: queryKeys.todayFortune,
     queryFn: fetchTodayFortune,
     retry: false,
+    enabled: !profilePayload,
   });
 
   useEffect(() => {
-    if (fortuneQuery.data) navigate("/weather-fortune/result", { replace: true });
+    if (profilePayload) return;
+    if (fortuneQuery.data && !fortuneQuery.isFetching) navigate("/weather-fortune/result", { replace: true });
     else if (
       fortuneQuery.error?.response?.status === 409 &&
       fortuneQuery.error?.response?.data?.code === "FORTUNE_PROFILE_REQUIRED"
     ) {
       navigate("/weather-fortune/calendar", { replace: true });
     }
-  }, [fortuneQuery.data, fortuneQuery.error, navigate]);
+  }, [profilePayload, fortuneQuery.data, fortuneQuery.error, fortuneQuery.isFetching, navigate]);
+
+  useEffect(() => {
+    if (!profilePayload) return;
+    let cancelled = false;
+
+    const prepareFortune = async () => {
+      setPreparationError(null);
+      try {
+        try {
+          await createFortuneProfile(profilePayload);
+        } catch (error) {
+          const alreadyExists = error.response?.status === 409 &&
+            error.response?.data?.code === "FORTUNE_PROFILE_ALREADY_EXISTS";
+          if (!alreadyExists) throw error;
+        }
+
+        await queryClient.invalidateQueries({ queryKey: queryKeys.fortuneProfile });
+        await queryClient.invalidateQueries({ queryKey: queryKeys.todayFortune });
+        const fortune = await queryClient.fetchQuery({
+          queryKey: queryKeys.todayFortune,
+          queryFn: fetchTodayFortune,
+          staleTime: 0,
+        });
+        if (fortune && !cancelled) navigate("/weather-fortune/result", { replace: true });
+      } catch (error) {
+        if (!cancelled) setPreparationError(error);
+      }
+    };
+
+    prepareFortune();
+    return () => {
+      cancelled = true;
+    };
+  }, [attempt, navigate, profilePayload, queryClient]);
+
+  const loading = profilePayload || fortuneQuery.isPending || fortuneQuery.isFetching;
+  const error = preparationError ?? (!profilePayload ? fortuneQuery.error : null);
 
   return (
     <MobileLayout>
@@ -58,17 +102,20 @@ export default function WeatherFortuneLoadingPage() {
           style={{ top: 323, left: "50%", width: 304, height: 160, transform: "translateX(-50%)" }}
           className="absolute max-w-none object-contain"
         />
-        {fortuneQuery.isPending ? (
+        {loading ? (
           <img
             src={loadingDots}
             alt="분석 중"
             style={{ top: 585, left: "50%", width: 48, height: 48, transform: "translateX(-50%)" }}
             className="absolute animate-pulse"
           />
-        ) : fortuneQuery.isError && fortuneQuery.error?.response?.status !== 409 ? (
+        ) : error && error?.response?.status !== 409 ? (
           <div className="absolute left-6 right-6 top-[575px] flex flex-col items-center gap-3 text-center">
             <p role="alert" className="text-sm text-[#797776]">운세를 불러오지 못했어요. 다시 시도해주세요.</p>
-            <Button onClick={() => fortuneQuery.refetch()} className="!h-[44px] !w-full text-base">
+            <Button
+              onClick={() => profilePayload ? setAttempt((current) => current + 1) : fortuneQuery.refetch()}
+              className="!h-[44px] !w-full text-base"
+            >
               다시 시도
             </Button>
           </div>

@@ -1,19 +1,25 @@
-import { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useLocation, useNavigate } from "react-router-dom";
 import Header from "../../components/Header";
 import Button from "../../components/Button";
 import MobileLayout from "../../components/MobileLayout";
-import PremiumCheckoutSheet from "../../components/PremiumCheckoutSheet";
-import { usePremiumBillingQuery, useRefundRequestQuery } from "../../hooks/usePayment";
-import { PREMIUM_PLAN } from "../../constants/premium";
-import { useNavigate } from "react-router-dom";
+import { usePremiumBillingQuery, useRefundRequestQuery, useSubscriptionQuery } from "../../hooks/usePayment";
+import { PREMIUM_BANK_TRANSFER_PENDING_KEY, PREMIUM_PLAN } from "../../constants/premium";
 import { fetchMyFortunePurchases } from "../../api/fortune";
 import queryKeys from "../../api/queryKeys";
 
 const cardClassName =
   "flex w-full flex-col gap-[15px] rounded-[13px] border-[1.5px] border-[#E9E8E8] bg-white px-4 py-[19px]";
+const readPendingTransfer = () => {
+  try {
+    return JSON.parse(localStorage.getItem(PREMIUM_BANK_TRANSFER_PENDING_KEY) ?? "null");
+  } catch {
+    return null;
+  }
+};
 const inactiveStatusMessages = {
-  PENDING: "결제를 기다리고 있어요.",
+  PENDING: "입금 확인 중",
   FAILED: "결제에 실패했어요.",
   CANCELED: "결제가 취소되었어요.",
   PARTIALLY_REFUNDED: "일부 환불 처리되었어요.",
@@ -41,9 +47,10 @@ const formatFortuneRedeemedAt = (value) => {
 
 export default function PaymentManagementPage() {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const location = useLocation();
+  const [pendingTransfer, setPendingTransfer] = useState(readPendingTransfer);
   const { data, isLoading, isError } = usePremiumBillingQuery();
+  const entitlementQuery = useSubscriptionQuery({ refetchOnMount: "always" });
   const { data: refundRequest } = useRefundRequestQuery();
   const fortunePurchasesQuery = useQuery({
     queryKey: queryKeys.fortunePurchases,
@@ -61,9 +68,20 @@ export default function PaymentManagementPage() {
   const activeFrom = formatFortuneDate(activeFortunePurchase?.active_from);
   const activeUntil = formatFortuneDate(activeFortunePurchase?.active_until);
   const redeemedAt = formatFortuneRedeemedAt(activeFortunePurchase?.redeemed_at);
+  const fortuneUsageCount =
+    activeFortunePurchase?.usage_count ??
+    activeFortunePurchase?.remaining_uses ??
+    activeFortunePurchase?.remaining_count;
   const subscription = data?.subscription;
-  const isActive = subscription?.isActive ?? subscription?.active;
-  const canPurchasePremium = !isLoading && !isError && !isActive;
+  const isActive = entitlementQuery.data?.subscription?.active ?? subscription?.isActive ?? subscription?.active;
+  const isCheckingEntitlement = entitlementQuery.isLoading || entitlementQuery.isFetching;
+  const isTransferPending = !isActive && (
+    pendingTransfer?.status === "PENDING" ||
+    location.state?.bankTransferManual === true ||
+    location.state?.bankTransferPreview === true ||
+    subscription?.status === "PENDING"
+  );
+  const canPurchasePremium = !isLoading && !isError && !entitlementQuery.isError && !isCheckingEntitlement && !isActive && !isTransferPending;
   const canRequestRefund = Boolean(subscription?.canRequestRefund);
   const purchasedAt = subscription?.purchasedAt ?? subscription?.paidAt;
   const paidAt = purchasedAt
@@ -77,6 +95,12 @@ export default function PaymentManagementPage() {
         day: "2-digit",
       }).format(new Date(expiresAt))
     : null;
+
+  useEffect(() => {
+    if (!isActive) return;
+    localStorage.removeItem(PREMIUM_BANK_TRANSFER_PENDING_KEY);
+    setPendingTransfer(null);
+  }, [isActive]);
 
   return (
     <MobileLayout>
@@ -96,8 +120,21 @@ export default function PaymentManagementPage() {
             </h2>
             {isLoading ? (
               <p className="text-[14px] leading-[21px] text-[#797776]">구독 정보를 불러오는 중...</p>
+            ) : isCheckingEntitlement ? (
+              <p className="text-[14px] leading-[21px] text-[#797776]">프리미엄 이용 상태를 확인하는 중...</p>
+            ) : entitlementQuery.isError ? (
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-[14px] leading-[21px] text-[#797776]">프리미엄 이용 상태를 확인하지 못했어요.</p>
+                <button type="button" onClick={() => entitlementQuery.refetch()} className="shrink-0 text-[14px] text-[#5ADCF4] underline">다시 시도</button>
+              </div>
             ) : isError ? (
               <p className="text-[14px] leading-[21px] text-[#797776]">구독 정보를 불러오지 못했어요.</p>
+            ) : isTransferPending ? (
+              <>
+                <p className="text-[16px] font-medium leading-[21px] text-[#19BBD8]">입금 확인 중</p>
+              </>
+            ) : isActive && !subscription ? (
+              <p className="text-[14px] leading-[21px] text-[#19BBD8]">프리미엄 이용 중</p>
             ) : subscription ? (
               <>
                 <p className="text-[14px] leading-[21px] tracking-[-0.43px]">
@@ -142,7 +179,7 @@ export default function PaymentManagementPage() {
                 )}
                 {canPurchasePremium && (
                   <Button
-                    onClick={() => setIsCheckoutOpen(true)}
+                    onClick={() => navigate("/premium/payment-method")}
                     className="h-[44px] rounded-[10px] text-[14px]"
                   >
                     프리미엄 구독 결제하러 가기
@@ -154,7 +191,7 @@ export default function PaymentManagementPage() {
                 <p className="text-[14px] leading-[21px] text-[#797776]">이용 중인 구독이 없어요.</p>
                 {canPurchasePremium && (
                   <Button
-                    onClick={() => setIsCheckoutOpen(true)}
+                    onClick={() => navigate("/premium/payment-method")}
                     className="h-[44px] rounded-[10px] text-[14px]"
                   >
                     프리미엄 구독 결제하러 가기
@@ -180,6 +217,11 @@ export default function PaymentManagementPage() {
               </div>
             ) : (
               <>
+                {fortuneUsageCount != null && (
+                  <p className="text-[14px] leading-[21px] tracking-[-0.43px]">
+                    사용 횟수 | {fortuneUsageCount}회
+                  </p>
+                )}
                 {activeFortunePurchase?.product_title && (
                   <p className="text-[14px] leading-[21px] tracking-[-0.43px]">
                     이용권 | {activeFortunePurchase.product_title}
@@ -215,17 +257,6 @@ export default function PaymentManagementPage() {
           </article>
 
         </section>
-        {isCheckoutOpen && (
-          <PremiumCheckoutSheet
-            isOpen
-            onClose={() => setIsCheckoutOpen(false)}
-            onSuccess={async () => {
-              setIsCheckoutOpen(false);
-              await queryClient.invalidateQueries({ queryKey: queryKeys.premiumBilling });
-              navigate("/premium/welcome");
-            }}
-          />
-        )}
       </main>
     </MobileLayout>
   );
