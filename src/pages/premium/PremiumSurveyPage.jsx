@@ -42,8 +42,12 @@ export default function PremiumSurveyPage() {
       toast.error("모든 설문 항목을 선택해 주세요.");
       return;
     }
-    const isManualTransfer = Boolean(location.state?.bankTransferManual);
-    const showPendingPage = () => navigate("/premium/bank-transfer/pending", {
+    const isManualTransfer = Boolean(location.state?.bankTransferManual || location.state?.bankTransferPreview);
+    const isLocalPreview = import.meta.env.DEV && new URLSearchParams(location.search).get("preview") === "1";
+    const pendingRoute = isLocalPreview
+      ? "/premium/bank-transfer/pending?preview=1"
+      : "/premium/bank-transfer/pending";
+    const showPendingPage = () => navigate(pendingRoute, {
       replace: true,
       state: {
         bankTransferManual: true,
@@ -51,6 +55,10 @@ export default function PremiumSurveyPage() {
       },
     });
 
+    if (isManualTransfer && isLocalPreview) {
+      showPendingPage();
+      return;
+    }
     const payload = {
       coldSensitivity: ANSWER_CODES[0][answers[0]],
       exercisePreference: ANSWER_CODES[1][answers[1]],

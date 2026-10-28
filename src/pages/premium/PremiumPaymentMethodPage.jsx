@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import Header from "../../components/Header";
 import MobileLayout from "../../components/MobileLayout";
 import { PREMIUM_PLAN } from "../../constants/premium";
@@ -9,6 +9,8 @@ import usePaddleCheckout from "../../hooks/usePaddleCheckout";
 
 export default function PremiumPaymentMethodPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isLocalPreview = import.meta.env.DEV && new URLSearchParams(location.search).get("preview") === "1";
   const [paymentError, setPaymentError] = useState("");
   const [pendingTransactionId, setPendingTransactionId] = useState("");
   const { open: openCheckout, ready, loading, error: paddleError } = usePaddleCheckout();
@@ -30,7 +32,7 @@ export default function PremiumPaymentMethodPage() {
   }, [navigate, pendingTransactionId]);
 
   const handlePaddleCheckout = async () => {
-    if (!ready || createCheckout.isPending) return;
+    if (isLocalPreview || !ready || createCheckout.isPending) return;
     setPaymentError("");
     try {
       const checkout = await createCheckout.mutateAsync();
@@ -70,15 +72,17 @@ export default function PremiumPaymentMethodPage() {
           <button
             type="button"
             onClick={handlePaddleCheckout}
-            disabled={!ready || loading || createCheckout.isPending}
+            disabled={isLocalPreview || !ready || loading || createCheckout.isPending}
             className="flex min-h-[96px] w-full items-center justify-between rounded-[16px] border border-[#E9E8E8] px-5 py-4 text-left disabled:cursor-not-allowed disabled:opacity-60"
           >
             <span>
               <span className="block text-[18px] font-semibold">Paddle 결제</span>
               <span className="mt-1 block text-[14px] text-[#797776]">
-                {loading || createCheckout.isPending
-                  ? "Paddle 결제를 준비하고 있어요."
-                  : "카드와 간편결제로 바로 시작해요."}
+                {isLocalPreview
+                  ? "미리보기에서는 실제 결제를 진행하지 않아요."
+                  : loading || createCheckout.isPending
+                    ? "Paddle 결제를 준비하고 있어요."
+                    : "카드와 간편결제로 바로 시작해요."}
               </span>
             </span>
             <span aria-hidden="true" className="text-[28px] text-[#62605F]">›</span>
@@ -86,8 +90,8 @@ export default function PremiumPaymentMethodPage() {
 
           <button
             type="button"
-            onClick={() => navigate("/premium/bank-transfer", {
-              state: { bankTransferManual: true },
+            onClick={() => navigate(isLocalPreview ? "/premium/bank-transfer?preview=1" : "/premium/bank-transfer", {
+              state: { bankTransferPreview: true },
             })}
             className="flex min-h-[96px] w-full items-center justify-between rounded-[16px] border border-[#E9E8E8] px-5 py-4 text-left"
           >
@@ -105,7 +109,9 @@ export default function PremiumPaymentMethodPage() {
           </p>
         )}
         <p className="mt-8 text-[14px] leading-6 text-[#A5A4A3]">
-          결제 완료 후 서버에서 프리미엄 이용 상태를 확인합니다. 계좌이체는 운영자가 입금 내역을 확인해 수동으로 활성화합니다.
+          {isLocalPreview
+            ? "로컬 화면 미리보기입니다. 로그인한 실제 화면에서 Paddle Sandbox 결제를 진행할 수 있어요."
+            : "결제 완료 후 서버에서 프리미엄 이용 상태를 확인합니다. 계좌이체는 운영자가 입금 내역을 확인해 수동으로 활성화합니다."}
         </p>
         <nav aria-label="정책 및 고객지원" className="mt-auto flex flex-wrap justify-center gap-x-4 gap-y-2 pt-10 text-xs text-[#797776]">
           <Link to="/terms" className="underline underline-offset-2">이용약관</Link>

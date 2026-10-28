@@ -18,6 +18,7 @@ export default function PremiumDepositPendingPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { state } = location;
+  const isLocalPreview = import.meta.env.DEV && new URLSearchParams(location.search).get("preview") === "1";
   const hasAccessToken = Boolean(localStorage.getItem("wee_access_token"));
   const statusQuery = useSubscriptionQuery({ enabled: hasAccessToken, refetchOnMount: "always" });
   const [pendingTransfer, setPendingTransfer] = useState(readPendingTransfer);
@@ -37,8 +38,8 @@ export default function PremiumDepositPendingPage() {
 
   const checkDepositStatus = async () => {
     setRefreshMessage("");
-    if (!hasAccessToken) {
-      setRefreshMessage("로그인이 필요해요. 다시 로그인해 주세요.");
+    if (isLocalPreview || !hasAccessToken) {
+      setRefreshMessage("로컬 미리보기에서는 프리미엄 상태를 확인하지 않아요.");
       return;
     }
     const result = await statusQuery.refetch();
@@ -72,8 +73,15 @@ export default function PremiumDepositPendingPage() {
           </p>
         </section>
 
-        <section className="mt-6 rounded-[16px] border border-[#E9E8E8] p-4" aria-label="입금 신청 관리">
+        {isLocalPreview && (
+          <p className="mt-4 rounded-[12px] bg-[#F5FCFD] p-4 text-[13px] leading-5 text-[#797776]">
+            로컬 미리보기예요. 실제 계좌이체나 프리미엄 상태 확인은 처리되지 않습니다.
+          </p>
+        )}
+
+        <div className="absolute bottom-[112px] left-6 right-6 space-y-3">
           <Button
+            variant="white"
             onClick={checkDepositStatus}
             disabled={statusQuery.isFetching}
             className="h-[44px] rounded-[10px] text-[16px]"
@@ -81,18 +89,8 @@ export default function PremiumDepositPendingPage() {
             {statusQuery.isFetching ? "상태 확인 중..." : "입금 상태 새로고침"}
           </Button>
           {refreshMessage && <p role="status" className="text-center text-[12px] text-[#797776]">{refreshMessage}</p>}
-          <Button
-            variant="white"
-            onClick={() => navigate("/mypage/refund", { state: { fromBankTransferPending: true } })}
-            className="mt-3 h-[44px] rounded-[10px] border border-[#E9E8E8] text-[16px] text-[#797776]"
-          >
-            신청 취소하기
-          </Button>
-        </section>
-
-        <div className="mt-4 space-y-1">
-          <button type="button" onClick={() => navigate("/mypage/payment")} className="w-full py-2 text-[14px] text-[#797776] underline underline-offset-2">
-            결제 관리에서 상태 보기
+          <button type="button" onClick={() => navigate(isLocalPreview ? "/premium/payment-method?preview=1" : "/mypage/payment")} className="w-full py-2 text-[14px] text-[#797776] underline underline-offset-2">
+            {isLocalPreview ? "결제 방법 다시 보기" : "결제 관리에서 상태 보기"}
           </button>
           <button type="button" onClick={() => navigate("/home")} className="w-full py-2 text-[14px] text-[#797776] underline underline-offset-2">
             홈으로

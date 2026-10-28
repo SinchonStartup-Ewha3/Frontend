@@ -106,7 +106,7 @@ export default function RefundAccountPage() {
 
           <Button
             type="submit"
-              disabled={!reason.trim() || refundMutation.isPending}
+            disabled={!reason.trim() || refundMutation.isPending}
             className="absolute left-[1px] top-[481px] h-[44px] w-[345px] rounded-[10px] text-[18px] tracking-[-0.18px]"
           >
             환불 요청
