@@ -14,9 +14,12 @@ import { useIsPremium } from "../../hooks/usePayment";
 import { logoutFromService } from "../../api/auth";
 
 const sectionHeadingClass = "text-[16px] leading-[21px] font-bold";
-const guestActionButtonClass = "flex h-[77px] w-full items-center justify-between gap-3 rounded-[13px] px-[17px] text-left text-[#353331]";
-const guestActionTitleClass = "block text-[16px] leading-[20px] font-bold text-[#353331]";
-const guestActionDescriptionClass = "mt-[8px] block text-[14px] leading-[17px] text-[#797776]";
+const guestActionButtonClass =
+  "flex h-[77px] w-full items-center justify-between gap-3 rounded-[13px] px-[17px] text-left text-[#353331]";
+const guestActionTitleClass =
+  "block text-[16px] leading-[20px] font-bold text-[#353331]";
+const guestActionDescriptionClass =
+  "mt-[8px] block text-[14px] leading-[17px] text-[#797776]";
 
 export default function MyPage() {
   const navigate = useNavigate();
@@ -33,13 +36,18 @@ export default function MyPage() {
               src={weeLogo}
               alt="WEE"
               className="absolute left-[21px] top-[43px] h-[24px] w-auto"
-              style={{ filter: "brightness(0) saturate(100%) invert(80%) sepia(28%) saturate(1492%) hue-rotate(154deg) brightness(101%) contrast(101%)" }}
+              style={{
+                filter:
+                  "brightness(0) saturate(100%) invert(80%) sepia(28%) saturate(1492%) hue-rotate(154deg) brightness(101%) contrast(101%)",
+              }}
             />
             <div className="flex flex-col gap-[18px]">
               <Card highlighted className="!rounded-[13px] !p-0">
                 <button
                   type="button"
-                  onClick={() => navigate("/login", { state: { from: "/mypage" } })}
+                  onClick={() =>
+                    navigate("/login", { state: { from: "/mypage" } })
+                  }
                   className={guestActionButtonClass}
                 >
                   <span className="min-w-0">
@@ -48,7 +56,12 @@ export default function MyPage() {
                       로그인 / 회원가입 하러 가기
                     </span>
                   </span>
-                  <img src={chevronRightIcon} alt="" aria-hidden="true" className="shrink-0" />
+                  <img
+                    src={chevronRightIcon}
+                    alt=""
+                    aria-hidden="true"
+                    className="shrink-0"
+                  />
                 </button>
               </Card>
 
@@ -66,7 +79,12 @@ export default function MyPage() {
                       내 위치와 일정에 맞춰 필요한 순간에 알려드려요.
                     </span>
                   </span>
-                  <img src={diamondIcon} alt="" aria-hidden="true" className="h-[24px] w-[25px] shrink-0" />
+                  <img
+                    src={diamondIcon}
+                    alt=""
+                    aria-hidden="true"
+                    className="h-[24px] w-[25px] shrink-0"
+                  />
                 </button>
               </Card>
             </div>
@@ -84,13 +102,13 @@ export default function MyPage() {
             src={weeLogo}
             alt="WEE"
             className="absolute left-[21px] top-[43px] h-[24px] w-auto"
-            style={{ filter: "brightness(0) saturate(100%) invert(80%) sepia(28%) saturate(1492%) hue-rotate(154deg) brightness(101%) contrast(101%)" }}
+            style={{
+              filter:
+                "brightness(0) saturate(100%) invert(80%) sepia(28%) saturate(1492%) hue-rotate(154deg) brightness(101%) contrast(101%)",
+            }}
           />
           <div className="flex flex-col gap-[18px]">
-            <Card
-              highlighted
-              className="!rounded-[13px] !p-0"
-            >
+            <Card highlighted className="!rounded-[13px] !p-0">
               <button
                 type="button"
                 onClick={() => navigate("/mypage/profile")}
@@ -102,7 +120,9 @@ export default function MyPage() {
                     titleClassName={`${isPremium ? "text-[18px] leading-[21px]" : "text-[16px] leading-[20px]"} font-bold`}
                   />
                   <span className="mt-[8px] block text-[14px] leading-[17px]">
-                    {profile?.region?.regionName ?? profile?.region?.shortName ?? "지역을 설정해주세요"}
+                    {profile?.region?.regionName ??
+                      profile?.region?.shortName ??
+                      "지역을 설정해주세요"}
                   </span>
                 </span>
                 <img src={chevronRightIcon} alt="" />
@@ -111,7 +131,11 @@ export default function MyPage() {
 
             <Card className="relative !h-[56px] !rounded-[13px] !px-[16px] !py-[14px]">
               <ListRow
-                onClick={isPremium ? () => navigate("/mypage/notifications") : undefined}
+                onClick={
+                  isPremium
+                    ? () => navigate("/mypage/notifications")
+                    : undefined
+                }
                 disabled={!isPremium}
                 className={`${isPremium ? "text-[18px]" : sectionHeadingClass} h-[22px]`}
               >
@@ -153,10 +177,11 @@ export default function MyPage() {
 
             <Card className="!h-[127px] !rounded-[13px] !px-[16px] !py-[12px]">
               <div className="flex h-full flex-col">
-                <PageHeading
-                  title="내 활동"
-                  titleClassName={isPremium ? "text-[18px] leading-[21px] font-bold" : sectionHeadingClass}
-                />
+                <h2
+                  className={`${isPremium ? "text-[18px] leading-[21px] font-bold" : sectionHeadingClass} flex h-[22px] items-center text-[#353331]`}
+                >
+                  내 활동
+                </h2>
                 <div className="mt-[8px] flex flex-1 flex-col justify-between">
                   <ListRow
                     onClick={() => navigate("/mypage/activity?type=written")}
