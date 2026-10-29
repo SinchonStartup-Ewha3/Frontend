@@ -2,7 +2,9 @@ import { useCallback, useEffect, useState } from "react";
 import {
   getOneSignalPushState,
   initializeOneSignal,
+  PUSH_RESET_KEY,
   requestOneSignalPush,
+  resetOneSignalLocalState,
 } from "../push/oneSignal";
 
 const isSupported = () =>
@@ -24,12 +26,12 @@ const usePushNotification = () => {
     isSupported() ? Notification.permission : "unsupported",
   );
   // OneSignal 구독 여부: null = 확인 중, true/false = 확인 완료
-  // (브라우저 권한이 "허용"이어도 구독이 안 만들어졌을 수 있어서 따로 확인
+  // (브라우저 권한이 "허용"이어도 구독이 안 만들어졌을 수 있어서 따로 확인)
   const [subscribed, setSubscribed] = useState(null);
   const iosInstallRequired = isIos() && !isStandalone();
 
-  // 화면에 들어오면 OneSignal을 미리 초기화해 두고 구독 상태를 읽기
-  // -> 버튼을 누르는 순간 바로 권한창이 떠야 iOS에서도 막히지 않을 거 같아서
+  // 화면에 들어오면 OneSignal을 미리 초기화해 두고 구독 상태를 읽음
+  // → 버튼을 누르는 순간 바로 권한창이 떠야 iOS에서도 막히지 않음
   useEffect(() => {
     if (!isSupported() || iosInstallRequired) return;
     initializeOneSignal()
@@ -40,6 +42,14 @@ const usePushNotification = () => {
         setSubscribed(false);
       });
   }, [iosInstallRequired]);
+
+  // 기존 기기에 남은 예전 상태 때문에 실패했을 가능성 → 1회만 자동 초기화 후 새로고침 안내
+  const resetOnce = async () => {
+    if (sessionStorage.getItem(PUSH_RESET_KEY)) return false;
+    sessionStorage.setItem(PUSH_RESET_KEY, "1");
+    await resetOneSignalLocalState();
+    return true;
+  };
 
   const enable = useCallback(async () => {
     if (!isSupported()) return { ok: false, reason: "unsupported" };
@@ -54,12 +64,16 @@ const usePushNotification = () => {
       setPermission(Notification.permission);
       setSubscribed(Boolean(result?.subscribed));
       if (result?.subscribed) return { ok: true };
-      return {
-        ok: false,
-        reason: Notification.permission === "denied" ? "denied" : "dismissed",
-      };
+      if (Notification.permission === "denied")
+        return { ok: false, reason: "denied" };
+      // 권한은 허용인데 구독이 안 만들어진 경우 → 예전 상태 초기화
+      if (Notification.permission === "granted" && (await resetOnce())) {
+        return { ok: false, reason: "reset" };
+      }
+      return { ok: false, reason: "dismissed" };
     } catch (error) {
       console.error("푸시 구독 실패", error); // 원인 확인용 로그
+      if (await resetOnce()) return { ok: false, reason: "reset" };
       return { ok: false, reason: "failed" };
     }
   }, []);
