@@ -19,7 +19,7 @@ import cloudCharacter from "../../assets/images/weather/weather_cloud_character.
 import snowCharacter from "../../assets/images/weather/weather_snow_character.svg";
 import windCharacter from "../../assets/images/weather/weather_wind_character.svg";
 import sunnyCharacter from "../../assets/images/weather/weather_sunny_character.svg";
-import raindropIcon from "../../assets/icons/raindrop_icon.svg";
+import rainIcon from "../../assets/icons/rain.svg";
 import snowflakeIcon from "../../assets/icons/snowflake_icon.svg";
 import { searchRegions, updateUserLocation } from "../../api/location";
 import { fetchHomeData } from "../../api/weather";
@@ -44,7 +44,7 @@ const getWeatherIcon = (condition, isNight) => {
     case "RAIN":
     case "SHOWER":
     case "SLEET":
-      return raindropIcon;
+      return rainIcon;
     case "SNOW":
       return snowflakeIcon;
     default:

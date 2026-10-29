@@ -95,7 +95,7 @@ export default function NotificationSettingsPage() {
             title="맞춤형 행동 알림"
             description={"당신의 하루에 꼭 필요한 알림을\n미리 알려드릴게요"}
             className="mt-[15px]"
-            titleClassName="!text-[28px] !leading-[1.4] !tracking-[-0.84px]"
+            titleClassName="!text-[24px] !leading-[1.4] !tracking-[-0.72px]"
             descClassName="!mt-[8px] !text-[18px] !leading-[1.38] !tracking-[-0.54px] !text-[#D2D2D1]"
           />
 

@@ -1,10 +1,11 @@
 // 커뮤니티(게시글) 공통 상수 — 작성 / 수정 화면에서 같이 사용
 
-// 명세의 tag 값은 cardigan · padded · coat 중 하나
+// 게시글에서 선택할 수 있는 태그
 export const COMMUNITY_TAGS = [
   { label: "가디건", value: "cardigan" },
   { label: "패딩", value: "padded" },
   { label: "코트", value: "coat" },
+  { label: "기타", value: "other" },
 ];
 
 // 게시글 내용 최대 글자 수 (명세: 최대 200자)

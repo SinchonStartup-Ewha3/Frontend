@@ -18,11 +18,11 @@ import useToast from "../../hooks/useToast";
 import queryKeys from "../../api/queryKeys";
 import useLocationStore from "../../store/useLocationStore";
 import weeLogo from "../../assets/icons/logo.svg";
+import { COMMUNITY_TAGS } from "../../constants/community";
 
 const categories = [
-  { label: "가디건", value: "cardigan" },
-  { label: "패딩", value: "padded" },
-  { label: "코트", value: "coat" },
+  { label: "전체", value: "all" },
+  ...COMMUNITY_TAGS,
 ];
 
 const PAGE_SIZE = 10;
@@ -38,7 +38,7 @@ export default function CommunityPage() {
   const location = useLocation();
   const queryClient = useQueryClient();
   const isLoggedIn = Boolean(localStorage.getItem("wee_access_token"));
-  const [activeCategory, setActiveCategory] = useState("cardigan");
+  const [activeCategory, setActiveCategory] = useState("all");
   const [page, setPage] = useState(1);
   const [isLoginPromptOpen, setIsLoginPromptOpen] = useState(false);
   const [loginReturnTo, setLoginReturnTo] = useState("/community");
@@ -64,7 +64,11 @@ export default function CommunityPage() {
   const postsQuery = useQuery({
     queryKey: postsQueryKey,
     queryFn: () =>
-      fetchCommunityPosts({ tag: activeCategory, page, pageSize: PAGE_SIZE }),
+      fetchCommunityPosts({
+        tag: activeCategory === "all" ? undefined : activeCategory,
+        page,
+        pageSize: PAGE_SIZE,
+      }),
     retry: false,
     refetchOnMount: "always",
   });
@@ -242,6 +246,7 @@ export default function CommunityPage() {
               <Chip
                 key={value}
                 active={activeCategory === value}
+                className="shrink-0 !px-[10px]"
                 onClick={() => {
                   setActiveCategory(value);
                   setPage(1);
