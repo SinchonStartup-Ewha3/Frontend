@@ -6,11 +6,15 @@ const toPositiveInt = (value, fallback) => {
   return Number.isInteger(number) && number > 0 ? number : fallback;
 };
 
-// 태그별 게시글 목록 (로그인 선택: 토큰이 있으면 axios 인터셉터가 자동으로 붙여주니까)
-export const fetchCommunityPosts = async ({ tag, page = 1, pageSize = 10 }) => {
+// 전체 조회는 tag=all, 태그별 조회는 cardigan/padded/coat/other를 전달해요.
+// 로그인 선택: 토큰이 있으면 axios 인터셉터가 자동으로 붙여줘요.
+export const fetchCommunityPosts = async ({ tag, page = 1, pageSize = 10 } = {}) => {
+  // 전체 탭은 tag=all이 필수예요. undefined/null/빈 문자열로 빠져도
+  // 백엔드에 태그 누락 요청이 나가지 않도록 기본값을 다시 보정해요.
+  const requestedTag = typeof tag === "string" && tag.trim() ? tag.trim() : "all";
   const { data } = await api.get("/api/community/posts/", {
     params: {
-      tag,
+      tag: requestedTag,
       page: toPositiveInt(page, 1),
       pageSize: Math.min(toPositiveInt(pageSize, 10), 30), // 명세: 최대 30
     },

@@ -363,6 +363,7 @@ function RequireAuth({ children }) {
   const navigate = useNavigate();
   const token = localStorage.getItem("wee_access_token");
   const localPremiumPreviewPaths = [
+    "/mypage/notifications",
     "/premium/payment-method",
     "/premium/bank-transfer",
     "/premium/survey",

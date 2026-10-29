@@ -70,7 +70,7 @@ export default function CommunityPage() {
     queryKey: postsQueryKey,
     queryFn: () =>
       fetchCommunityPosts({
-        tag: activeCategory === "all" ? undefined : activeCategory,
+        tag: activeCategory,
         page,
         pageSize: PAGE_SIZE,
       }),
@@ -202,11 +202,18 @@ export default function CommunityPage() {
         />
         <header className="mx-6 pt-[96px]">
           {headline && (
-            <h1 className="break-words text-[28px] font-semibold leading-[1.4] tracking-[-0.84px]">
-              {headline.title}
-              <br />
-              {headline.description}
-            </h1>
+            <>
+              {weatherCopy?.timeScope && (
+                <p className="mb-[3px] text-[14px] font-semibold leading-[20px] tracking-[-0.42px] text-[#19BBD8]">
+                  {weatherCopy.timeScope === "TOMORROW" ? "내일 날씨" : "오늘 날씨"}
+                </p>
+              )}
+              <h1 className="break-words text-[28px] font-semibold leading-[1.4] tracking-[-0.84px]">
+                {headline.title}
+                <br />
+                {headline.description}
+              </h1>
+            </>
           )}
           {weatherCopyQuery.isLoading && (
             <p className="text-sm text-[#A5A4A3]">날씨 문구를 불러오는 중...</p>

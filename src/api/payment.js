@@ -9,19 +9,36 @@ import { db, delay, persist } from "../mocks/db";
 export const fetchSubscription = async () => {
   if (USE_MOCK) {
     await delay(200);
+    const latestTransfer = db.bankTransferRequests?.at(-1);
+    const isPremium = Boolean(db.subscription?.active || latestTransfer?.status === "APPROVED");
     return {
+      isPremium,
+      canCompleteSurvey: isPremium || latestTransfer?.status === "PENDING",
+      bankTransferStatus: latestTransfer?.status ?? null,
+      paymentMethod: latestTransfer?.status === "APPROVED" ? "BANK_TRANSFER" : null,
       subscription: { ...db.subscription },
       fortunePass: { ...db.fortunePass },
     };
   }
   const { data } = await api.get("/api/premium/status/");
   const isPremium = Boolean(data.isPremium);
+  const canCompleteSurvey = Boolean(data.canCompleteSurvey ?? isPremium);
+  const status = data.bankTransferStatus === "PENDING"
+    ? "PENDING"
+    : isPremium
+      ? "ACTIVE"
+      : data.premiumExpiresAt
+        ? "COMPLETED"
+        : "NONE";
   return {
     ...data,
+    canCompleteSurvey,
     subscription: {
       active: isPremium,
       isActive: isPremium,
-      status: isPremium ? "ACTIVE" : data.premiumExpiresAt ? "COMPLETED" : "NONE",
+      status,
+      paymentMethod: data.paymentMethod,
+      bankTransferStatus: data.bankTransferStatus,
       canRequestRefund: Boolean(data.canRequestRefund),
       paidAt: data.premiumStartedAt,
       purchasedAt: data.premiumStartedAt,
@@ -41,6 +58,7 @@ export const fetchPremiumBilling = async () => {
           purchaseId: 1,
           productName: "맞춤형 행동 알림",
           status: "COMPLETED",
+          paymentMethod: db.subscription.paymentMethod ?? "PAYAPP",
           purchasedAt: db.subscription.paidAt,
           startedAt: db.subscription.paidAt,
           expiresAt: null,
@@ -65,18 +83,64 @@ export const fetchPremiumBilling = async () => {
   };
 };
 
-export const createPremiumCheckout = async () => {
-  if (USE_MOCK) {
-    await delay(200);
-    const transactionId = `mock_txn_${Date.now()}`;
-    return {
-      purchaseId: Date.now(),
-      transactionId,
-      checkoutUrl: `https://sandbox-checkout.paddle.com/checkout/${transactionId}`,
-      status: "PENDING",
+// 계좌이체 입금 확인 요청 — 서버가 금액과 통화를 지정해요.
+export const createBankTransferRequest = async ({ depositorName }) => {
+  const normalizedName = String(depositorName ?? "").trim();
+  if (normalizedName.length < 2 || normalizedName.length > 30) {
+    const error = new Error("입금자명을 2자 이상 입력해주세요.");
+    error.response = {
+      status: 400,
+      data: { depositorName: [error.message] },
     };
+    throw error;
   }
-  const { data } = await api.post("/api/premium/checkout/");
+
+  if (USE_MOCK) {
+    await delay(300);
+    if (db.subscription?.active) {
+      const error = new Error("이미 프리미엄을 이용 중입니다.");
+      error.response = {
+        status: 409,
+        data: { detail: error.message, code: "PREMIUM_ALREADY_ACTIVE" },
+      };
+      throw error;
+    }
+    const pending = db.bankTransferRequests?.find((request) => request.status === "PENDING");
+    if (pending) return { ...pending };
+    const result = {
+      requestId: Date.now(),
+      depositorName: normalizedName,
+      amount: 2500,
+      currencyCode: "KRW",
+      status: "PENDING",
+      requestedAt: new Date().toISOString(),
+      reviewedAt: null,
+    };
+    db.bankTransferRequests ??= [];
+    db.bankTransferRequests.push(result);
+    persist();
+    return result;
+  }
+
+  const { data } = await api.post("/api/premium/bank-transfer-requests/", {
+    depositorName: normalizedName,
+  });
+  return data;
+};
+
+export const createPayAppCheckout = async ({ recvphone }) => {
+  const normalizedPhone = String(recvphone ?? "").replaceAll("-", "").trim();
+  if (!/^01\d{8,9}$/.test(normalizedPhone)) {
+    const error = new Error("휴대전화 번호는 하이픈 없이 입력해주세요.");
+    error.response = {
+      status: 400,
+      data: { recvphone: [error.message] },
+    };
+    throw error;
+  }
+  const { data } = await api.post("/api/premium/payapp/checkout/", {
+    recvphone: normalizedPhone,
+  });
   return data;
 };
 
@@ -108,22 +172,6 @@ export const patchPremiumProfile = async (payload) => {
   return data;
 };
 
-export const waitForPremiumStatus = async ({ attempts = 8, intervalMs = 1500 } = {}) => {
-  if (USE_MOCK) {
-    db.subscription.active = true;
-    persist();
-  }
-  let status;
-  for (let attempt = 0; attempt < attempts; attempt += 1) {
-    status = await fetchSubscription();
-    if (status.subscription?.active) return status;
-    if (attempt < attempts - 1) {
-      await new Promise((resolve) => setTimeout(resolve, intervalMs));
-    }
-  }
-  return status;
-};
-
 // 날씨 운세 패키지 추가 구매 확인
 export const confirmFortunePayment = async ({ transactionId }) => {
   if (USE_MOCK) {
@@ -152,7 +200,6 @@ export const requestRefund = async (payload) => {
       requestedAmount: 2380,
       currencyCode: "KRW",
       remainingSeconds: 20 * 24 * 60 * 60,
-      paddleAdjustmentId: "",
       status: "REQUESTED",
       rejectionReason: "",
       requestedAt: new Date().toISOString(),
