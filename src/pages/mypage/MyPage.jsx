@@ -137,7 +137,7 @@ export default function MyPage() {
                     : undefined
                 }
                 disabled={!isPremium}
-                className={`${isPremium ? "text-[18px]" : sectionHeadingClass} h-[22px]`}
+                className={`${isPremium ? "text-[18px] leading-[21px] font-bold" : sectionHeadingClass} h-[22px]`}
               >
                 알림 일정 관리
               </ListRow>
