@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import Header from "../../components/Header";
 import MobileLayout from "../../components/MobileLayout";
 import { PREMIUM_PLAN } from "../../constants/premium";
-import chevronRight from "../../assets/icons/chevron-right.svg";
+import premiumCharacter from "../../assets/images/premium-checkout/premium-alert-mascot.png";
 import {
   useCreatePremiumCheckout,
   useRedirectIfPremium,
@@ -82,20 +82,33 @@ export default function PremiumPaymentMethodPage() {
 
   return (
     <MobileLayout>
-      <main className="relative mx-auto min-h-[852px] w-full max-w-[402px] bg-white px-[21px] pt-[73px] text-[#353331]">
+      <main className="relative mx-auto flex min-h-[852px] w-full max-w-[402px] flex-col bg-white px-6 pb-8 pt-[73px] text-[#353331]">
         <Header back />
-        <h1 className="ml-[6px] mt-[15px] text-[28px] font-semibold leading-[1.4] tracking-[-0.84px]">
+        <h1 className="mt-10 text-[26px] font-semibold leading-[1.4] tracking-[-0.78px]">
           결제 방법 선택
         </h1>
-        <p className="ml-[1px] mt-[7px] text-[18px] font-medium leading-[1.38] tracking-[-0.54px] text-[#A5A4A3]">
-          {PREMIUM_PLAN.name}: 2,500원
+        <p className="mt-2 text-[16px] text-[#797776]">
+          {PREMIUM_PLAN.name} · {PREMIUM_PLAN.priceLabel}
         </p>
 
-        <p className="mt-[29px] whitespace-nowrap text-center text-[16px] font-medium leading-6 tracking-[-0.48px] text-[#4BDDFF]">
-          입금 확인 후 프리미엄 기능이 활성화됩니다!
-        </p>
+        <section
+          className="mt-6 flex items-center gap-3 rounded-[18px] bg-[#F0F0F0] px-4 py-3"
+          aria-label="WEE Premium 안내"
+        >
+          <img
+            src={premiumCharacter}
+            alt=""
+            aria-hidden="true"
+            className="h-[54px] w-[46px] shrink-0 object-contain"
+          />
+          <p className="text-[14px] font-medium leading-[1.5] text-[#62605F]">
+            WEE Premium으로
+            <br />
+            맞춤형 행동 알림을 받아보세요.
+          </p>
+        </section>
 
-        <div className="mt-[12px] space-y-[15px]">
+        <div className="mt-6 space-y-4">
           <button
             type="button"
             onClick={handlePaddleCheckout}
@@ -106,19 +119,23 @@ export default function PremiumPaymentMethodPage() {
               loading ||
               createCheckout.isPending
             }
-            className="relative flex h-[88px] w-full flex-col items-start rounded-[13px] border-[1.5px] border-[#E9E8E8] px-[16px] pt-[15px] text-left disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex min-h-[96px] w-full items-center justify-between rounded-[16px] border border-[#E9E8E8] px-5 py-4 text-left disabled:cursor-not-allowed disabled:opacity-60"
           >
-            <span className="block text-[16px] font-bold leading-[19.296px] tracking-[-0.43px]">
+            <span>
+              <span className="block text-[18px] font-semibold">
                 Paddle 결제
-            </span>
-            <span className="mt-[11px] block whitespace-nowrap text-[12px] leading-[19.296px] tracking-[-0.43px]">
+              </span>
+              <span className="mt-1 block text-[14px] text-[#797776]">
                 {isLocalPreview
                   ? "미리보기에서는 실제 결제를 진행하지 않아요."
                   : loading || createCheckout.isPending
                     ? "Paddle 결제를 준비하고 있어요."
-                    : "카드와 간편결제로 바로 시작하세요"}
+                    : "카드와 간편결제로 바로 시작해요."}
+              </span>
             </span>
-            <img src={chevronRight} alt="" aria-hidden="true" className="absolute right-[17px] top-[31px]" />
+            <span aria-hidden="true" className="text-[28px] text-[#62605F]">
+              ›
+            </span>
           </button>
 
           <button
@@ -133,13 +150,17 @@ export default function PremiumPaymentMethodPage() {
                 },
               )
             }
-            className="relative flex h-[88px] w-full flex-col items-start rounded-[13px] border-[1.5px] border-[#E9E8E8] px-[16px] pt-[15px] text-left"
+            className="flex min-h-[96px] w-full items-center justify-between rounded-[16px] border border-[#E9E8E8] px-5 py-4 text-left"
           >
-            <span className="block text-[16px] font-bold leading-[19.296px] tracking-[-0.43px]">계좌이체</span>
-            <span className="mt-[11px] block whitespace-nowrap text-[12px] leading-[19.296px] tracking-[-0.43px]">
-              직접 이체하고 Premium 이용에 필요한 설문을 먼저 작성해요.
+            <span>
+              <span className="block text-[18px] font-semibold">계좌이체</span>
+              <span className="mt-1 block text-[14px] text-[#797776]">
+                입금 정보를 확인하고 설문을 작성해요.
+              </span>
             </span>
-            <img src={chevronRight} alt="" aria-hidden="true" className="absolute right-[17px] top-[31px]" />
+            <span aria-hidden="true" className="text-[28px] text-[#62605F]">
+              ›
+            </span>
           </button>
         </div>
 
@@ -154,6 +175,28 @@ export default function PremiumPaymentMethodPage() {
               "Paddle 결제 완료를 확인하고 있어요. 프리미엄 권한이 반영되면 다음 화면으로 이동합니다."}
           </p>
         )}
+        <p className="mt-8 text-[14px] leading-6 text-[#A5A4A3]">
+          {isLocalPreview
+            ? "로컬 화면 미리보기입니다. 로그인한 실제 화면에서 Paddle Sandbox 결제를 진행할 수 있어요."
+            : "결제 완료 후 서버에서 프리미엄 이용 상태를 확인합니다. 계좌이체는 운영자가 입금 내역을 확인해 수동으로 활성화합니다."}
+        </p>
+        <nav
+          aria-label="정책 및 고객지원"
+          className="mt-auto flex flex-wrap justify-center gap-x-4 gap-y-2 pt-10 text-xs text-[#797776]"
+        >
+          <Link to="/terms" className="underline underline-offset-2">
+            이용약관
+          </Link>
+          <Link to="/privacy" className="underline underline-offset-2">
+            개인정보처리방침
+          </Link>
+          <Link to="/refund" className="underline underline-offset-2">
+            환불정책
+          </Link>
+          <Link to="/contact" className="underline underline-offset-2">
+            문의
+          </Link>
+        </nav>
       </main>
     </MobileLayout>
   );

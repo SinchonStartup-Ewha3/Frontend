@@ -228,14 +228,6 @@ export default function App() {
           </RequireAuth>
         }
       />
-      <Route
-        path="/premium/payment/status"
-        element={
-          <RequireAuth>
-            <PremiumDepositPendingPage />
-          </RequireAuth>
-        }
-      />
       <Route path="/terms" element={<PublicPolicyPage />} />
       <Route path="/privacy" element={<PublicPolicyPage />} />
       <Route path="/refund" element={<PublicPolicyPage />} />
@@ -257,14 +249,6 @@ export default function App() {
         element={
           <RequireAuth>
             <PremiumSurveyCompletePage />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/premium/bank-transfer/survey-complete"
-        element={
-          <RequireAuth>
-            <PremiumSurveyCompletePage bankTransfer />
           </RequireAuth>
         }
       />
