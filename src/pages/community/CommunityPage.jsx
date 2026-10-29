@@ -145,6 +145,8 @@ export default function CommunityPage() {
             ),
           },
       );
+      // 좋아요/취소 후 저장한 게시물 목록 캐시도 갱신 (다음에 열 때 최신 상태)
+      queryClient.invalidateQueries({ queryKey: queryKeys.likedPosts });
     } catch (error) {
       if (error.response?.status === 404) {
         queryClient.setQueryData(
@@ -181,7 +183,10 @@ export default function CommunityPage() {
           src={weeLogo}
           alt="WEE"
           className="absolute left-6 top-[28px] h-[24px] w-auto"
-          style={{ filter: "brightness(0) saturate(100%) invert(80%) sepia(28%) saturate(1492%) hue-rotate(154deg) brightness(101%) contrast(101%)" }}
+          style={{
+            filter:
+              "brightness(0) saturate(100%) invert(80%) sepia(28%) saturate(1492%) hue-rotate(154deg) brightness(101%) contrast(101%)",
+          }}
         />
         <header className="mx-6 pt-[96px]">
           {headline && (

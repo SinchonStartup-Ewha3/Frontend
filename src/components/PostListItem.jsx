@@ -7,37 +7,65 @@ import { timeAgo } from "../utils/format";
 const HEART_PATH =
   "M9.425 0C11.3994 0 13 1.64696 13 3.9527C13 8.56419 8.125 11.1993 6.5 12.1875C4.875 11.1993 0 8.56419 0 3.9527C0 1.64696 1.625 0 3.575 0C4.78398 0 5.85 0.658784 6.5 1.31757C7.15 0.658784 8.216 0 9.425 0Z";
 
-const PostListItem = ({ post, heartActive = false, heartColor = "#60E1FF", onHeartClick, onClick, showDivider = true }) => {
+const PostListItem = ({
+  post,
+  heartActive = false,
+  heartColor = "#60E1FF",
+  onHeartClick,
+  onClick,
+  showDivider = true,
+}) => {
   const Heart = heartActive ? (
-    <svg width="13" height="13" viewBox="0 0 13 13" fill={heartColor} aria-hidden="true">
+    <svg
+      width="13"
+      height="13"
+      viewBox="0 0 13 13"
+      fill={heartColor}
+      aria-hidden="true"
+    >
       <path d={HEART_PATH} />
     </svg>
   ) : (
-    <img src={heartIcon} alt="" aria-hidden="true" className="h-[13px] w-[13px]" />
+    <img
+      src={heartIcon}
+      alt=""
+      aria-hidden="true"
+      className="h-[13px] w-[13px]"
+    />
   );
 
   return (
     <article className="relative h-[108px]">
       {/* 썸네일(이미지 없으면 회색 박스) + 하트 */}
       <div className="absolute left-0 top-0 h-[76px] w-[78px] overflow-hidden rounded-[13px] bg-[#E9E8E8]/60">
-        {post.image && <img src={post.image} alt="" className="h-full w-full object-cover" />}
+        {post.image && (
+          <img src={post.image} alt="" className="h-full w-full object-cover" />
+        )}
         {onHeartClick ? (
           <button
             type="button"
             aria-label={heartActive ? "공감 취소" : "공감"}
             aria-pressed={heartActive}
             onClick={onHeartClick}
-            className="absolute left-2 top-2 flex h-4 w-4 items-center justify-center"
+            // z-10: 아래 전체 덮개 버튼에 가려져 클릭이 안 되던 문제 해결 / 터치 영역은 32px로 확대
+            className="absolute left-0 top-0 z-10 flex h-8 w-8 items-center justify-center"
           >
             {Heart}
           </button>
         ) : (
-          <span className="absolute left-2 top-2 flex h-4 w-4 items-center justify-center">{Heart}</span>
+          <span className="absolute left-2 top-2 flex h-4 w-4 items-center justify-center">
+            {Heart}
+          </span>
         )}
       </div>
 
       {/* 본문(최대 2줄) + 메타(시간 | 공감 | 지역) — 누르면 상세 이동 */}
-      <button type="button" onClick={onClick} disabled={!onClick} className="absolute inset-0 text-left">
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={!onClick}
+        className="absolute inset-0 text-left"
+      >
         <p className="absolute left-[99px] right-0 top-[10px] line-clamp-2 text-base font-medium leading-[22px] tracking-[-0.03em] text-[#4C4A48]">
           {post.message}
         </p>
@@ -56,7 +84,12 @@ const PostListItem = ({ post, heartActive = false, heartColor = "#60E1FF", onHea
         </div>
       </button>
 
-      {showDivider && <div aria-hidden="true" className="absolute inset-x-0 bottom-4 h-px bg-[#E9E8E8]" />}
+      {showDivider && (
+        <div
+          aria-hidden="true"
+          className="absolute inset-x-0 bottom-4 h-px bg-[#E9E8E8]"
+        />
+      )}
     </article>
   );
 };
