@@ -69,4 +69,14 @@ export const logoutOneSignalUser = async () => {
 };
 
 export const promptOneSignalPush = async () =>
-  withOneSignal((OneSignal) => OneSignal.Slidedown.promptPush());
+  withOneSignal(async (OneSignal) => {
+    // The native permission may already be granted while OneSignal has not
+    // completed its push subscription. In that case, opt the user in directly
+    // instead of showing the slidedown prompt again.
+    if (Notification.permission === "granted") {
+      await OneSignal.User.PushSubscription.optIn();
+      return;
+    }
+
+    await OneSignal.Slidedown.promptPush();
+  });

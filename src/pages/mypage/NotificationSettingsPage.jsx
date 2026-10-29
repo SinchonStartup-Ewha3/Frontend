@@ -74,8 +74,14 @@ export default function NotificationSettingsPage() {
       } else if (result.reason === "unsupported") {
         toast.error("이 브라우저에서는 웹 푸시 알림을 지원하지 않아요.");
       }
-    } catch {
-      toast.error("알림 설정을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.");
+    } catch (error) {
+      console.error("OneSignal 푸시 구독 실패", error);
+      const reason = error instanceof Error ? error.message : String(error ?? "");
+      toast.error(
+        reason
+          ? `푸시 구독 실패: ${reason}`
+          : "푸시 구독에 실패했어요. 잠시 후 다시 시도해 주세요.",
+      );
     }
   };
 
