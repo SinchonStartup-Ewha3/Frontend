@@ -74,11 +74,17 @@ export default function NotificationSettingsPage() {
         );
       } else if (result.reason === "unsupported") {
         toast.error("이 브라우저에서는 웹 푸시 알림을 지원하지 않아요.");
+      } else if (result.reason === "reset") {
+        toast.error(
+          "알림 연결을 초기화했어요. 잠시 후 새로고침되면 한 번 더 눌러 주세요.",
+        );
+        setTimeout(() => window.location.reload(), 1500);
       } else if (result.reason === "failed") {
         toast.error("알림 구독에 실패했어요. 잠시 후 다시 시도해 주세요.");
       }
-    } catch {
-      toast.error("알림 설정을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.");
+    } catch (error) {
+      console.error("알림 설정 오류", error);
+      toast.error("알림 구독에 실패했어요. 잠시 후 다시 시도해 주세요.");
     }
   };
 

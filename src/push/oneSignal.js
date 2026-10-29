@@ -80,8 +80,8 @@ export const getOneSignalPushState = () =>
     return { subscribed: Boolean(sub.optedIn && sub.id), id: sub.id ?? null };
   });
 
-// 네이티브 알림 권한창을 바로 띄우고, 허용되면 OneSignal 구독까지 완료될 때까지 기다리도록 일단..수정
-// (슬라이드다운 대신 사용 -> 대시보드 프롬프트 설정과 무관하게 동작)
+// 네이티브 알림 권한창을 바로 띄우고, 허용되면 OneSignal 구독까지 완료될 때까지 기다림
+// (슬라이드다운 대신 사용 → 대시보드 프롬프트 설정과 무관하게 동작)
 export const requestOneSignalPush = () =>
   withOneSignal(async (OneSignal) => {
     await OneSignal.Notifications.requestPermission();
@@ -99,3 +99,53 @@ export const requestOneSignalPush = () =>
       subscribed: Boolean(sub.optedIn && sub.id),
     };
   });
+
+// 푸시 재설정 1회 제한용 플래그 (무한 새로고침 방지)
+export const PUSH_RESET_KEY = "wee_push_reset_done";
+
+// 기존 기기에 남은 OneSignal 흔적(서비스워커·푸시 구독·로컬 DB·저장소)을 정리하고 ㅠ..
+// 대시보드에서 기기를 삭제해도 폰에 남아 있는 예전 상태가 충돌하는 경우를 풀어주면?
+export const resetOneSignalLocalState = async () => {
+  try {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(
+      registrations.map(async (registration) => {
+        try {
+          const sub = await registration.pushManager?.getSubscription();
+          await sub?.unsubscribe();
+        } catch {
+          /* 이미 만료된 구독은 무시 */
+        }
+        try {
+          await registration.unregister();
+        } catch {
+          /* 무시 */
+        }
+      }),
+    );
+  } catch {
+    /* 서비스워커 조회 실패는 무시 */
+  }
+
+  try {
+    const dbs = (await indexedDB.databases?.()) ?? [];
+    const names = dbs
+      .map((db) => db.name)
+      .filter((name) => /onesignal/i.test(name ?? ""));
+    if (!names.includes("ONE_SIGNAL_SDK_DB")) names.push("ONE_SIGNAL_SDK_DB");
+    names.forEach((name) => indexedDB.deleteDatabase(name));
+  } catch {
+    /* 무시 */
+  }
+
+  [localStorage, sessionStorage].forEach((storage) => {
+    Object.keys(storage)
+      .filter((key) => /onesignal/i.test(key))
+      .forEach((key) => storage.removeItem(key));
+  });
+
+  // 메모리에 남은 초기화 상태도 비우면..?
+  window[INITIALIZATION_KEY] = null;
+  initialization = null;
+  activeExternalId = null;
+};
