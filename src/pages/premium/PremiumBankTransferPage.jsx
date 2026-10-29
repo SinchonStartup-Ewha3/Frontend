@@ -4,7 +4,10 @@ import Button from "../../components/Button";
 import Header from "../../components/Header";
 import { useRedirectIfPremium } from "../../hooks/usePayment";
 import MobileLayout from "../../components/MobileLayout";
+import useToast from "../../hooks/useToast";
+import copyAccountIcon from "../../assets/icons/copy-account.svg";
 import {
+  PREMIUM_BANK_TRANSFER_PENDING_KEY,
   PREMIUM_BANK_TRANSFER_ACCOUNT,
   PREMIUM_PLAN,
 } from "../../constants/premium";
@@ -12,6 +15,7 @@ import {
 export default function PremiumBankTransferPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const toast = useToast();
   const isLocalPreview =
     import.meta.env.DEV &&
     new URLSearchParams(location.search).get("preview") === "1";
@@ -21,7 +25,13 @@ export default function PremiumBankTransferPage() {
 
   const continueToSurvey = () => {
     if (!depositorName.trim()) return;
-    navigate(isLocalPreview ? "/premium/survey?preview=1" : "/premium/survey", {
+    localStorage.setItem(PREMIUM_BANK_TRANSFER_PENDING_KEY, JSON.stringify({
+      depositorName: depositorName.trim(),
+      amount: PREMIUM_PLAN.priceLabel,
+      createdAt: new Date().toISOString(),
+      status: "PENDING",
+    }));
+    navigate(isLocalPreview ? "/premium/bank-transfer/survey-complete?preview=1" : "/premium/bank-transfer/survey-complete", {
       state: {
         bankTransferManual: true,
         depositorName: depositorName.trim(),
@@ -29,74 +39,65 @@ export default function PremiumBankTransferPage() {
     });
   };
 
+  const copyAccountNumber = async () => {
+    try {
+      await navigator.clipboard.writeText(PREMIUM_BANK_TRANSFER_ACCOUNT.accountNumber);
+      toast.success("계좌번호를 복사했어요.");
+    } catch {
+      toast.error("계좌번호를 복사하지 못했어요.");
+    }
+  };
+
   return (
     <MobileLayout>
-      <main className="relative mx-auto min-h-[852px] w-full max-w-[402px] bg-white px-6 pt-[73px] text-[#353331]">
+      <main className="relative mx-auto min-h-[852px] w-full max-w-[402px] bg-white px-[21px] pt-[73px] text-[#353331]">
         <Header back />
-        <h1 className="mt-10 text-[26px] font-semibold leading-[1.4] tracking-[-0.78px]">
+        <h1 className="ml-[6px] mt-[15px] text-[28px] font-semibold leading-[1.4] tracking-[-0.84px]">
           계좌이체 안내
         </h1>
+        <p className="ml-[2px] mt-[1px] whitespace-nowrap text-[16px] font-medium leading-[1.38] tracking-[-0.48px] text-[#A5A4A3]">
+          입금 완료 버튼을 누르시면 프리미엄 설문으로 넘어가요
+        </p>
 
         <section
-          className="mt-6 rounded-[16px] border border-[#E9E8E8] p-5"
+          className="mt-[28px] flex flex-col items-start gap-[15px] rounded-[13px] border-[1.5px] border-[#E9E8E8] px-4 py-[19px]"
           aria-label="입금 계좌 안내"
         >
-          <h2 className="text-[16px] font-semibold">입금 계좌</h2>
-          <dl className="mt-3 space-y-2 text-[15px] leading-6 text-[#797776]">
-            <div className="flex gap-3">
-              <dt className="shrink-0">은행</dt>
-              <dd>{PREMIUM_BANK_TRANSFER_ACCOUNT.bankName}</dd>
-            </div>
-            <div className="flex gap-3">
-              <dt className="shrink-0">계좌번호</dt>
-              <dd>{PREMIUM_BANK_TRANSFER_ACCOUNT.accountNumber}</dd>
-            </div>
-            <div className="flex gap-3">
-              <dt className="shrink-0">예금주</dt>
-              <dd>{PREMIUM_BANK_TRANSFER_ACCOUNT.accountHolder}</dd>
-            </div>
-            <div className="flex gap-3">
-              <dt className="shrink-0">입금 금액</dt>
-              <dd>{PREMIUM_PLAN.priceLabel}</dd>
-            </div>
-          </dl>
+          <h2 className="text-[16px] font-bold leading-[21.44px] tracking-[-0.4288px]">입금 계좌</h2>
+          <div className="flex h-[21.44px] w-full items-center justify-between text-[14px] leading-[19.296px] tracking-[-0.4288px]">
+            <p>계좌번호 | {PREMIUM_BANK_TRANSFER_ACCOUNT.accountNumber}</p>
+            <button type="button" onClick={copyAccountNumber} aria-label="계좌번호 복사" className="flex h-[24px] w-[24px] shrink-0 items-center justify-center">
+              <img src={copyAccountIcon} alt="" aria-hidden="true" />
+            </button>
+          </div>
+          <p className="text-[14px] leading-[19.296px] tracking-[-0.4288px]">입금 은행 | {PREMIUM_BANK_TRANSFER_ACCOUNT.bankName}</p>
+          <p className="text-[14px] leading-[19.296px] tracking-[-0.4288px]">예금주 | {PREMIUM_BANK_TRANSFER_ACCOUNT.accountHolder}</p>
+          <p className="text-[14px] leading-[19.296px] tracking-[-0.4288px]">입금 금액 | {PREMIUM_PLAN.priceLabel.replace(/^₩/, "")}원</p>
         </section>
 
-        <label
-          htmlFor="premium-depositor-name"
-          className="mt-7 block text-[16px] font-semibold"
-        >
-          입금자명
-        </label>
-        <input
-          id="premium-depositor-name"
-          value={depositorName}
-          onChange={(event) => setDepositorName(event.target.value)}
-          maxLength={30}
-          placeholder="실제 입금자명을 입력해 주세요."
-          className="mt-3 h-[56px] w-full rounded-[12px] border border-[#D2D2D1] px-4 text-[16px] outline-none focus:border-main"
-        />
+        <section className="mt-[19px] h-[149px] rounded-[13px] border-[1.5px] border-[#E9E8E8] px-4 pt-[16px]" aria-label="입금자명 입력">
+          <h2 className="text-[16px] font-bold leading-[21px] tracking-[-0.4288px]">입금자명을 입력해주세요</h2>
+          <p className="mt-[7px] whitespace-nowrap text-[14px] font-medium leading-[19.296px] tracking-[-0.4288px] text-[#A5A4A3]">
+            반드시 계좌 이체 후 입금자명을 입력해주세요.
+          </p>
+          <label className="sr-only" htmlFor="premium-depositor-name">입금자명</label>
+          <input
+            id="premium-depositor-name"
+            value={depositorName}
+            onChange={(event) => setDepositorName(event.target.value)}
+            maxLength={30}
+            placeholder="입금자명을 입력해주세요"
+            className="mt-[18px] h-[45px] w-full rounded-[10px] border-2 border-[#E9E8E8] px-[22px] text-[14px] font-semibold tracking-[-0.14px] outline-none placeholder:text-[#BCBBBA] focus:border-main"
+          />
+        </section>
 
-        <div className="mt-4 rounded-[12px] bg-[#F5FCFD] p-4 text-[13px] leading-5 text-[#797776]">
-          <p>
-            입금 내역을 운영자가 확인한 뒤 관리자 페이지에서 프리미엄을
-            활성화합니다.
-          </p>
-          <p className="mt-2 font-semibold text-[#E58B2A]">
-            목업 계좌 정보입니다. 실제로 송금하지 마세요.
-          </p>
-          <p className="mt-1">
-            입금자명은 이 기기에만 임시 저장되고 운영자에게 전송되지 않습니다.
-          </p>
-        </div>
-
-        <div className="absolute bottom-[112px] left-6 right-6">
+        <div className="absolute bottom-[69px] left-1/2 w-[calc(100%-50px)] max-w-[345px] -translate-x-1/2">
           <Button
             onClick={continueToSurvey}
             disabled={!depositorName.trim()}
-            className="h-[44px] rounded-[10px] text-[18px]"
+            className="h-[44px] rounded-[10px] text-[18px] tracking-[-0.18px]"
           >
-            입금 완료했어요
+            입금 완료
           </Button>
         </div>
       </main>
