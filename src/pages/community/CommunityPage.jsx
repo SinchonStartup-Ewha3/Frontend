@@ -15,6 +15,7 @@ import {
   toggleCommunityPostLike,
 } from "../../api/community";
 import useToast from "../../hooks/useToast";
+import { useIsPremium } from "../../hooks/usePayment";
 import queryKeys from "../../api/queryKeys";
 import useLocationStore from "../../store/useLocationStore";
 import weeLogo from "../../assets/icons/logo.svg";
@@ -38,6 +39,10 @@ export default function CommunityPage() {
   const location = useLocation();
   const queryClient = useQueryClient();
   const isLoggedIn = Boolean(localStorage.getItem("wee_access_token"));
+  // 프리미엄 구독자는 구독 유도 카드를 숨겨요 (누르면 /premium → 설문으로 넘어가던 문제)
+  const { isPremium, isLoading: isPremiumLoading } = useIsPremium({
+    enabled: isLoggedIn,
+  });
   const [activeCategory, setActiveCategory] = useState("cardigan");
   const [page, setPage] = useState(1);
   const [isLoginPromptOpen, setIsLoginPromptOpen] = useState(false);
@@ -87,6 +92,9 @@ export default function CommunityPage() {
   const weatherCopy = weatherCopyQuery.data;
   const headline = weatherCopy?.headline;
   const premiumCard = weatherCopy?.premiumCard;
+  // 로그인 안 함: 항상 노출 / 구독자: 숨김 / 구독 상태 확인 중: 깜빡임 방지로 숨김
+  const showPremiumCard =
+    !isLoggedIn || Boolean(premiumCard && !isPremiumLoading && !isPremium);
   const visiblePosts = postsQuery.data?.results ?? [];
   const pageCount = Math.max(
     1,
@@ -388,7 +396,7 @@ export default function CommunityPage() {
           )}
         </section>
 
-        {(premiumCard || !isLoggedIn) && (
+        {showPremiumCard && (
           <Card
             as="button"
             type="button"
