@@ -5,7 +5,11 @@ import Button from "../../components/Button";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import Header from "../../components/Header";
 import MobileLayout from "../../components/MobileLayout";
-import { useRefundRequestQuery, useRequestRefund } from "../../hooks/usePayment";
+import {
+  usePremiumBillingQuery,
+  useRefundRequestQuery,
+  useRequestRefund,
+} from "../../hooks/usePayment";
 import queryKeys from "../../api/queryKeys";
 import useToast from "../../hooks/useToast";
 
@@ -18,12 +22,12 @@ const statusLabels = {
 
 const getRefundStatusDescription = (refundRequest) => {
   if (refundRequest.status === "REJECTED")
-    return "환불 요청이 거절되어 남은 이용시간이 복원되었어요.";
+    return "환불 요청이 거절되었어요. 자세한 내용은 아래 사유를 확인해주세요.";
   if (refundRequest.status === "COMPLETED")
-    return "환불이 완료되었으며 프리미엄 이용은 중지된 상태예요.";
+    return "환불이 완료되어 남은 프리미엄 이용 기간이 회수되었어요.";
   if (refundRequest.paymentMethod === "BANK_TRANSFER")
-    return "프리미엄 이용은 일시 중지되었어요. 관리자가 계좌이체로 환불을 처리합니다.";
-  return "프리미엄 이용은 일시 중지되었어요. Paddle 처리 결과에 따라 최초 결제수단으로 환불됩니다.";
+    return "환불 처리 중에도 프리미엄 기능을 이용할 수 있어요. 관리자가 직접 송금한 뒤 완료 처리합니다.";
+  return "환불 처리 중에도 프리미엄 기능을 이용할 수 있어요. PayApp 처리 결과에 따라 완료됩니다.";
 };
 
 export default function RefundAccountPage() {
@@ -32,13 +36,24 @@ export default function RefundAccountPage() {
   const toast = useToast();
   const refundMutation = useRequestRefund();
   const refundQuery = useRefundRequestQuery();
+  const billingQuery = usePremiumBillingQuery();
   const refundRequest = refundMutation.data ?? refundQuery.data;
+  const paymentMethod =
+    refundRequest?.paymentMethod ?? billingQuery.data?.subscription?.paymentMethod;
+  const confirmDescription = paymentMethod === "BANK_TRANSFER"
+    ? "계좌이체 환불은 관리자가 직접 송금한 뒤 완료 처리합니다.\n환불 요청 후에도 프리미엄 기능은 계속 이용할 수 있어요."
+    : "PayApp 처리 결과에 따라 환불이 진행됩니다.\n환불 요청 후에도 프리미엄 기능은 계속 이용할 수 있어요.";
   const [reason, setReason] = useState("");
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   const handleSubmit = (event) => {
     event.preventDefault();
     if (!reason.trim()) return;
+    if (!paymentMethod) {
+      billingQuery.refetch();
+      toast.error("결제 방식을 확인한 뒤 다시 시도해주세요.");
+      return;
+    }
     setIsConfirmOpen(true);
   };
 
@@ -72,7 +87,7 @@ export default function RefundAccountPage() {
           <p className="mt-[3px] text-[14px] leading-[1.4] tracking-[-0.42px] text-[#A5A4A3]">
             {refundRequest
               ? getRefundStatusDescription(refundRequest)
-              : "환불 예정 금액은 남은 이용기간을 기준으로 계산되며, 요청과 함께 프리미엄 기능이 일시 중지돼요."}
+              : "환불 예정 금액은 남은 이용기간을 기준으로 계산돼요. 환불 요청만으로 프리미엄 이용이 중지되지는 않아요."}
           </p>
         </div>
 
@@ -94,7 +109,7 @@ export default function RefundAccountPage() {
               <p className="mt-3 text-xs leading-5 text-[#A5A4A3]">
                 {refundRequest.paymentMethod === "BANK_TRANSFER"
                   ? "계좌이체 환불은 관리자가 직접 송금한 뒤 완료 처리합니다."
-                  : "Paddle 환불은 Paddle 승인 결과에 따라 처리됩니다."}
+                  : "PayApp 환불은 PayApp 승인 결과에 따라 처리됩니다."}
               </p>
             )}
             <Button onClick={() => navigate("/mypage/payment")} className="mt-5 h-11 w-full rounded-[10px]">
@@ -124,7 +139,7 @@ export default function RefundAccountPage() {
 
           <Button
             type="submit"
-            disabled={!reason.trim() || refundMutation.isPending}
+            disabled={!reason.trim() || refundMutation.isPending || !paymentMethod}
             className="absolute left-[1px] top-[481px] h-[44px] w-[345px] rounded-[10px] text-[18px] tracking-[-0.18px]"
           >
             환불 요청
@@ -135,6 +150,7 @@ export default function RefundAccountPage() {
         <ConfirmDialog
           isOpen={isConfirmOpen}
           variant="refund"
+          description={confirmDescription}
           loading={refundMutation.isPending}
           onCancel={() => setIsConfirmOpen(false)}
           onConfirm={handleConfirm}

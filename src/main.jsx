@@ -6,7 +6,6 @@ import App from "./App.jsx";
 import ToastContainer from "./components/Toast.jsx";
 import "./index.css";
 import registerSW from "./pwa/registerSW.js";
-import { PaddleCheckoutProvider } from "./providers/PaddleCheckoutProvider.jsx";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 60_000 } },
@@ -15,12 +14,10 @@ const queryClient = new QueryClient({
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <PaddleCheckoutProvider>
-        <BrowserRouter>
-          <App />
-          <ToastContainer />
-        </BrowserRouter>
-      </PaddleCheckoutProvider>
+      <BrowserRouter>
+        <App />
+        <ToastContainer />
+      </BrowserRouter>
     </QueryClientProvider>
   </StrictMode>,
 );

@@ -21,7 +21,7 @@ export default function PremiumDepositPendingPage() {
   const [pendingTransfer] = useState(readPendingTransfer);
   const isPremium = Boolean(statusQuery.data?.subscription?.active);
   const subscription = statusQuery.data?.subscription;
-  const paymentProvider = state?.paymentProvider ?? subscription?.paymentProvider ?? subscription?.payment_method ?? subscription?.provider ?? "";
+  const paymentProvider = state?.paymentProvider ?? subscription?.paymentMethod ?? subscription?.paymentProvider ?? subscription?.payment_method ?? subscription?.provider ?? "";
   const isBankTransfer = location.pathname.includes("bank-transfer") || Boolean(pendingTransfer) || state?.bankTransferManual || /bank|transfer|계좌/i.test(String(paymentProvider));
   const approvalDateValue = isPremium
     ? subscription?.paidAt ?? subscription?.purchasedAt ?? subscription?.paid_at
@@ -43,7 +43,7 @@ export default function PremiumDepositPendingPage() {
         </h1>
 
         <section className="mt-[25px] flex flex-col items-start gap-[15px] rounded-[13px] border-[1.5px] border-[#E9E8E8] px-4 py-[19px]" aria-label="계좌 이체 결제 상태">
-          <h2 className="text-[16px] font-bold leading-[21.44px] tracking-[-0.4288px]">{isBankTransfer ? "계좌 이체" : "Paddle"}</h2>
+          <h2 className="text-[16px] font-bold leading-[21.44px] tracking-[-0.4288px]">{isBankTransfer ? "계좌 이체" : "PayApp"}</h2>
           <p className="text-[14px] leading-[21.44px] tracking-[-0.4288px]">
             결제 상태 | <span className={isBankTransfer ? (isPremium ? "font-medium text-[#4BDDFF]" : "text-[#F35C4B]") : ""}>{isPremium ? (isBankTransfer ? "확인 완료" : "완료") : "확인 중"}</span>
           </p>

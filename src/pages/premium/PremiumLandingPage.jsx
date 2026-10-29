@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import Button from "../../components/Button";
 import MobileLayout from "../../components/MobileLayout";
-import PremiumCheckoutSheet from "../../components/PremiumCheckoutSheet";
 import { PREMIUM_PLAN } from "../../constants/premium";
 import weeLogo from "../../assets/icons/logo.svg";
 import outerAlarmIcon from "../../assets/icons/alarm-outer.svg";
@@ -27,41 +26,19 @@ const legalLinks = [
 
 export default function PremiumLandingPage() {
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
   const hasAccessToken = Boolean(localStorage.getItem("wee_access_token"));
-  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
-  const [autoTransactionId, setAutoTransactionId] = useState("");
   const premiumStatusQuery = useSubscriptionQuery({
     enabled: hasAccessToken,
     refetchOnMount: "always",
   });
   const isPremium = Boolean(premiumStatusQuery.data?.subscription?.active);
+  const canCompleteSurvey = Boolean(premiumStatusQuery.data?.canCompleteSurvey);
 
   useEffect(() => {
-    if (hasAccessToken && isPremium && !premiumStatusQuery.isFetching) {
+    if (hasAccessToken && canCompleteSurvey && !premiumStatusQuery.isFetching) {
       navigate("/premium/survey", { replace: true });
     }
-  }, [hasAccessToken, isPremium, navigate, premiumStatusQuery.isFetching]);
-
-  useEffect(() => {
-    const transactionId = searchParams.get("_ptxn");
-    if (!transactionId) return;
-    if (
-      hasAccessToken &&
-      (premiumStatusQuery.isLoading || premiumStatusQuery.isFetching || premiumStatusQuery.isError)
-    ) return;
-    if (!hasAccessToken) {
-      const nextParams = new URLSearchParams(searchParams);
-      nextParams.delete("_ptxn");
-      setSearchParams(nextParams, { replace: true });
-      return;
-    }
-    setAutoTransactionId(transactionId);
-    setIsCheckoutOpen(true);
-    const nextParams = new URLSearchParams(searchParams);
-    nextParams.delete("_ptxn");
-    setSearchParams(nextParams, { replace: true });
-  }, [hasAccessToken, premiumStatusQuery.isError, premiumStatusQuery.isFetching, premiumStatusQuery.isLoading, searchParams, setSearchParams]);
+  }, [hasAccessToken, canCompleteSurvey, navigate, premiumStatusQuery.isFetching]);
 
   const handlePurchase = () => {
     if (!hasAccessToken) return;
@@ -130,7 +107,7 @@ export default function PremiumLandingPage() {
               프리미엄 이용하기
             </Button>
             <p className="mt-3 text-xs leading-5 text-[#8F8E8D]">
-              결제 진행 시 Paddle Checkout으로 이동합니다. Paddle은 결제 처리자(Merchant of Record)입니다.
+              결제 진행 시 PayApp 결제창으로 이동합니다.
             </p>
           </section>
         ) : (
@@ -153,17 +130,6 @@ export default function PremiumLandingPage() {
           {legalLinks.map(([label, href]) => <Link key={href} to={href} className="underline underline-offset-2">{label}</Link>)}
         </nav>
 
-        {isCheckoutOpen && (
-          <PremiumCheckoutSheet
-            isOpen
-            initialTransactionId={autoTransactionId}
-            onClose={() => {
-              setIsCheckoutOpen(false);
-              setAutoTransactionId("");
-            }}
-            onSuccess={() => navigate("/premium/welcome")}
-          />
-        )}
       </main>
     </MobileLayout>
   );

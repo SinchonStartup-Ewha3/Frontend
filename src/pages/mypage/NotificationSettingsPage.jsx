@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import AlarmBadge from "../../components/AlarmBadge";
 import BottomCTA from "../../components/BottomCTA";
 import Button from "../../components/Button";
@@ -16,6 +16,7 @@ import {
 import useToast from "../../hooks/useToast";
 import useAlarmDraftStore from "../../store/useAlarmDraftStore";
 import usePushNotification from "../../hooks/usePushNotification";
+import NotificationGuidePage from "./NotificationGuidePage";
 
 const DEFAULT_SETTINGS = {
   outer: false,
@@ -26,6 +27,7 @@ const DEFAULT_SETTINGS = {
 
 export default function NotificationSettingsPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const toast = useToast();
   const { data: settings } = useAlarmSettingsQuery();
   const updateSettings = useUpdateAlarmSettings();
@@ -93,19 +95,32 @@ export default function NotificationSettingsPage() {
     }
   };
 
+  if (new URLSearchParams(location.search).get("guide") === "1") {
+    return <NotificationGuidePage onClose={() => navigate("/mypage/notifications", { replace: true })} />;
+  }
+
   return (
     <MobileLayout>
       <PageLayout nav={false} className="!px-0 !pb-0">
         <main className="min-h-screen px-6 pt-[73px] text-[#353331]">
           <Header back />
 
-          <PageHeading
-            title="맞춤형 행동 알림"
-            description={"당신의 하루에 꼭 필요한 알림을\n미리 알려드릴게요"}
-            className="mt-[15px]"
-            titleClassName="!text-[24px] !leading-[1.4] !tracking-[-0.72px]"
-            descClassName="!mt-[8px] !text-[18px] !leading-[1.38] !tracking-[-0.54px] !text-[#D2D2D1]"
-          />
+          <div className="relative mt-[15px]">
+            <PageHeading
+              title="맞춤형 행동 알림"
+              description={"당신의 하루에 꼭 필요한 알림을\n미리 알려드릴게요"}
+              titleClassName="!text-[24px] !leading-[1.4] !tracking-[-0.72px]"
+              descClassName="!mt-[8px] !text-[18px] !leading-[1.38] !tracking-[-0.54px] !text-[#D2D2D1]"
+            />
+            <button
+              type="button"
+              onClick={() => navigate(`${location.pathname}?guide=1`)}
+              aria-label="알림 설정 매뉴얼 보기"
+              className="absolute right-0 top-0 flex h-7 w-7 items-center justify-center rounded-full border border-[#D2D2D1] text-[16px] font-semibold leading-none text-[#8F8E8D] transition-colors hover:border-[#4BDDFF] hover:text-[#19BBD8]"
+            >
+              ?
+            </button>
+          </div>
 
           <section
             aria-label="푸시 알림 구독"
@@ -197,7 +212,7 @@ export default function NotificationSettingsPage() {
           </section>
         </main>
 
-        <BottomCTA bottomClassName="bottom-[124px]">
+        <BottomCTA bottomClassName="bottom-[max(16px,env(safe-area-inset-bottom))]">
           <Button
             onClick={save}
             disabled={updateSettings.isPending}

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import Header from "../../components/Header";
 import Button from "../../components/Button";
 import MobileLayout from "../../components/MobileLayout";
@@ -79,6 +79,7 @@ export default function PaymentManagementPage() {
     pendingTransfer?.status === "PENDING" ||
     location.state?.bankTransferManual === true ||
     location.state?.bankTransferPreview === true ||
+    entitlementQuery.data?.bankTransferStatus === "PENDING" ||
     subscription?.status === "PENDING"
   );
   const canPurchasePremium = !isLoading && !isError && !entitlementQuery.isError && !isCheckingEntitlement && !isActive && !isTransferPending;
@@ -131,6 +132,9 @@ export default function PaymentManagementPage() {
               <p className="text-[14px] leading-[21px] text-[#797776]">구독 정보를 불러오지 못했어요.</p>
             ) : isTransferPending ? (
               <>
+                <p className="text-[14px] leading-[21px] tracking-[-0.43px] text-[#F35C4B]">
+                  입금 확인 중
+                </p>
                 <button
                   type="button"
                   onClick={() => navigate("/premium/bank-transfer/pending")}
@@ -147,16 +151,7 @@ export default function PaymentManagementPage() {
                 </button>
               </>
             ) : isActive && !subscription ? (
-              <>
-                <p className="text-[14px] leading-[21px] text-[#19BBD8]">프리미엄 이용 중</p>
-                <button
-                  type="button"
-                  onClick={() => navigate("/mypage/refund")}
-                  className="self-start text-[14px] leading-[21px] tracking-[-0.43px] text-[#F35C4B]"
-                >
-                  환불하기
-                </button>
-              </>
+              <p className="text-[14px] leading-[21px] text-[#19BBD8]">프리미엄 이용 중</p>
             ) : subscription ? (
               <>
                 <p className="text-[14px] leading-[21px] tracking-[-0.43px]">
@@ -176,10 +171,11 @@ export default function PaymentManagementPage() {
                     onClick={() => navigate("/premium/payment/status", {
                       state: {
                         paymentProvider:
+                          subscription?.paymentMethod ??
                           subscription?.paymentProvider ??
                           subscription?.payment_method ??
                           subscription?.provider ??
-                          "Paddle",
+                          "PayApp",
                       },
                     })}
                     className="self-start text-[14px] leading-[21px] tracking-[-0.43px]"
@@ -201,7 +197,7 @@ export default function PaymentManagementPage() {
                     onClick={() => navigate("/mypage/refund")}
                     className="self-start text-[14px] leading-[21px] tracking-[-0.43px] text-[#F35C4B]"
                   >
-                    환불 신청
+                    환불하기
                   </button>
                 ) : isActive && !canRequestRefund ? (
                   <p className="text-[14px] leading-[21px] tracking-[-0.43px] text-[#A5A4A3]">
@@ -295,6 +291,15 @@ export default function PaymentManagementPage() {
             )}
           </article>
 
+          <footer
+            aria-label="약관 및 문의"
+            className="mt-[28px] flex flex-wrap justify-center gap-x-[12px] gap-y-2 border-t border-[#E9E8E8] py-5 text-[12px] leading-[18px] text-[#A5A4A3]"
+          >
+            <Link to="/terms" className="underline-offset-2 hover:underline">이용약관</Link>
+            <Link to="/privacy" className="underline-offset-2 hover:underline">개인정보처리방침</Link>
+            <Link to="/refund" className="underline-offset-2 hover:underline">환불정책</Link>
+            <Link to="/contact" className="underline-offset-2 hover:underline">문의</Link>
+          </footer>
         </section>
       </main>
     </MobileLayout>

@@ -6,13 +6,12 @@ export const ONBOARDING_PROGRESS = [25, 50, 75, 100];
 // 설문 진행 바
 export const SURVEY_PROGRESS = [20, 40, 60, 80, 80];
 
-// 구독 상품 (Paddle priceId는 .env 로 넣기)
+// 프리미엄 구독 상품
 export const PREMIUM_PLAN = {
   name: "WEE Premium",
   priceLabel: "₩2,500",
   periodLabel: "일회성 결제 · 결제 후 21일 이용 · 구독 및 자동 갱신 없음",
   description: "WEE Premium으로\n날씨에 맞춘 생활 알림을 받아보세요.",
-  priceId: import.meta.env.VITE_PADDLE_PRICE_PREMIUM ?? "",
 };
 
 export const PREMIUM_BANK_TRANSFER_PENDING_KEY = "wee:premium-bank-transfer-pending";

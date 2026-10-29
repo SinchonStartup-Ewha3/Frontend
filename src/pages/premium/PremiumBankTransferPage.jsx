@@ -2,7 +2,10 @@ import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Button from "../../components/Button";
 import Header from "../../components/Header";
-import { useRedirectIfPremium } from "../../hooks/usePayment";
+import {
+  useCreateBankTransferRequest,
+  useRedirectIfPremium,
+} from "../../hooks/usePayment";
 import MobileLayout from "../../components/MobileLayout";
 import useToast from "../../hooks/useToast";
 import copyAccountIcon from "../../assets/icons/copy-account.svg";
@@ -16,6 +19,7 @@ export default function PremiumBankTransferPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const toast = useToast();
+  const createRequest = useCreateBankTransferRequest();
   const isLocalPreview =
     import.meta.env.DEV &&
     new URLSearchParams(location.search).get("preview") === "1";
@@ -23,20 +27,51 @@ export default function PremiumBankTransferPage() {
   const hasAccessToken = Boolean(localStorage.getItem("wee_access_token"));
   useRedirectIfPremium({ enabled: hasAccessToken && !isLocalPreview });
 
-  const continueToSurvey = () => {
-    if (!depositorName.trim()) return;
-    localStorage.setItem(PREMIUM_BANK_TRANSFER_PENDING_KEY, JSON.stringify({
-      depositorName: depositorName.trim(),
-      amount: PREMIUM_PLAN.priceLabel,
-      createdAt: new Date().toISOString(),
-      status: "PENDING",
-    }));
-    navigate(isLocalPreview ? "/premium/bank-transfer/survey-complete?preview=1" : "/premium/bank-transfer/survey-complete", {
-      state: {
-        bankTransferManual: true,
-        depositorName: depositorName.trim(),
-      },
-    });
+  const continueToSurvey = async () => {
+    const normalizedDepositorName = depositorName.trim();
+    if (normalizedDepositorName.length < 2) {
+      toast.error("입금자명을 2자 이상 입력해주세요.");
+      return;
+    }
+    try {
+      const requestedAt = new Date().toISOString();
+      const request = isLocalPreview
+        ? {
+            requestId: "preview",
+            depositorName: normalizedDepositorName,
+            amount: 2500,
+            currencyCode: "KRW",
+            status: "PENDING",
+            requestedAt,
+          }
+        : await createRequest.mutateAsync({ depositorName: normalizedDepositorName });
+      localStorage.setItem(PREMIUM_BANK_TRANSFER_PENDING_KEY, JSON.stringify({
+        ...request,
+        depositorName: request.depositorName ?? normalizedDepositorName,
+        amount: request.amount ?? 2500,
+        createdAt: request.requestedAt ?? requestedAt,
+        status: request.status ?? "PENDING",
+      }));
+      navigate(
+        isLocalPreview
+          ? "/premium/bank-transfer/survey-complete?preview=1"
+          : "/premium/bank-transfer/survey-complete",
+        {
+          state: {
+            bankTransferManual: true,
+            depositorName: request.depositorName ?? normalizedDepositorName,
+          },
+        },
+      );
+    } catch (error) {
+      const responseError = error.response?.data;
+      toast.error(
+        responseError?.depositorName?.[0] ??
+          responseError?.detail ??
+          error.message ??
+          "입금 확인 요청을 등록하지 못했어요.",
+      );
+    }
   };
 
   const copyAccountNumber = async () => {
@@ -94,10 +129,10 @@ export default function PremiumBankTransferPage() {
         <div className="absolute bottom-[69px] left-1/2 w-[calc(100%-50px)] max-w-[345px] -translate-x-1/2">
           <Button
             onClick={continueToSurvey}
-            disabled={!depositorName.trim()}
+            disabled={depositorName.trim().length < 2 || createRequest.isPending}
             className="h-[44px] rounded-[10px] text-[18px] tracking-[-0.18px]"
           >
-            입금 완료
+            {createRequest.isPending ? "요청 중..." : "입금 완료"}
           </Button>
         </div>
       </main>
