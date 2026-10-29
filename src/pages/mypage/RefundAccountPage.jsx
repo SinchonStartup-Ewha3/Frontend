@@ -16,6 +16,16 @@ const statusLabels = {
   REJECTED: "환불 거절",
 };
 
+const getRefundStatusDescription = (refundRequest) => {
+  if (refundRequest.status === "REJECTED")
+    return "환불 요청이 거절되어 남은 이용시간이 복원되었어요.";
+  if (refundRequest.status === "COMPLETED")
+    return "환불이 완료되었으며 프리미엄 이용은 중지된 상태예요.";
+  if (refundRequest.paymentMethod === "BANK_TRANSFER")
+    return "프리미엄 이용은 일시 중지되었어요. 관리자가 계좌이체로 환불을 처리합니다.";
+  return "프리미엄 이용은 일시 중지되었어요. Paddle 처리 결과에 따라 최초 결제수단으로 환불됩니다.";
+};
+
 export default function RefundAccountPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -40,7 +50,11 @@ export default function RefundAccountPage() {
       if (error.response?.data?.refundRequest) {
         queryClient.setQueryData(queryKeys.refundRequest, error.response.data.refundRequest);
       }
-      toast.error("환불 요청에 실패했어요. 다시 시도해주세요.");
+      toast.error(
+        error.response?.data?.detail ??
+          error.response?.data?.reason?.[0] ??
+          "환불 요청에 실패했어요. 다시 시도해주세요.",
+      );
     }
   };
 
@@ -57,8 +71,8 @@ export default function RefundAccountPage() {
           </h1>
           <p className="mt-[3px] text-[14px] leading-[1.4] tracking-[-0.42px] text-[#A5A4A3]">
             {refundRequest
-              ? "Paddle 환불 처리 결과를 기다리고 있어요."
-              : "환불은 남은 이용기간을 기준으로 계산되며, 결제에 사용한 수단으로 반환됩니다."}
+              ? getRefundStatusDescription(refundRequest)
+              : "환불 예정 금액은 남은 이용기간을 기준으로 계산되며, 요청과 함께 프리미엄 기능이 일시 중지돼요."}
           </p>
         </div>
 
@@ -76,9 +90,13 @@ export default function RefundAccountPage() {
             {refundRequest.rejectionReason && (
               <p className="mt-3 text-sm text-[#F35C4B]">{refundRequest.rejectionReason}</p>
             )}
-            <p className="mt-3 text-xs leading-5 text-[#A5A4A3]">
-              환불 승인 전까지 프리미엄 이용권은 유지됩니다. 승인된 환불금은 최초 결제수단으로 반환됩니다.
-            </p>
+            {refundRequest.status !== "REJECTED" && refundRequest.status !== "COMPLETED" && (
+              <p className="mt-3 text-xs leading-5 text-[#A5A4A3]">
+                {refundRequest.paymentMethod === "BANK_TRANSFER"
+                  ? "계좌이체 환불은 관리자가 직접 송금한 뒤 완료 처리합니다."
+                  : "Paddle 환불은 Paddle 승인 결과에 따라 처리됩니다."}
+              </p>
+            )}
             <Button onClick={() => navigate("/mypage/payment")} className="mt-5 h-11 w-full rounded-[10px]">
               결제 관리로
             </Button>

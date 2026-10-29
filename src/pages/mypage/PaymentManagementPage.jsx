@@ -147,7 +147,16 @@ export default function PaymentManagementPage() {
                 </button>
               </>
             ) : isActive && !subscription ? (
-              <p className="text-[14px] leading-[21px] text-[#19BBD8]">프리미엄 이용 중</p>
+              <>
+                <p className="text-[14px] leading-[21px] text-[#19BBD8]">프리미엄 이용 중</p>
+                <button
+                  type="button"
+                  onClick={() => navigate("/mypage/refund")}
+                  className="self-start text-[14px] leading-[21px] tracking-[-0.43px] text-[#F35C4B]"
+                >
+                  환불하기
+                </button>
+              </>
             ) : subscription ? (
               <>
                 <p className="text-[14px] leading-[21px] tracking-[-0.43px]">
