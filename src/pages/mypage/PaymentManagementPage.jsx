@@ -131,7 +131,20 @@ export default function PaymentManagementPage() {
               <p className="text-[14px] leading-[21px] text-[#797776]">구독 정보를 불러오지 못했어요.</p>
             ) : isTransferPending ? (
               <>
-                <p className="text-[16px] font-medium leading-[21px] text-[#19BBD8]">입금 확인 중</p>
+                <button
+                  type="button"
+                  onClick={() => navigate("/premium/bank-transfer/pending")}
+                  className="self-start text-left text-[14px] leading-[19.296px] tracking-[-0.4288px]"
+                >
+                  결제 상태 확인
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate("/mypage/refund")}
+                  className="self-start text-[14px] leading-[21px] tracking-[-0.43px] text-[#F35C4B]"
+                >
+                  환불 신청
+                </button>
               </>
             ) : isActive && !subscription ? (
               <p className="text-[14px] leading-[21px] text-[#19BBD8]">프리미엄 이용 중</p>
@@ -147,6 +160,23 @@ export default function PaymentManagementPage() {
                   <p className="text-[14px] leading-[21px] tracking-[-0.43px]">
                     이용 만료일 | {expiresAtDisplay}
                   </p>
+                )}
+                {isActive && (
+                  <button
+                    type="button"
+                    onClick={() => navigate("/premium/payment/status", {
+                      state: {
+                        paymentProvider:
+                          subscription?.paymentProvider ??
+                          subscription?.payment_method ??
+                          subscription?.provider ??
+                          "Paddle",
+                      },
+                    })}
+                    className="self-start text-[14px] leading-[21px] tracking-[-0.43px]"
+                  >
+                    결제 상태 확인
+                  </button>
                 )}
                 {refundRequest ? (
                   <button

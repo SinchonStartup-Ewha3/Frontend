@@ -17,9 +17,9 @@ export const PREMIUM_PLAN = {
 
 export const PREMIUM_BANK_TRANSFER_PENDING_KEY = "wee:premium-bank-transfer-pending";
 export const PREMIUM_BANK_TRANSFER_ACCOUNT = {
-  bankName: "목업은행",
-  accountNumber: "000-000-00-000000",
-  accountHolder: "위더 (목업)",
+  bankName: "카카오뱅크",
+  accountNumber: "3333-30-8334122",
+  accountHolder: "이서인",
 };
 
 // 설문 Q1~Q3 (단일 선택)
