@@ -1,4 +1,3 @@
-
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import AlarmBadge from "../../components/AlarmBadge";
@@ -70,9 +69,13 @@ export default function NotificationSettingsPage() {
       const result = await push.enable();
       if (result.ok) toast.success("알림을 받을 수 있도록 설정했어요.");
       else if (result.reason === "denied") {
-        toast.error("알림이 차단되어 있어요. 브라우저 설정에서 Weether 알림을 허용해 주세요.");
+        toast.error(
+          "알림이 차단되어 있어요. 브라우저 설정에서 Weether 알림을 허용해 주세요.",
+        );
       } else if (result.reason === "unsupported") {
         toast.error("이 브라우저에서는 웹 푸시 알림을 지원하지 않아요.");
+      } else if (result.reason === "failed") {
+        toast.error("알림 구독에 실패했어요. 잠시 후 다시 시도해 주세요.");
       }
     } catch {
       toast.error("알림 설정을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.");
@@ -102,25 +105,40 @@ export default function NotificationSettingsPage() {
             </p>
             {push.permission === "denied" ? (
               <p className="mt-2 text-[13px] leading-[18px] text-[#8F8E8D]">
-                알림이 차단되어 있어요. 브라우저 설정에서 Weether 알림을 직접 허용해 주세요.
+                알림이 차단되어 있어요. 브라우저 설정에서 Weether 알림을 직접
+                허용해 주세요.
               </p>
             ) : push.iosInstallRequired ? (
               <p className="mt-2 text-[13px] leading-[18px] text-[#8F8E8D]">
-                iPhone/iPad에서는 Safari 공유 버튼을 눌러 홈 화면에 추가한 뒤, 설치된 Weether에서 알림을 설정해 주세요.
+                iPhone/iPad에서는 Safari 공유 버튼을 눌러 홈 화면에 추가한 뒤,
+                설치된 Weether에서 알림을 설정해 주세요.
               </p>
-            ) : push.permission === "granted" ? (
+            ) : push.permission === "granted" && push.subscribed === true ? (
               <p className="mt-2 text-[13px] leading-[18px] text-[#8F8E8D]">
-                브라우저 알림 권한이 허용되어 있어요.
+                알림이 켜져 있어요.
+              </p>
+            ) : push.permission === "granted" && push.subscribed === null ? (
+              <p className="mt-2 text-[13px] leading-[18px] text-[#8F8E8D]">
+                알림 상태를 확인하고 있어요.
               </p>
             ) : push.supported ? (
-              <Button
-                type="button"
-                variant="soft"
-                onClick={enablePush}
-                className="mt-3 h-[40px] !rounded-[9px] !text-[14px]"
-              >
-                알림 받기
-              </Button>
+              <>
+                {/* 권한은 허용인데 구독이 안 된 경우 → 다시 구독하도록 안내 */}
+                {push.permission === "granted" && (
+                  <p className="mt-2 text-[13px] leading-[18px] text-[#8F8E8D]">
+                    알림 구독이 완료되지 않았어요. 아래 버튼을 눌러 다시 설정해
+                    주세요.
+                  </p>
+                )}
+                <Button
+                  type="button"
+                  variant="soft"
+                  onClick={enablePush}
+                  className="mt-3 h-[40px] !rounded-[9px] !text-[14px]"
+                >
+                  알림 받기
+                </Button>
+              </>
             ) : (
               <p className="mt-2 text-[13px] leading-[18px] text-[#8F8E8D]">
                 이 브라우저에서는 웹 푸시 알림을 지원하지 않아요.
