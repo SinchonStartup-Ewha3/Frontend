@@ -52,18 +52,20 @@ const getWeatherIcon = (condition, isNight) => {
   }
 };
 
-const getCharacterImage = (state) => {
+// 날씨 상태별 캐릭터. SVG마다 좌우 여백이 달라서(그림이 한쪽으로 치우쳐 있음),
+// 그림 중심이 컨테이너 정중앙에 오도록 가로 보정값(offsetX, px)을 같이 두기..
+const getCharacter = (state) => {
   switch (state) {
     case "SNOWY":
-      return snowCharacter;
+      return { src: snowCharacter, offsetX: 23 };
     case "RAINY":
-      return rainCharacter;
+      return { src: rainCharacter, offsetX: 21 };
     case "COLD":
-      return windCharacter;
+      return { src: windCharacter, offsetX: -1 };
     case "HOT":
-      return sunnyCharacter;
+      return { src: sunnyCharacter, offsetX: 39 };
     default:
-      return cloudCharacter;
+      return { src: cloudCharacter, offsetX: 25 };
   }
 };
 
@@ -85,7 +87,12 @@ export default function HomePage() {
   const [hasEditedSearch, setHasEditedSearch] = useState(false);
   const [locationQuery, setLocationQuery] = useState("");
   const [location, setLocation] = useState(
-    () => selectedRegion?.shortName ?? selectedRegion ?? currentUser?.region?.shortName ?? currentUser?.region ?? "서대문구 아현동",
+    () =>
+      selectedRegion?.shortName ??
+      selectedRegion ??
+      currentUser?.region?.shortName ??
+      currentUser?.region ??
+      "서대문구 아현동",
   );
   const [isSelectingLocation, setIsSelectingLocation] = useState(false);
   const messagePillRef = useRef(null);
@@ -99,28 +106,44 @@ export default function HomePage() {
     isError: isHomeError,
     refetch: refetchHome,
   } = useQuery({
-    queryKey: [...queryKeys.home, hasAccessToken ? "me" : selectedRegionCode ?? selectedCoordinates?.lat ?? "unselected"],
-    queryFn: () => fetchHomeData({
-      regionCode: hasAccessToken ? undefined : selectedRegionCode,
-      lat: hasAccessToken ? undefined : selectedCoordinates?.lat,
-      lng: hasAccessToken ? undefined : selectedCoordinates?.lng,
-      skipAuth: !hasAccessToken,
-    }),
-    enabled: hasAccessToken || Boolean(selectedRegionCode || selectedCoordinates),
+    queryKey: [
+      ...queryKeys.home,
+      hasAccessToken
+        ? "me"
+        : (selectedRegionCode ?? selectedCoordinates?.lat ?? "unselected"),
+    ],
+    queryFn: () =>
+      fetchHomeData({
+        regionCode: hasAccessToken ? undefined : selectedRegionCode,
+        lat: hasAccessToken ? undefined : selectedCoordinates?.lat,
+        lng: hasAccessToken ? undefined : selectedCoordinates?.lng,
+        skipAuth: !hasAccessToken,
+      }),
+    enabled:
+      hasAccessToken || Boolean(selectedRegionCode || selectedCoordinates),
     retry: false,
   });
   const toast = useToast();
   const queryClient = useQueryClient();
   const setUser = useUserStore((state) => state.setUser);
   const normalizedQuery = locationQuery.trim();
-  const isSearchingRegions = isSearchActive && hasEditedSearch && normalizedQuery.length > 0;
+  const isSearchingRegions =
+    isSearchActive && hasEditedSearch && normalizedQuery.length > 0;
   const weather = homeData?.weather;
-  const message = homeData?.message ?? (isHomeLoading ? "날씨 정보를 불러오는 중..." : "오늘의 날씨를 확인해 보세요!");
+  const character = getCharacter(homeData?.character?.state);
+  const message =
+    homeData?.message ??
+    (isHomeLoading
+      ? "날씨 정보를 불러오는 중..."
+      : "오늘의 날씨를 확인해 보세요!");
 
   useLayoutEffect(() => {
     const pill = messagePillRef.current;
     if (!pill) return undefined;
-    const updateHeight = () => setMessagePillOffset(Math.max(0, pill.getBoundingClientRect().height - 39));
+    const updateHeight = () =>
+      setMessagePillOffset(
+        Math.max(0, pill.getBoundingClientRect().height - 39),
+      );
     updateHeight();
     const observer = new ResizeObserver(updateHeight);
     observer.observe(pill);
@@ -153,15 +176,24 @@ export default function HomePage() {
     // 로그인 사용자의 저장 지역은 서버 응답을 기준으로 표시합니다.
     // 비로그인 때 남은 Zustand 선택값이 로그인 계정의 위치를 덮어쓰지 않게 합니다.
     const regionName = hasAccessToken
-      ? homeData?.region?.shortName ?? currentUser?.region?.shortName
-      : selectedRegion?.shortName ?? selectedRegion ?? homeData?.region?.shortName;
+      ? (homeData?.region?.shortName ?? currentUser?.region?.shortName)
+      : (selectedRegion?.shortName ??
+        selectedRegion ??
+        homeData?.region?.shortName);
     if (regionName) setLocation(regionName);
-  }, [hasAccessToken, currentUser?.region?.shortName, homeData?.region?.shortName, selectedRegion, selectedRegionCode]);
+  }, [
+    hasAccessToken,
+    currentUser?.region?.shortName,
+    homeData?.region?.shortName,
+    selectedRegion,
+    selectedRegionCode,
+  ]);
 
   useEffect(() => {
     // 비로그인 GPS 좌표를 홈 API가 행정구역으로 변환해 주면,
     // 상황 탭에서도 같은 지역을 조회할 수 있도록 지역 코드를 저장합니다.
-    if (hasAccessToken || !selectedCoordinates || !homeData?.region?.regionCode) return;
+    if (hasAccessToken || !selectedCoordinates || !homeData?.region?.regionCode)
+      return;
     selectRegion(homeData.region);
   }, [hasAccessToken, homeData?.region, selectRegion, selectedCoordinates]);
 
@@ -259,7 +291,10 @@ export default function HomePage() {
           src={weeLogo}
           alt="WEE"
           className="absolute left-[27px] top-[34px] h-[24px] w-auto"
-          style={{ filter: "brightness(0) saturate(100%) invert(80%) sepia(28%) saturate(1492%) hue-rotate(154deg) brightness(101%) contrast(101%)" }}
+          style={{
+            filter:
+              "brightness(0) saturate(100%) invert(80%) sepia(28%) saturate(1492%) hue-rotate(154deg) brightness(101%) contrast(101%)",
+          }}
         />
         <button
           type="button"
@@ -273,12 +308,28 @@ export default function HomePage() {
           className="absolute left-[27px] top-[82px] flex items-center gap-2 text-[18px] font-medium tracking-[-0.54px]"
         >
           <span>{location}</span>
-          <svg aria-hidden="true" width="12" height="12" viewBox="0 0 12 12" fill="none">
-            <path d="m3 4.5 3 3 3-3" stroke="#A5A4A3" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          <svg
+            aria-hidden="true"
+            width="12"
+            height="12"
+            viewBox="0 0 12 12"
+            fill="none"
+          >
+            <path
+              d="m3 4.5 3 3 3-3"
+              stroke="#A5A4A3"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
         </button>
         <img
-          src={weather ? getWeatherIcon(weather.condition, weather.isNight) : moonIcon}
+          src={
+            weather
+              ? getWeatherIcon(weather.condition, weather.isNight)
+              : moonIcon
+          }
           alt=""
           aria-hidden="true"
           className="absolute left-[24px] top-[129px] h-6 w-6 object-contain"
@@ -287,7 +338,10 @@ export default function HomePage() {
           {formatTemperature(weather?.temperature)}
         </p>
         <div className="absolute left-[155px] top-[129px]">
-          <p className="whitespace-nowrap text-[12px] font-semibold leading-[normal] text-[#1F1C1A]">체감기온 {formatTemperature(weather?.feelsLike ?? weather?.feels_like)}</p>
+          <p className="whitespace-nowrap text-[12px] font-semibold leading-[normal] text-[#1F1C1A]">
+            체감기온{" "}
+            {formatTemperature(weather?.feelsLike ?? weather?.feels_like)}
+          </p>
           <p className="mt-[2px] flex items-center gap-[7px] whitespace-nowrap text-[10px] font-medium leading-[normal] text-[#1F1C1A]">
             <span>{formatTemperature(weather?.minTemperature)}</span>
             <span className="h-[2px] w-[18px] rounded-full bg-gradient-to-r from-[#60E1FF] to-[#B1F0FE]" />
@@ -296,9 +350,13 @@ export default function HomePage() {
         </div>
         <div className="absolute left-1/2 top-[217px] h-[218px] w-[248px] -translate-x-1/2">
           <img
-            src={getCharacterImage(homeData?.character?.state)}
+            src={character.src}
             alt={homeData?.character?.label ?? "오늘의 날씨 캐릭터"}
-            className="origin-top-left scale-[0.67] max-w-none"
+            className="origin-top-left max-w-none"
+            // 가로 보정(px)을 먼저 적용한 뒤 0.67배 축소 → 그림이 화면 정중앙에
+            style={{
+              transform: `translateX(${character.offsetX}px) scale(0.67)`,
+            }}
           />
         </div>
         <div
@@ -309,10 +367,19 @@ export default function HomePage() {
             {message}
           </span>
         </div>
-        <Card style={{ top: `${517 + messagePillOffset}px` }} className="absolute left-1/2 h-[117px] w-[345px] -translate-x-1/2 !rounded-[20px] !border !border-[#E9E8E8]/60 !p-0">
-          <div className="thin-scrollbar absolute inset-x-[10px] top-[16px] flex gap-[5px] overflow-x-auto pb-2" aria-label="시간대별 날씨">
+        <Card
+          style={{ top: `${517 + messagePillOffset}px` }}
+          className="absolute left-1/2 h-[117px] w-[345px] -translate-x-1/2 !rounded-[20px] !border !border-[#E9E8E8]/60 !p-0"
+        >
+          <div
+            className="thin-scrollbar absolute inset-x-[10px] top-[16px] flex gap-[5px] overflow-x-auto pb-2"
+            aria-label="시간대별 날씨"
+          >
             {forecast.map((item, index) => (
-              <div key={`${item.time}-${index}`} className="flex w-[55px] shrink-0 flex-col items-center">
+              <div
+                key={`${item.time}-${index}`}
+                className="flex w-[55px] shrink-0 flex-col items-center"
+              >
                 <span className="whitespace-nowrap text-[12px] font-medium leading-none text-[#4C4A48]">
                   {item.time}
                 </span>
@@ -345,15 +412,24 @@ export default function HomePage() {
             {!forecast.length && (
               <p className="w-full py-6 text-center text-sm text-[#A5A4A3]">
                 {isHomeError ? (
-                  <button type="button" onClick={() => refetchHome()} className="underline">
+                  <button
+                    type="button"
+                    onClick={() => refetchHome()}
+                    className="underline"
+                  >
                     날씨를 불러오지 못했어요. 다시 시도
                   </button>
-                ) : "날씨 정보를 불러오는 중..."}
+                ) : (
+                  "날씨 정보를 불러오는 중..."
+                )}
               </p>
             )}
           </div>
         </Card>
-        <Card style={{ top: `${661 + messagePillOffset}px` }} className="absolute left-1/2 h-[80px] w-[345px] -translate-x-1/2 !rounded-[20px] !border !border-[#F3F3F3] !p-0 shadow-[0px_4px_4px_0px_rgba(0,0,0,0.1)]">
+        <Card
+          style={{ top: `${661 + messagePillOffset}px` }}
+          className="absolute left-1/2 h-[80px] w-[345px] -translate-x-1/2 !rounded-[20px] !border !border-[#F3F3F3] !p-0 shadow-[0px_4px_4px_0px_rgba(0,0,0,0.1)]"
+        >
           <div className="absolute inset-0 rounded-[20px] bg-gradient-to-r from-[rgba(240,227,255,0.2)] to-[rgba(5,196,240,0.2)] opacity-60" />
           <p className="absolute left-[19px] top-[21px] text-[16px] font-semibold leading-[1.5] tracking-[-0.48px] text-[#62605F]">
             오늘의 날씨 운세
@@ -370,16 +446,21 @@ export default function HomePage() {
           <button
             type="button"
             aria-label="오늘의 날씨 운세 열기"
-            onClick={() => localStorage.getItem("wee_access_token")
-              ? navigate("/weather-fortune")
-              : setIsLoginPromptOpen(true)}
+            onClick={() =>
+              localStorage.getItem("wee_access_token")
+                ? navigate("/weather-fortune")
+                : setIsLoginPromptOpen(true)
+            }
             className="absolute inset-0 z-10 rounded-[20px]"
           />
         </Card>
         <BottomNav />
       </main>
       {isLocationPickerOpen && (
-        <div className="fixed inset-0 z-50 flex justify-center" role="presentation">
+        <div
+          className="fixed inset-0 z-50 flex justify-center"
+          role="presentation"
+        >
           <button
             type="button"
             aria-label="위치 선택 닫기"
@@ -456,9 +537,14 @@ export default function HomePage() {
                 )}
               </>
             )}
-            <div className={`absolute ${isSearchActive ? "left-[30px] right-[30px] top-[126px]" : "left-6 right-6 top-[232px]"}`}>
+            <div
+              className={`absolute ${isSearchActive ? "left-[30px] right-[30px] top-[126px]" : "left-6 right-6 top-[232px]"}`}
+            >
               {isSearchingRegions && regionSearchFailed && (
-                <p role="alert" className="py-4 text-center text-sm text-[#A5A4A3]">
+                <p
+                  role="alert"
+                  className="py-4 text-center text-sm text-[#A5A4A3]"
+                >
                   지역 검색에 실패했어요. 다시 시도해 주세요.
                 </p>
               )}
@@ -467,12 +553,20 @@ export default function HomePage() {
                   두 글자 이상 입력해 주세요.
                 </p>
               )}
-              {isSearchingRegions && normalizedQuery.length >= 2 && regionResults.length === 0 && !regionSearchFailed && (
-                <p className="py-4 text-center text-sm text-[#A5A4A3]">
-                  검색 결과가 없어요.
-                </p>
-              )}
-              {(isSearchingRegions ? regionResults : hasAccessToken ? recentLocations : []).map((item) => {
+              {isSearchingRegions &&
+                normalizedQuery.length >= 2 &&
+                regionResults.length === 0 &&
+                !regionSearchFailed && (
+                  <p className="py-4 text-center text-sm text-[#A5A4A3]">
+                    검색 결과가 없어요.
+                  </p>
+                )}
+              {(isSearchingRegions
+                ? regionResults
+                : hasAccessToken
+                  ? recentLocations
+                  : []
+              ).map((item) => {
                 const isSearchResult = typeof item !== "string";
                 const label = isSearchResult ? item.regionName : item;
                 const shortLocation = isSearchResult
@@ -493,9 +587,24 @@ export default function HomePage() {
                     className="flex min-h-[47px] w-full items-center gap-[14px] text-left text-[18px] font-medium leading-[1.5] tracking-[-0.54px] text-[#797776] disabled:opacity-50"
                   >
                     {isSearchResult ? (
-                      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" className="h-[18px] w-[18px] shrink-0 text-[#E9E8E8]">
-                        <path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1 1 14 0Z" stroke="currentColor" strokeWidth="1.7" />
-                        <circle cx="12" cy="10" r="2.2" stroke="currentColor" strokeWidth="1.7" />
+                      <svg
+                        aria-hidden="true"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        className="h-[18px] w-[18px] shrink-0 text-[#E9E8E8]"
+                      >
+                        <path
+                          d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1 1 14 0Z"
+                          stroke="currentColor"
+                          strokeWidth="1.7"
+                        />
+                        <circle
+                          cx="12"
+                          cy="10"
+                          r="2.2"
+                          stroke="currentColor"
+                          strokeWidth="1.7"
+                        />
                       </svg>
                     ) : (
                       <img src={timeIcon} alt="" aria-hidden="true" />
@@ -518,7 +627,9 @@ export default function HomePage() {
       <LoginRequiredModal
         isOpen={isLoginPromptOpen}
         onClose={() => setIsLoginPromptOpen(false)}
-        onLogin={() => navigate("/login", { state: { from: "/weather-fortune" } })}
+        onLogin={() =>
+          navigate("/login", { state: { from: "/weather-fortune" } })
+        }
       />
     </MobileLayout>
   );

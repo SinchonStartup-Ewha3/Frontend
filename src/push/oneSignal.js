@@ -39,7 +39,12 @@ export const withOneSignal = async (callback) => {
 };
 
 export const loginOneSignalUser = async (djangoUserId) => {
-  if (djangoUserId === undefined || djangoUserId === null || String(djangoUserId).trim() === "") return;
+  if (
+    djangoUserId === undefined ||
+    djangoUserId === null ||
+    String(djangoUserId).trim() === ""
+  )
+    return;
   const externalId = String(djangoUserId);
   if (activeExternalId === externalId) return;
   if (loginInProgress && loginInProgress.externalId === externalId) {
@@ -68,15 +73,29 @@ export const logoutOneSignalUser = async () => {
   }
 };
 
-export const promptOneSignalPush = async () =>
-  withOneSignal(async (OneSignal) => {
-    // The native permission may already be granted while OneSignal has not
-    // completed its push subscription. In that case, opt the user in directly
-    // instead of showing the slidedown prompt again.
-    if (Notification.permission === "granted") {
-      await OneSignal.User.PushSubscription.optIn();
-      return;
-    }
+// 현재 푸시 구독 상태 (구독 ID가 있고 opt-in 되어 있어야 "구독됨")
+export const getOneSignalPushState = () =>
+  withOneSignal((OneSignal) => {
+    const sub = OneSignal.User.PushSubscription;
+    return { subscribed: Boolean(sub.optedIn && sub.id), id: sub.id ?? null };
+  });
 
-    await OneSignal.Slidedown.promptPush();
+// 네이티브 알림 권한창을 바로 띄우고, 허용되면 OneSignal 구독까지 완료될 때까지 기다리도록 일단..수정
+// (슬라이드다운 대신 사용 -> 대시보드 프롬프트 설정과 무관하게 동작)
+export const requestOneSignalPush = () =>
+  withOneSignal(async (OneSignal) => {
+    await OneSignal.Notifications.requestPermission();
+    if (Notification.permission !== "granted") {
+      return { permission: Notification.permission, subscribed: false };
+    }
+    await OneSignal.User.PushSubscription.optIn();
+    // 구독 ID가 만들어질 때까지 최대 5초 대기
+    for (let i = 0; i < 20 && !OneSignal.User.PushSubscription.id; i += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    }
+    const sub = OneSignal.User.PushSubscription;
+    return {
+      permission: Notification.permission,
+      subscribed: Boolean(sub.optedIn && sub.id),
+    };
   });
