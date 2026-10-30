@@ -50,6 +50,10 @@ export default function CommunityWritePage() {
   const close = () => navigate("/community");
   const submit = async () => {
     if (isSubmitting) return;
+    if (picker.isProcessing) {
+      setFormError("사진 변환이 끝난 뒤 등록해주세요.");
+      return;
+    }
     setFormError("");
     if (!selectedTag) {
       setFormError("태그를 선택해주세요.");
@@ -191,7 +195,7 @@ export default function CommunityWritePage() {
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/jpeg,image/png,image/webp"
+            accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif"
             className="sr-only"
             onChange={(event) => {
               picker.choose(event.target.files?.[0]);
