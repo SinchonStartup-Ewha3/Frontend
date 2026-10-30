@@ -193,7 +193,7 @@ export default function MyPage() {
                     onClick={() => navigate("/mypage/activity?type=saved")}
                     className="h-[29px] text-[14px] leading-[20px]"
                   >
-                    저장한 게시물
+                    공감한 게시물
                   </ListRow>
                 </div>
               </div>

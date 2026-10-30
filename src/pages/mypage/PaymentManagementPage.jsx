@@ -4,8 +4,15 @@ import { useLocation, useNavigate } from "react-router-dom";
 import Header from "../../components/Header";
 import Button from "../../components/Button";
 import MobileLayout from "../../components/MobileLayout";
-import { usePremiumBillingQuery, useRefundRequestQuery, useSubscriptionQuery } from "../../hooks/usePayment";
-import { PREMIUM_BANK_TRANSFER_PENDING_KEY, PREMIUM_PLAN } from "../../constants/premium";
+import {
+  usePremiumBillingQuery,
+  useRefundRequestQuery,
+  useSubscriptionQuery,
+} from "../../hooks/usePayment";
+import {
+  PREMIUM_BANK_TRANSFER_PENDING_KEY,
+  PREMIUM_PLAN,
+} from "../../constants/premium";
 import { fetchMyFortunePurchases } from "../../api/fortune";
 import queryKeys from "../../api/queryKeys";
 
@@ -13,7 +20,9 @@ const cardClassName =
   "flex w-full flex-col gap-[15px] rounded-[13px] border-[1.5px] border-[#E9E8E8] bg-white px-4 py-[19px]";
 const readPendingTransfer = () => {
   try {
-    return JSON.parse(localStorage.getItem(PREMIUM_BANK_TRANSFER_PENDING_KEY) ?? "null");
+    return JSON.parse(
+      localStorage.getItem(PREMIUM_BANK_TRANSFER_PENDING_KEY) ?? "null",
+    );
   } catch {
     return null;
   }
@@ -59,7 +68,9 @@ export default function PaymentManagementPage() {
   });
   const fortunePurchases = fortunePurchasesQuery.data;
   const hasFortuneVoucher = Boolean(
-    fortunePurchases?.current || fortunePurchases?.latest || fortunePurchases?.upcoming?.length,
+    fortunePurchases?.current ||
+    fortunePurchases?.latest ||
+    fortunePurchases?.upcoming?.length,
   );
   const activeFortunePurchase =
     fortunePurchases?.current ??
@@ -67,21 +78,33 @@ export default function PaymentManagementPage() {
     fortunePurchases?.upcoming?.[0];
   const activeFrom = formatFortuneDate(activeFortunePurchase?.active_from);
   const activeUntil = formatFortuneDate(activeFortunePurchase?.active_until);
-  const redeemedAt = formatFortuneRedeemedAt(activeFortunePurchase?.redeemed_at);
+  const redeemedAt = formatFortuneRedeemedAt(
+    activeFortunePurchase?.redeemed_at,
+  );
   const fortuneUsageCount =
     activeFortunePurchase?.usage_count ??
     activeFortunePurchase?.remaining_uses ??
     activeFortunePurchase?.remaining_count;
   const subscription = data?.subscription;
-  const isActive = entitlementQuery.data?.subscription?.active ?? subscription?.isActive ?? subscription?.active;
-  const isCheckingEntitlement = entitlementQuery.isLoading || entitlementQuery.isFetching;
-  const isTransferPending = !isActive && (
-    pendingTransfer?.status === "PENDING" ||
-    location.state?.bankTransferManual === true ||
-    location.state?.bankTransferPreview === true ||
-    subscription?.status === "PENDING"
-  );
-  const canPurchasePremium = !isLoading && !isError && !entitlementQuery.isError && !isCheckingEntitlement && !isActive && !isTransferPending;
+  const isActive =
+    entitlementQuery.data?.subscription?.active ??
+    subscription?.isActive ??
+    subscription?.active;
+  const isCheckingEntitlement =
+    entitlementQuery.isLoading || entitlementQuery.isFetching;
+  const isTransferPending =
+    !isActive &&
+    (pendingTransfer?.status === "PENDING" ||
+      location.state?.bankTransferManual === true ||
+      location.state?.bankTransferPreview === true ||
+      subscription?.status === "PENDING");
+  const canPurchasePremium =
+    !isLoading &&
+    !isError &&
+    !entitlementQuery.isError &&
+    !isCheckingEntitlement &&
+    !isActive &&
+    !isTransferPending;
   const canRequestRefund = Boolean(subscription?.canRequestRefund);
   const purchasedAt = subscription?.purchasedAt ?? subscription?.paidAt;
   const paidAt = purchasedAt
@@ -119,22 +142,40 @@ export default function PaymentManagementPage() {
               {subscription?.productName ?? "맞춤형 행동 알림"}
             </h2>
             {isLoading ? (
-              <p className="text-[14px] leading-[21px] text-[#797776]">구독 정보를 불러오는 중...</p>
+              <p className="text-[14px] leading-[21px] text-[#797776]">
+                구독 정보를 불러오는 중...
+              </p>
             ) : isCheckingEntitlement ? (
-              <p className="text-[14px] leading-[21px] text-[#797776]">프리미엄 이용 상태를 확인하는 중...</p>
+              <p className="text-[14px] leading-[21px] text-[#797776]">
+                프리미엄 이용 상태를 확인하는 중...
+              </p>
             ) : entitlementQuery.isError ? (
               <div className="flex items-center justify-between gap-3">
-                <p className="text-[14px] leading-[21px] text-[#797776]">프리미엄 이용 상태를 확인하지 못했어요.</p>
-                <button type="button" onClick={() => entitlementQuery.refetch()} className="shrink-0 text-[14px] text-[#5ADCF4] underline">다시 시도</button>
+                <p className="text-[14px] leading-[21px] text-[#797776]">
+                  프리미엄 이용 상태를 확인하지 못했어요.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => entitlementQuery.refetch()}
+                  className="shrink-0 text-[14px] text-[#5ADCF4] underline"
+                >
+                  다시 시도
+                </button>
               </div>
             ) : isError ? (
-              <p className="text-[14px] leading-[21px] text-[#797776]">구독 정보를 불러오지 못했어요.</p>
+              <p className="text-[14px] leading-[21px] text-[#797776]">
+                구독 정보를 불러오지 못했어요.
+              </p>
             ) : isTransferPending ? (
               <>
-                <p className="text-[16px] font-medium leading-[21px] text-[#19BBD8]">입금 확인 중</p>
+                <p className="text-[16px] font-medium leading-[21px] text-[#19BBD8]">
+                  입금 확인 중
+                </p>
               </>
             ) : isActive && !subscription ? (
-              <p className="text-[14px] leading-[21px] text-[#19BBD8]">프리미엄 이용 중</p>
+              <p className="text-[14px] leading-[21px] text-[#19BBD8]">
+                프리미엄 이용 중
+              </p>
             ) : subscription ? (
               <>
                 <p className="text-[14px] leading-[21px] tracking-[-0.43px]">
@@ -168,13 +209,15 @@ export default function PaymentManagementPage() {
                   <p className="text-[14px] leading-[21px] tracking-[-0.43px] text-[#A5A4A3]">
                     환불 요청이 불가능한 이용권이에요.
                   </p>
-                ) : subscription.status === "COMPLETED" && subscription.remainingSeconds === 0 ? (
+                ) : subscription.status === "COMPLETED" &&
+                  subscription.remainingSeconds === 0 ? (
                   <p className="text-[14px] leading-[21px] tracking-[-0.43px] text-[#A5A4A3]">
                     이용 기간이 만료되었어요.
                   </p>
                 ) : (
                   <p className="text-[14px] leading-[21px] tracking-[-0.43px] text-[#A5A4A3]">
-                    {inactiveStatusMessages[subscription.status] ?? "현재 이용 중인 구독이 아니에요."}
+                    {inactiveStatusMessages[subscription.status] ??
+                      "현재 이용 중인 구독이 아니에요."}
                   </p>
                 )}
                 {canPurchasePremium && (
@@ -188,7 +231,9 @@ export default function PaymentManagementPage() {
               </>
             ) : (
               <>
-                <p className="text-[14px] leading-[21px] text-[#797776]">이용 중인 구독이 없어요.</p>
+                <p className="text-[14px] leading-[21px] text-[#797776]">
+                  이용 중인 구독이 없어요.
+                </p>
                 {canPurchasePremium && (
                   <Button
                     onClick={() => navigate("/premium/payment-method")}
@@ -209,11 +254,21 @@ export default function PaymentManagementPage() {
               날씨 운세
             </h3>
             {fortunePurchasesQuery.isPending ? (
-              <p className="text-[14px] leading-[21px] text-[#797776]">이용권 정보를 불러오는 중...</p>
+              <p className="text-[14px] leading-[21px] text-[#797776]">
+                이용권 정보를 불러오는 중...
+              </p>
             ) : fortunePurchasesQuery.isError ? (
               <div className="flex items-center justify-between gap-3">
-                <p className="text-[14px] leading-[21px] text-[#797776]">이용권 정보를 불러오지 못했어요.</p>
-                <button type="button" onClick={() => fortunePurchasesQuery.refetch()} className="shrink-0 text-[14px] text-[#5ADCF4] underline">다시 시도</button>
+                <p className="text-[14px] leading-[21px] text-[#797776]">
+                  이용권 정보를 불러오지 못했어요.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => fortunePurchasesQuery.refetch()}
+                  className="shrink-0 text-[14px] text-[#5ADCF4] underline"
+                >
+                  다시 시도
+                </button>
               </div>
             ) : (
               <>
@@ -244,7 +299,7 @@ export default function PaymentManagementPage() {
                 )}
                 {redeemedAt && (
                   <p className="text-[14px] leading-[21px] tracking-[-0.43px]">
-                    최근 결제일 | {redeemedAt}
+                    이용권 등록일 | {redeemedAt}
                   </p>
                 )}
                 {!hasFortuneVoucher && (
@@ -255,7 +310,6 @@ export default function PaymentManagementPage() {
               </>
             )}
           </article>
-
         </section>
       </main>
     </MobileLayout>
