@@ -1,12 +1,22 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Header from "../../components/Header";
 import Button from "../../components/Button";
 import MobileLayout from "../../components/MobileLayout";
-import { usePremiumBillingQuery, useRefundRequestQuery, useSubscriptionQuery } from "../../hooks/usePayment";
+import {
+  usePremiumBillingQuery,
+  useRefundRequestQuery,
+  useSubscriptionQuery,
+} from "../../hooks/usePayment";
 import { PREMIUM_PLAN } from "../../constants/premium";
-import { fetchMyFortunePurchases } from "../../api/fortune";
-import queryKeys from "../../api/queryKeys";
+import FortunePaymentSheet from "../../components/FortunePaymentSheet";
+import { useFortunePurchasesQuery } from "../../hooks/useFortunePayment";
+import {
+  FORTUNE_PAYMENT_METHOD_LABELS,
+  FORTUNE_REFUND_STATUS_LABELS,
+  canRequestFortuneRefund,
+  formatDotDate,
+} from "../../constants/fortune";
 
 const cardClassName =
   "flex w-full flex-col gap-[15px] rounded-[13px] border-[1.5px] border-[#E9E8E8] bg-white px-4 py-[19px]";
@@ -18,10 +28,6 @@ const inactiveStatusMessages = {
   REFUNDED: "환불이 완료되었어요.",
   CHARGEBACK: "결제가 취소되었어요.",
 };
-const formatFortuneDate = (value) =>
-  typeof value === "string" && value.length >= 10
-    ? value.slice(0, 10).replaceAll("-", ".")
-    : null;
 const formatFortuneRedeemedAt = (value) => {
   if (!value) return null;
   const date = new Date(value);
@@ -42,34 +48,39 @@ export default function PaymentManagementPage() {
   const { data, isLoading, isError } = usePremiumBillingQuery();
   const entitlementQuery = useSubscriptionQuery({ refetchOnMount: "always" });
   const { data: refundRequest } = useRefundRequestQuery();
-  const fortunePurchasesQuery = useQuery({
-    queryKey: queryKeys.fortunePurchases,
-    queryFn: fetchMyFortunePurchases,
-    retry: false,
-  });
+  const [isFortunePaymentOpen, setIsFortunePaymentOpen] = useState(false);
+  const fortunePurchasesQuery = useFortunePurchasesQuery();
   const fortunePurchases = fortunePurchasesQuery.data;
-  const hasFortuneVoucher = Boolean(
-    fortunePurchases?.current ||
-    fortunePurchases?.latest ||
-    fortunePurchases?.upcoming?.length,
-  );
+  const currentFortunePass = fortunePurchases?.current;
   const activeFortunePurchase =
-    fortunePurchases?.current ??
+    currentFortunePass ??
     fortunePurchases?.latest ??
     fortunePurchases?.upcoming?.[0];
-  const activeFrom = formatFortuneDate(activeFortunePurchase?.active_from);
-  const activeUntil = formatFortuneDate(activeFortunePurchase?.active_until);
+  const hasFortuneVoucher = Boolean(activeFortunePurchase);
+  const fortuneCoins = currentFortunePass ? fortunePurchases?.coins : null;
+  const fortuneRefundStatus = activeFortunePurchase?.refund_status;
+  const canRefundFortune = canRequestFortuneRefund(currentFortunePass);
+  // 이용 중인 이용권이 있으면 서버가 새 결제를 막아요 -> 버튼도 숨김
+  const canBuyFortune = !currentFortunePass;
+  const activeFrom = formatDotDate(activeFortunePurchase?.active_from);
+  const activeUntil = formatDotDate(activeFortunePurchase?.active_until);
   const redeemedAt = formatFortuneRedeemedAt(
     activeFortunePurchase?.redeemed_at,
   );
-  const fortuneUsageCount =
-    activeFortunePurchase?.usage_count ??
-    activeFortunePurchase?.remaining_uses ??
-    activeFortunePurchase?.remaining_count;
+  const isCouponPass = activeFortunePurchase?.payment_method === "COUPON";
   const subscription = data?.subscription;
-  const isActive = entitlementQuery.data?.subscription?.active ?? subscription?.isActive ?? subscription?.active;
-  const isCheckingEntitlement = entitlementQuery.isLoading || entitlementQuery.isFetching;
-  const canPurchasePremium = !isLoading && !isError && !entitlementQuery.isError && !isCheckingEntitlement && !isActive;
+  const isActive =
+    entitlementQuery.data?.subscription?.active ??
+    subscription?.isActive ??
+    subscription?.active;
+  const isCheckingEntitlement =
+    entitlementQuery.isLoading || entitlementQuery.isFetching;
+  const canPurchasePremium =
+    !isLoading &&
+    !isError &&
+    !entitlementQuery.isError &&
+    !isCheckingEntitlement &&
+    !isActive;
   const purchasedAt = subscription?.purchasedAt ?? subscription?.paidAt;
   const paidAt = purchasedAt
     ? purchasedAt.slice(0, 10).replaceAll("-", ".")
@@ -121,10 +132,14 @@ export default function PaymentManagementPage() {
                 </button>
               </div>
             ) : isError ? (
-              <p className="text-[14px] leading-[21px] text-[#797776]">구독 정보를 불러오지 못했어요.</p>
+              <p className="text-[14px] leading-[21px] text-[#797776]">
+                구독 정보를 불러오지 못했어요.
+              </p>
             ) : isActive && !subscription ? (
               <>
-                <p className="text-[14px] leading-[21px] text-[#19BBD8]">프리미엄 이용 중</p>
+                <p className="text-[14px] leading-[21px] text-[#19BBD8]">
+                  프리미엄 이용 중
+                </p>
                 <button
                   type="button"
                   onClick={() => navigate("/mypage/refund")}
@@ -146,24 +161,6 @@ export default function PaymentManagementPage() {
                     이용 만료일 | {expiresAtDisplay}
                   </p>
                 )}
-                {isActive && (
-                  <button
-                    type="button"
-                    onClick={() => navigate("/premium/payment/status", {
-                      state: {
-                        paymentProvider:
-                          subscription?.paymentMethod ??
-                          subscription?.paymentProvider ??
-                          subscription?.payment_method ??
-                          subscription?.provider ??
-                          "PayApp",
-                      },
-                    })}
-                    className="self-start text-[14px] leading-[21px] tracking-[-0.43px]"
-                  >
-                    결제 상태 확인
-                  </button>
-                )}
                 {refundRequest ? (
                   <button
                     type="button"
@@ -180,7 +177,8 @@ export default function PaymentManagementPage() {
                   >
                     환불 신청
                   </button>
-                ) : subscription.status === "COMPLETED" && subscription.remainingSeconds === 0 ? (
+                ) : subscription.status === "COMPLETED" &&
+                  subscription.remainingSeconds === 0 ? (
                   <p className="text-[14px] leading-[21px] tracking-[-0.43px] text-[#A5A4A3]">
                     이용 기간이 만료되었어요.
                   </p>
@@ -242,14 +240,26 @@ export default function PaymentManagementPage() {
               </div>
             ) : (
               <>
-                {fortuneUsageCount != null && (
+                {fortuneCoins?.remaining != null && (
                   <p className="text-[14px] leading-[21px] tracking-[-0.43px]">
-                    사용 횟수 | {fortuneUsageCount}회
+                    남은 코인 | {fortuneCoins.remaining}
+                    {fortuneCoins.total != null
+                      ? ` / ${fortuneCoins.total}`
+                      : ""}
+                    개
                   </p>
                 )}
                 {activeFortunePurchase?.product_title && (
                   <p className="text-[14px] leading-[21px] tracking-[-0.43px]">
                     이용권 | {activeFortunePurchase.product_title}
+                  </p>
+                )}
+                {activeFortunePurchase?.payment_method && (
+                  <p className="text-[14px] leading-[21px] tracking-[-0.43px]">
+                    결제 수단 |{" "}
+                    {FORTUNE_PAYMENT_METHOD_LABELS[
+                      activeFortunePurchase.payment_method
+                    ] ?? activeFortunePurchase.payment_method}
                   </p>
                 )}
                 {activeFortunePurchase?.duration_days != null && (
@@ -264,18 +274,50 @@ export default function PaymentManagementPage() {
                 )}
                 {(activeFrom || activeUntil) && (
                   <p className="text-[14px] leading-[21px] tracking-[-0.43px]">
-                    이용 기간 | {activeFrom ?? "-"} ~ {activeUntil ?? "-"}
+                    이용 일자 | {activeFrom ?? "-"} ~ {activeUntil ?? "-"}
                   </p>
                 )}
                 {redeemedAt && (
                   <p className="text-[14px] leading-[21px] tracking-[-0.43px]">
-                    코드 등록일 | {redeemedAt}
+                    {isCouponPass ? "코드 등록일" : "결제일"} | {redeemedAt}
                   </p>
                 )}
                 {!hasFortuneVoucher && (
                   <p className="text-[13px] leading-[19px] text-[#797776]">
-                    등록된 운세 쿠폰 이용권이 없어요.
+                    등록된 운세 이용권이 없어요.
                   </p>
+                )}
+                {fortuneRefundStatus ? (
+                  <button
+                    type="button"
+                    onClick={() => navigate("/mypage/fortune-refund")}
+                    className="self-start text-[14px] leading-[21px] tracking-[-0.43px] text-[#F35C4B]"
+                  >
+                    환불 상태 확인 (
+                    {FORTUNE_REFUND_STATUS_LABELS[fortuneRefundStatus] ??
+                      fortuneRefundStatus}
+                    )
+                  </button>
+                ) : canRefundFortune ? (
+                  <button
+                    type="button"
+                    onClick={() => navigate("/mypage/fortune-refund")}
+                    className="self-start text-[14px] leading-[21px] tracking-[-0.43px] text-[#F35C4B]"
+                  >
+                    환불 신청
+                  </button>
+                ) : currentFortunePass && isCouponPass ? (
+                  <p className="text-[13px] leading-[19px] text-[#A5A4A3]">
+                    쿠폰 이용권은 환불할 수 없어요.
+                  </p>
+                ) : null}
+                {canBuyFortune && (
+                  <Button
+                    onClick={() => setIsFortunePaymentOpen(true)}
+                    className="h-[44px] rounded-[10px] text-[14px]"
+                  >
+                    운세 이용권 결제하러 가기
+                  </Button>
                 )}
               </>
             )}
@@ -285,13 +327,25 @@ export default function PaymentManagementPage() {
             aria-label="약관 및 문의"
             className="mt-auto flex flex-wrap justify-center gap-x-[12px] gap-y-2 border-t border-[#E9E8E8] py-5 text-[12px] leading-[18px] text-[#A5A4A3]"
           >
-            <Link to="/terms" className="underline-offset-2 hover:underline">이용약관</Link>
-            <Link to="/privacy" className="underline-offset-2 hover:underline">개인정보처리방침</Link>
-            <Link to="/refund" className="underline-offset-2 hover:underline">환불정책</Link>
-            <Link to="/contact" className="underline-offset-2 hover:underline">문의</Link>
+            <Link to="/terms" className="underline-offset-2 hover:underline">
+              이용약관
+            </Link>
+            <Link to="/privacy" className="underline-offset-2 hover:underline">
+              개인정보처리방침
+            </Link>
+            <Link to="/refund" className="underline-offset-2 hover:underline">
+              환불정책
+            </Link>
+            <Link to="/contact" className="underline-offset-2 hover:underline">
+              문의
+            </Link>
           </footer>
         </section>
       </main>
+      <FortunePaymentSheet
+        isOpen={isFortunePaymentOpen}
+        onClose={() => setIsFortunePaymentOpen(false)}
+      />
     </MobileLayout>
   );
 }

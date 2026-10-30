@@ -19,6 +19,14 @@ const queryKeys = {
   todayFortune: ["fortune", "today"],
   fortuneProfile: ["fortune", "profile"],
   fortunePurchases: ["fortune", "purchases", "me"],
+  fortuneProducts: ["fortune", "products"],
+  fortunePurchase: (purchaseId) => [
+    "fortune",
+    "purchases",
+    "order",
+    purchaseId,
+  ],
+  fortuneRefund: ["fortune", "refund-request"],
   home: ["home"],
   hydration: ["situations", "hydration"],
   // 로그인 사용자는 저장된 위치("me"), 비로그인은 선택한 지역코드별로 캐시를 따로 두기...~
