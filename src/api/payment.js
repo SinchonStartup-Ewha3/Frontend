@@ -217,13 +217,18 @@ export const fetchRefundRequest = async () => {
   if (USE_MOCK) {
     await delay(200);
     const latest = db.refundRequests.at(-1);
-    if (!latest) {
-      const error = new Error("환불 요청 내역이 없습니다.");
-      error.response = { status: 404, data: { code: "REFUND_REQUEST_NOT_FOUND" } };
-      throw error;
-    }
-    return latest;
+    return latest ?? null;
   }
-  const { data } = await api.get("/api/premium/refund-requests/");
-  return data;
+  try {
+    const { data } = await api.get("/api/premium/refund-requests/");
+    return data;
+  } catch (error) {
+    if (
+      error.response?.status === 404 &&
+      error.response?.data?.code === "REFUND_REQUEST_NOT_FOUND"
+    ) {
+      return null;
+    }
+    throw error;
+  }
 };
