@@ -1,5 +1,8 @@
 import api from "./axios";
 
+// 사진이 포함된 multipart 요청은 모바일 회선에서 10초(공통 타임아웃)를 넘기기 쉬워요
+const UPLOAD_TIMEOUT_MS = 60_000;
+
 // 숫자가 아니거나 0 이하면 기본값 사용 (명세: pageSize 는 양의 정수만 허용)
 const toPositiveInt = (value, fallback) => {
   const number = Number(value);
@@ -8,10 +11,15 @@ const toPositiveInt = (value, fallback) => {
 
 // 전체 조회는 tag=all, 태그별 조회는 cardigan/padded/coat/other를 전달해요.
 // 로그인 선택: 토큰이 있으면 axios 인터셉터가 자동으로 붙여줘요.
-export const fetchCommunityPosts = async ({ tag, page = 1, pageSize = 10 } = {}) => {
+export const fetchCommunityPosts = async ({
+  tag,
+  page = 1,
+  pageSize = 10,
+} = {}) => {
   // 전체 탭은 tag=all이 필수예요. undefined/null/빈 문자열로 빠져도
   // 백엔드에 태그 누락 요청이 나가지 않도록 기본값을 다시 보정해요.
-  const requestedTag = typeof tag === "string" && tag.trim() ? tag.trim() : "all";
+  const requestedTag =
+    typeof tag === "string" && tag.trim() ? tag.trim() : "all";
   const { data } = await api.get("/api/community/posts/", {
     params: {
       tag: requestedTag,
@@ -60,7 +68,9 @@ export const createCommunityPost = async ({
   if (image) formData.append("image", image);
 
   // Axios/browser supplies the multipart boundary and the shared interceptor adds the JWT.
-  const { data } = await api.post("/api/community/posts/", formData);
+  const { data } = await api.post("/api/community/posts/", formData, {
+    timeout: UPLOAD_TIMEOUT_MS,
+  });
   return data;
 };
 
@@ -72,7 +82,13 @@ export const updateCommunityPost = async ({ postId, content, tag, image }) => {
   if (tag !== undefined) formData.append("tag", tag);
   if (image) formData.append("image", image);
 
-  const { data } = await api.patch(`/api/community/posts/${postId}/`, formData);
+  const { data } = await api.patch(
+    `/api/community/posts/${postId}/`,
+    formData,
+    {
+      timeout: UPLOAD_TIMEOUT_MS,
+    },
+  );
   return data;
 };
 
