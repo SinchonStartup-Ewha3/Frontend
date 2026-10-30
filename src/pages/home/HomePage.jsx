@@ -56,16 +56,18 @@ const getWeatherIcon = (condition, isNight) => {
 // 그림 중심이 컨테이너 정중앙에 오도록 가로 보정값(offsetX, px)을 같이 두기..
 const getCharacter = (state) => {
   switch (state) {
-    case "SNOWY":
-      return { src: snowCharacter, offsetX: 23 };
+    case "SUNNY":
+      return { src: sunnyCharacter, offsetX: 39 };
+    case "CLOUDY":
+      return { src: cloudCharacter, offsetX: 25 };
     case "RAINY":
       return { src: rainCharacter, offsetX: 21 };
     case "COLD":
+      return { src: snowCharacter, offsetX: 23 };
+    case "WINDY":
       return { src: windCharacter, offsetX: -1 };
-    case "HOT":
-      return { src: sunnyCharacter, offsetX: 39 };
     default:
-      return { src: cloudCharacter, offsetX: 25 };
+      return { src: sunnyCharacter, offsetX: 39 };
   }
 };
 

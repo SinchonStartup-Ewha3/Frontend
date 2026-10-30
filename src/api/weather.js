@@ -63,7 +63,7 @@ export const fetchHomeData = async ({ regionCode, lat, lng, skipAuth = false } =
         isNight,
       },
       hourly,
-      character: { state: "DEFAULT", label: "기본" },
+      character: { state: "SUNNY", label: "맑음" },
       message: "일교차가 크니 겉옷을 챙기세요!",
       lifeInfo: {
         umbrella: { needed: false, fromHour: null },

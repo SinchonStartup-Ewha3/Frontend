@@ -1,11 +1,11 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import BottomCTA from "../../components/BottomCTA";
 import Button from "../../components/Button";
 import MobileLayout from "../../components/MobileLayout";
 import PageHeading from "../../components/PageHeading";
 import { SURVEY_PROGRESS, SURVEY_QUESTIONS } from "../../constants/premium";
-import { useSavePremiumProfile } from "../../hooks/usePayment";
+import { useSavePremiumProfile, useSubscriptionQuery } from "../../hooks/usePayment";
 import useToast from "../../hooks/useToast";
 
 const ANSWER_CODES = [
@@ -18,14 +18,22 @@ const OPTION_TOPS = [318, 384, 449, 514];
 
 export default function PremiumSurveyPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const toast = useToast();
   const saveProfile = useSavePremiumProfile();
+  const isLocalPreview = import.meta.env.DEV && new URLSearchParams(location.search).get("preview") === "1";
+  const statusQuery = useSubscriptionQuery({ enabled: !isLocalPreview, refetchOnMount: "always" });
   const [questionIndex, setQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState(() =>
     SURVEY_QUESTIONS.map(() => null),
   );
   const question = SURVEY_QUESTIONS[questionIndex];
   const progress = SURVEY_PROGRESS[questionIndex] ?? 100;
+
+  useEffect(() => {
+    if (isLocalPreview || !statusQuery.data || statusQuery.data.canCompleteSurvey) return;
+    navigate("/premium", { replace: true });
+  }, [isLocalPreview, navigate, statusQuery.data]);
 
   const handleNext = () => {
     if (questionIndex < SURVEY_QUESTIONS.length - 1) {
@@ -48,6 +56,42 @@ export default function PremiumSurveyPage() {
       onError: () => toast.error("설문을 저장하지 못했어요. 다시 시도해 주세요."),
     });
   };
+
+  if (!isLocalPreview && (statusQuery.isLoading || statusQuery.isFetching)) {
+    return (
+      <MobileLayout>
+        <main className="mx-auto flex min-h-[852px] w-full max-w-[402px] items-center justify-center bg-white text-sm text-[#A5A4A3]">
+          설문 가능 여부를 확인하고 있어요.
+        </main>
+      </MobileLayout>
+    );
+  }
+
+  if (!isLocalPreview && statusQuery.isError) {
+    return (
+      <MobileLayout>
+        <main className="mx-auto flex min-h-[852px] w-full max-w-[402px] flex-col items-center justify-center gap-3 bg-white text-sm text-[#797776]">
+          <p role="alert">설문 가능 여부를 확인하지 못했어요.</p>
+          <button type="button" onClick={() => statusQuery.refetch()} className="text-[#33B8D7]">
+            다시 시도
+          </button>
+        </main>
+      </MobileLayout>
+    );
+  }
+
+  if (!isLocalPreview && !statusQuery.data?.canCompleteSurvey) {
+    return (
+      <MobileLayout>
+        <main className="mx-auto flex min-h-[852px] w-full max-w-[402px] flex-col items-center justify-center gap-3 bg-white text-sm text-[#797776]">
+          <p>현재 설문을 작성할 수 없어요.</p>
+          <button type="button" onClick={() => navigate("/premium")} className="text-[#33B8D7]">
+            프리미엄 확인하기
+          </button>
+        </main>
+      </MobileLayout>
+    );
+  }
 
   return (
     <MobileLayout>

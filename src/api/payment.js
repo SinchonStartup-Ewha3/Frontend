@@ -9,19 +9,27 @@ import { db, delay, persist } from "../mocks/db";
 export const fetchSubscription = async () => {
   if (USE_MOCK) {
     await delay(200);
+    const isPremium = Boolean(db.subscription?.active);
     return {
+      isPremium,
+      canCompleteSurvey: isPremium,
+      paymentMethod: db.subscription?.paymentMethod ?? null,
       subscription: { ...db.subscription },
       fortunePass: { ...db.fortunePass },
     };
   }
   const { data } = await api.get("/api/premium/status/");
   const isPremium = Boolean(data.isPremium);
+  const canCompleteSurvey = Boolean(data.canCompleteSurvey ?? isPremium);
+  const status = isPremium ? "ACTIVE" : data.premiumExpiresAt ? "COMPLETED" : "NONE";
   return {
     ...data,
+    canCompleteSurvey,
     subscription: {
       active: isPremium,
       isActive: isPremium,
-      status: isPremium ? "ACTIVE" : data.premiumExpiresAt ? "COMPLETED" : "NONE",
+      status,
+      paymentMethod: data.paymentMethod,
       canRequestRefund: Boolean(data.canRequestRefund),
       paidAt: data.premiumStartedAt,
       purchasedAt: data.premiumStartedAt,
@@ -41,6 +49,7 @@ export const fetchPremiumBilling = async () => {
           purchaseId: 1,
           productName: "맞춤형 행동 알림",
           status: "COMPLETED",
+          paymentMethod: db.subscription.paymentMethod ?? "PAYAPP",
           purchasedAt: db.subscription.paidAt,
           startedAt: db.subscription.paidAt,
           expiresAt: null,
@@ -65,18 +74,19 @@ export const fetchPremiumBilling = async () => {
   };
 };
 
-export const createPremiumCheckout = async () => {
-  if (USE_MOCK) {
-    await delay(200);
-    const transactionId = `mock_txn_${Date.now()}`;
-    return {
-      purchaseId: Date.now(),
-      transactionId,
-      checkoutUrl: `https://sandbox-checkout.paddle.com/checkout/${transactionId}`,
-      status: "PENDING",
+export const createPayAppCheckout = async ({ recvphone }) => {
+  const normalizedPhone = String(recvphone ?? "").replaceAll("-", "").trim();
+  if (!/^01\d{8,9}$/.test(normalizedPhone)) {
+    const error = new Error("휴대전화 번호는 하이픈 없이 입력해주세요.");
+    error.response = {
+      status: 400,
+      data: { recvphone: [error.message] },
     };
+    throw error;
   }
-  const { data } = await api.post("/api/premium/checkout/");
+  const { data } = await api.post("/api/premium/payapp/checkout/", {
+    recvphone: normalizedPhone,
+  });
   return data;
 };
 
@@ -108,22 +118,6 @@ export const patchPremiumProfile = async (payload) => {
   return data;
 };
 
-export const waitForPremiumStatus = async ({ attempts = 8, intervalMs = 1500 } = {}) => {
-  if (USE_MOCK) {
-    db.subscription.active = true;
-    persist();
-  }
-  let status;
-  for (let attempt = 0; attempt < attempts; attempt += 1) {
-    status = await fetchSubscription();
-    if (status.subscription?.active) return status;
-    if (attempt < attempts - 1) {
-      await new Promise((resolve) => setTimeout(resolve, intervalMs));
-    }
-  }
-  return status;
-};
-
 // 날씨 운세 패키지 추가 구매 확인
 export const confirmFortunePayment = async ({ transactionId }) => {
   if (USE_MOCK) {
@@ -152,7 +146,6 @@ export const requestRefund = async (payload) => {
       requestedAmount: 2380,
       currencyCode: "KRW",
       remainingSeconds: 20 * 24 * 60 * 60,
-      paddleAdjustmentId: "",
       status: "REQUESTED",
       rejectionReason: "",
       requestedAt: new Date().toISOString(),
@@ -170,13 +163,18 @@ export const fetchRefundRequest = async () => {
   if (USE_MOCK) {
     await delay(200);
     const latest = db.refundRequests.at(-1);
-    if (!latest) {
-      const error = new Error("환불 요청 내역이 없습니다.");
-      error.response = { status: 404, data: { code: "REFUND_REQUEST_NOT_FOUND" } };
-      throw error;
-    }
-    return latest;
+    return latest ?? null;
   }
-  const { data } = await api.get("/api/premium/refund-requests/");
-  return data;
+  try {
+    const { data } = await api.get("/api/premium/refund-requests/");
+    return data;
+  } catch (error) {
+    if (
+      error.response?.status === 404 &&
+      error.response?.data?.code === "REFUND_REQUEST_NOT_FOUND"
+    ) {
+      return null;
+    }
+    throw error;
+  }
 };

@@ -39,7 +39,7 @@ export default function CommunityPage() {
   const location = useLocation();
   const queryClient = useQueryClient();
   const isLoggedIn = Boolean(localStorage.getItem("wee_access_token"));
-  // 프리미엄 구독자는 구독 유도 카드를 숨겨요 (누르면 /premium → 설문으로 넘어가던 문제)
+  // 프리미엄 구독자는 구독 유도 카드를 숨겨요.
   const { isPremium, isLoading: isPremiumLoading } = useIsPremium({
     enabled: isLoggedIn,
   });
@@ -70,7 +70,7 @@ export default function CommunityPage() {
     queryKey: postsQueryKey,
     queryFn: () =>
       fetchCommunityPosts({
-        tag: activeCategory === "all" ? undefined : activeCategory,
+        tag: activeCategory,
         page,
         pageSize: PAGE_SIZE,
       }),
@@ -96,9 +96,10 @@ export default function CommunityPage() {
   const weatherCopy = weatherCopyQuery.data;
   const headline = weatherCopy?.headline;
   const premiumCard = weatherCopy?.premiumCard;
-  // 로그인 안 함: 항상 노출 / 구독자: 숨김 / 구독 상태 확인 중: 깜빡임 방지로 숨김
+  // 비로그인 사용자에게는 노출하고, 구독자에게는 숨겨요.
   const showPremiumCard =
-    !isLoggedIn || Boolean(premiumCard && !isPremiumLoading && !isPremium);
+    !isLoggedIn ||
+    Boolean(premiumCard && !isPremiumLoading && !isPremium);
   const visiblePosts = postsQuery.data?.results ?? [];
   const pageCount = Math.max(
     1,
@@ -202,11 +203,18 @@ export default function CommunityPage() {
         />
         <header className="mx-6 pt-[96px]">
           {headline && (
-            <h1 className="break-words text-[28px] font-semibold leading-[1.4] tracking-[-0.84px]">
-              {headline.title}
-              <br />
-              {headline.description}
-            </h1>
+            <>
+              {weatherCopy?.timeScope && (
+                <p className="mb-[3px] text-[14px] font-semibold leading-[20px] tracking-[-0.42px] text-[#19BBD8]">
+                  {weatherCopy.timeScope === "TOMORROW" ? "내일 날씨" : "오늘 날씨"}
+                </p>
+              )}
+              <h1 className="break-words text-[28px] font-semibold leading-[1.4] tracking-[-0.84px]">
+                {headline.title}
+                <br />
+                {headline.description}
+              </h1>
+            </>
           )}
           {weatherCopyQuery.isLoading && (
             <p className="text-sm text-[#A5A4A3]">날씨 문구를 불러오는 중...</p>

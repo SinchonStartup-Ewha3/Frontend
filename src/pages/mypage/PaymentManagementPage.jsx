@@ -1,34 +1,17 @@
-import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Header from "../../components/Header";
 import Button from "../../components/Button";
 import MobileLayout from "../../components/MobileLayout";
-import {
-  usePremiumBillingQuery,
-  useRefundRequestQuery,
-  useSubscriptionQuery,
-} from "../../hooks/usePayment";
-import {
-  PREMIUM_BANK_TRANSFER_PENDING_KEY,
-  PREMIUM_PLAN,
-} from "../../constants/premium";
+import { usePremiumBillingQuery, useRefundRequestQuery, useSubscriptionQuery } from "../../hooks/usePayment";
+import { PREMIUM_PLAN } from "../../constants/premium";
 import { fetchMyFortunePurchases } from "../../api/fortune";
 import queryKeys from "../../api/queryKeys";
 
 const cardClassName =
   "flex w-full flex-col gap-[15px] rounded-[13px] border-[1.5px] border-[#E9E8E8] bg-white px-4 py-[19px]";
-const readPendingTransfer = () => {
-  try {
-    return JSON.parse(
-      localStorage.getItem(PREMIUM_BANK_TRANSFER_PENDING_KEY) ?? "null",
-    );
-  } catch {
-    return null;
-  }
-};
 const inactiveStatusMessages = {
-  PENDING: "입금 확인 중",
+  PENDING: "결제 확인 중",
   FAILED: "결제에 실패했어요.",
   CANCELED: "결제가 취소되었어요.",
   PARTIALLY_REFUNDED: "일부 환불 처리되었어요.",
@@ -56,8 +39,6 @@ const formatFortuneRedeemedAt = (value) => {
 
 export default function PaymentManagementPage() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const [pendingTransfer, setPendingTransfer] = useState(readPendingTransfer);
   const { data, isLoading, isError } = usePremiumBillingQuery();
   const entitlementQuery = useSubscriptionQuery({ refetchOnMount: "always" });
   const { data: refundRequest } = useRefundRequestQuery();
@@ -86,26 +67,9 @@ export default function PaymentManagementPage() {
     activeFortunePurchase?.remaining_uses ??
     activeFortunePurchase?.remaining_count;
   const subscription = data?.subscription;
-  const isActive =
-    entitlementQuery.data?.subscription?.active ??
-    subscription?.isActive ??
-    subscription?.active;
-  const isCheckingEntitlement =
-    entitlementQuery.isLoading || entitlementQuery.isFetching;
-  const isTransferPending =
-    !isActive &&
-    (pendingTransfer?.status === "PENDING" ||
-      location.state?.bankTransferManual === true ||
-      location.state?.bankTransferPreview === true ||
-      subscription?.status === "PENDING");
-  const canPurchasePremium =
-    !isLoading &&
-    !isError &&
-    !entitlementQuery.isError &&
-    !isCheckingEntitlement &&
-    !isActive &&
-    !isTransferPending;
-  const canRequestRefund = Boolean(subscription?.canRequestRefund);
+  const isActive = entitlementQuery.data?.subscription?.active ?? subscription?.isActive ?? subscription?.active;
+  const isCheckingEntitlement = entitlementQuery.isLoading || entitlementQuery.isFetching;
+  const canPurchasePremium = !isLoading && !isError && !entitlementQuery.isError && !isCheckingEntitlement && !isActive;
   const purchasedAt = subscription?.purchasedAt ?? subscription?.paidAt;
   const paidAt = purchasedAt
     ? purchasedAt.slice(0, 10).replaceAll("-", ".")
@@ -119,20 +83,14 @@ export default function PaymentManagementPage() {
       }).format(new Date(expiresAt))
     : null;
 
-  useEffect(() => {
-    if (!isActive) return;
-    localStorage.removeItem(PREMIUM_BANK_TRANSFER_PENDING_KEY);
-    setPendingTransfer(null);
-  }, [isActive]);
-
   return (
     <MobileLayout>
-      <main className="relative mx-auto min-h-[852px] w-full max-w-[402px] overflow-hidden bg-white text-[#353331]">
+      <main className="relative mx-auto flex min-h-screen w-full max-w-[402px] flex-col overflow-hidden bg-white text-[#353331]">
         <div className="absolute left-5 right-5 top-[73px] z-10">
           <Header back />
         </div>
 
-        <section className="px-[21px] pt-[114px]">
+        <section className="flex min-h-screen flex-1 flex-col px-[21px] pt-[114px]">
           <h1 className="ml-[6px] text-[24px] font-semibold leading-[1.4] tracking-[-0.72px]">
             맞춤형 행동 알림 구독
           </h1>
@@ -163,18 +121,10 @@ export default function PaymentManagementPage() {
                 </button>
               </div>
             ) : isError ? (
-              <p className="text-[14px] leading-[21px] text-[#797776]">
-                구독 정보를 불러오지 못했어요.
-              </p>
-            ) : isTransferPending ? (
+              <p className="text-[14px] leading-[21px] text-[#797776]">구독 정보를 불러오지 못했어요.</p>
+            ) : isActive && !subscription ? (
               <>
-                <button
-                  type="button"
-                  onClick={() => navigate("/premium/bank-transfer/pending")}
-                  className="self-start text-left text-[14px] leading-[19.296px] tracking-[-0.4288px]"
-                >
-                  결제 상태 확인
-                </button>
+                <p className="text-[14px] leading-[21px] text-[#19BBD8]">프리미엄 이용 중</p>
                 <button
                   type="button"
                   onClick={() => navigate("/mypage/refund")}
@@ -183,10 +133,6 @@ export default function PaymentManagementPage() {
                   환불 신청
                 </button>
               </>
-            ) : isActive && !subscription ? (
-              <p className="text-[14px] leading-[21px] text-[#19BBD8]">
-                프리미엄 이용 중
-              </p>
             ) : subscription ? (
               <>
                 <p className="text-[14px] leading-[21px] tracking-[-0.43px]">
@@ -203,17 +149,16 @@ export default function PaymentManagementPage() {
                 {isActive && (
                   <button
                     type="button"
-                    onClick={() =>
-                      navigate("/premium/payment/status", {
-                        state: {
-                          paymentProvider:
-                            subscription?.paymentProvider ??
-                            subscription?.payment_method ??
-                            subscription?.provider ??
-                            "Paddle",
-                        },
-                      })
-                    }
+                    onClick={() => navigate("/premium/payment/status", {
+                      state: {
+                        paymentProvider:
+                          subscription?.paymentMethod ??
+                          subscription?.paymentProvider ??
+                          subscription?.payment_method ??
+                          subscription?.provider ??
+                          "PayApp",
+                      },
+                    })}
                     className="self-start text-[14px] leading-[21px] tracking-[-0.43px]"
                   >
                     결제 상태 확인
@@ -227,7 +172,7 @@ export default function PaymentManagementPage() {
                   >
                     환불 상태 확인
                   </button>
-                ) : isActive && canRequestRefund ? (
+                ) : isActive ? (
                   <button
                     type="button"
                     onClick={() => navigate("/mypage/refund")}
@@ -235,12 +180,7 @@ export default function PaymentManagementPage() {
                   >
                     환불 신청
                   </button>
-                ) : isActive && !canRequestRefund ? (
-                  <p className="text-[14px] leading-[21px] tracking-[-0.43px] text-[#A5A4A3]">
-                    환불 요청이 불가능한 이용권이에요.
-                  </p>
-                ) : subscription.status === "COMPLETED" &&
-                  subscription.remainingSeconds === 0 ? (
+                ) : subscription.status === "COMPLETED" && subscription.remainingSeconds === 0 ? (
                   <p className="text-[14px] leading-[21px] tracking-[-0.43px] text-[#A5A4A3]">
                     이용 기간이 만료되었어요.
                   </p>
@@ -329,7 +269,7 @@ export default function PaymentManagementPage() {
                 )}
                 {redeemedAt && (
                   <p className="text-[14px] leading-[21px] tracking-[-0.43px]">
-                    이용권 등록일 | {redeemedAt}
+                    코드 등록일 | {redeemedAt}
                   </p>
                 )}
                 {!hasFortuneVoucher && (
@@ -340,6 +280,16 @@ export default function PaymentManagementPage() {
               </>
             )}
           </article>
+
+          <footer
+            aria-label="약관 및 문의"
+            className="mt-auto flex flex-wrap justify-center gap-x-[12px] gap-y-2 border-t border-[#E9E8E8] py-5 text-[12px] leading-[18px] text-[#A5A4A3]"
+          >
+            <Link to="/terms" className="underline-offset-2 hover:underline">이용약관</Link>
+            <Link to="/privacy" className="underline-offset-2 hover:underline">개인정보처리방침</Link>
+            <Link to="/refund" className="underline-offset-2 hover:underline">환불정책</Link>
+            <Link to="/contact" className="underline-offset-2 hover:underline">문의</Link>
+          </footer>
         </section>
       </main>
     </MobileLayout>

@@ -25,7 +25,9 @@ export default function MyPage() {
   const navigate = useNavigate();
   const isLoggedIn = Boolean(localStorage.getItem("wee_access_token"));
   const { data: profile } = useMyPageSummaryQuery({ enabled: isLoggedIn });
-  const { isPremium } = useIsPremium({ enabled: isLoggedIn });
+  const { isPremium, isLoading: isPremiumLoading } = useIsPremium({
+    enabled: isLoggedIn,
+  });
 
   if (!isLoggedIn) {
     return (
@@ -137,16 +139,17 @@ export default function MyPage() {
                     : undefined
                 }
                 disabled={!isPremium}
-                className={`${isPremium ? "text-[18px]" : sectionHeadingClass} h-[22px]`}
+                className={`${isPremium ? "text-[18px] leading-[21px] font-bold" : sectionHeadingClass} h-[22px]`}
               >
                 알림 일정 관리
               </ListRow>
               {!isPremium && (
                 <button
                   type="button"
+                  disabled={isPremiumLoading}
                   onClick={() => navigate("/premium/payment-method")}
                   aria-label="프리미엄 구독하기"
-                  className="absolute inset-x-[14px] top-[7px] z-10 flex h-[39px] items-center justify-center gap-[8px] bg-[rgba(255,255,255,0.86)] backdrop-blur-[2px]"
+                  className="absolute inset-x-[14px] top-[7px] z-10 flex h-[39px] items-center justify-center gap-[8px] bg-[rgba(255,255,255,0.86)] backdrop-blur-[2px] disabled:cursor-default"
                 >
                   <span className="flex h-6 w-6 shrink-0 items-center justify-center">
                     <img src={lockIcon} alt="" />

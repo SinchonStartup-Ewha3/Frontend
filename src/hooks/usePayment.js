@@ -4,13 +4,12 @@ import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   confirmFortunePayment,
-  createPremiumCheckout,
+  createPayAppCheckout,
   fetchSubscription,
   fetchPremiumBilling,
   fetchRefundRequest,
   requestRefund,
   savePremiumProfile,
-  waitForPremiumStatus,
 } from "../api/payment";
 import queryKeys from "../api/queryKeys";
 import useUserStore from "../store/useUserStore";
@@ -60,7 +59,7 @@ export const useIsPremium = ({ enabled = true } = {}) => {
   };
 };
 
-// 결제 화면 진입 시 서버 isPremium 을 먼저 확인하고, true 이면 설문으로
+// 결제 화면 진입 시 서버 canCompleteSurvey를 확인하고, 가능하면 설문으로
 // (진입 시점 1회만 판단: 결제 직후 흐름은 각 페이지가 직접 이동)
 export const useRedirectIfPremium = ({ enabled = true } = {}) => {
   const navigate = useNavigate();
@@ -75,8 +74,10 @@ export const useRedirectIfPremium = ({ enabled = true } = {}) => {
     if (done.current || query.isFetching) return;
     done.current = true;
     setIsChecking(false);
-    if (query.data?.subscription?.active)
+    if (query.data?.canCompleteSurvey)
       navigate("/premium/survey", { replace: true });
+    else if (query.data?.subscription?.active)
+      navigate("/premium", { replace: true });
   }, [enabled, query.isFetching, query.data, navigate]);
   return { isChecking };
 };
@@ -87,21 +88,11 @@ const useInvalidateSubscription = () => {
     queryClient.invalidateQueries({ queryKey: queryKeys.subscription });
 };
 
-// 거래 생성은 백엔드가 담당하고 권한 갱신은 웹훅 반영 상태를 재조회
-export const useCreatePremiumCheckout = () => {
-  return useMutation({ mutationFn: createPremiumCheckout });
-};
+export const useCreatePayAppCheckout = () =>
+  useMutation({ mutationFn: createPayAppCheckout });
 
 export const useSavePremiumProfile = () =>
   useMutation({ mutationFn: savePremiumProfile });
-
-export const useRefreshPremiumStatus = () => {
-  const invalidate = useInvalidateSubscription();
-  return useMutation({
-    mutationFn: waitForPremiumStatus,
-    onSuccess: invalidate,
-  });
-};
 
 // 운세 패키지 추가 구매 확인
 export const useConfirmFortunePayment = () => {
