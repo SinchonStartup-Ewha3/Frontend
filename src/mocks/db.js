@@ -116,7 +116,6 @@ const createSeed = () => ({
     },
   ],
   refundRequests: [],
-  bankTransferRequests: [],
   surveyAnswers: null,
 });
 

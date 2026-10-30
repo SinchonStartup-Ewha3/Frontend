@@ -39,12 +39,8 @@ export default function CommunityPage() {
   const location = useLocation();
   const queryClient = useQueryClient();
   const isLoggedIn = Boolean(localStorage.getItem("wee_access_token"));
-  // 프리미엄 구독자와 계좌이체 승인 대기 중인 사용자는 구독 유도 카드를 숨겨요.
-  const {
-    isPremium,
-    isLoading: isPremiumLoading,
-    bankTransferStatus,
-  } = useIsPremium({
+  // 프리미엄 구독자는 구독 유도 카드를 숨겨요.
+  const { isPremium, isLoading: isPremiumLoading } = useIsPremium({
     enabled: isLoggedIn,
   });
   const [activeCategory, setActiveCategory] = useState("all");
@@ -100,15 +96,10 @@ export default function CommunityPage() {
   const weatherCopy = weatherCopyQuery.data;
   const headline = weatherCopy?.headline;
   const premiumCard = weatherCopy?.premiumCard;
-  // 비로그인 사용자에게는 노출하고, 구독자·승인 대기 중 사용자는 숨겨요.
+  // 비로그인 사용자에게는 노출하고, 구독자에게는 숨겨요.
   const showPremiumCard =
     !isLoggedIn ||
-    Boolean(
-      premiumCard &&
-        !isPremiumLoading &&
-        !isPremium &&
-        bankTransferStatus !== "PENDING",
-    );
+    Boolean(premiumCard && !isPremiumLoading && !isPremium);
   const visiblePosts = postsQuery.data?.results ?? [];
   const pageCount = Math.max(
     1,

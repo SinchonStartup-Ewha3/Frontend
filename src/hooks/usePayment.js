@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   confirmFortunePayment,
-  createBankTransferRequest,
   createPayAppCheckout,
   fetchSubscription,
   fetchPremiumBilling,
@@ -43,19 +42,6 @@ export const usePremiumBillingQuery = ({ enabled = true } = {}) =>
     retry: false,
   });
 
-export const useCreateBankTransferRequest = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: createBankTransferRequest,
-    onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: queryKeys.subscription }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.premiumBilling }),
-      ]);
-    },
-  });
-};
-
 export const useRefundRequestQuery = ({ enabled = true } = {}) =>
   useQuery({
     queryKey: queryKeys.refundRequest,
@@ -70,8 +56,6 @@ export const useIsPremium = ({ enabled = true } = {}) => {
   return {
     isPremium: Boolean(data?.subscription?.active),
     isLoading,
-    bankTransferStatus:
-      data?.bankTransferStatus ?? data?.subscription?.bankTransferStatus ?? null,
   };
 };
 

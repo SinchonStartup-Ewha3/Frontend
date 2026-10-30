@@ -6,7 +6,6 @@ import ConfirmDialog from "../../components/ConfirmDialog";
 import Header from "../../components/Header";
 import MobileLayout from "../../components/MobileLayout";
 import {
-  usePremiumBillingQuery,
   useRefundRequestQuery,
   useRequestRefund,
 } from "../../hooks/usePayment";
@@ -25,9 +24,7 @@ const getRefundStatusDescription = (refundRequest) => {
     return "환불 요청이 거절되었어요. 자세한 내용은 아래 사유를 확인해주세요.";
   if (refundRequest.status === "COMPLETED")
     return "환불이 완료되어 남은 프리미엄 이용 기간이 회수되었어요.";
-  if (refundRequest.paymentMethod === "BANK_TRANSFER")
-    return "환불 처리 중에도 프리미엄 기능을 이용할 수 있어요. 관리자가 직접 송금한 뒤 완료 처리합니다.";
-  return "환불 처리 중에도 프리미엄 기능을 이용할 수 있어요. PayApp 처리 결과에 따라 완료됩니다.";
+  return "환불 처리 중에도 프리미엄 기능을 이용할 수 있어요. 결제 처리 결과에 따라 완료됩니다.";
 };
 
 export default function RefundAccountPage() {
@@ -36,13 +33,9 @@ export default function RefundAccountPage() {
   const toast = useToast();
   const refundMutation = useRequestRefund();
   const refundQuery = useRefundRequestQuery();
-  const billingQuery = usePremiumBillingQuery();
   const refundRequest = refundMutation.data ?? refundQuery.data;
-  const paymentMethod =
-    refundRequest?.paymentMethod ?? billingQuery.data?.subscription?.paymentMethod;
-  const confirmDescription = paymentMethod === "BANK_TRANSFER"
-    ? "계좌이체 환불은 관리자가 직접 송금한 뒤 완료 처리합니다.\n환불 요청 후에도 프리미엄 기능은 계속 이용할 수 있어요."
-    : "PayApp 처리 결과에 따라 환불이 진행됩니다.\n환불 요청 후에도 프리미엄 기능은 계속 이용할 수 있어요.";
+  const confirmDescription =
+    "결제 처리 결과에 따라 환불이 진행됩니다.\n환불 요청 후에도 프리미엄 기능은 계속 이용할 수 있어요.";
   const [reason, setReason] = useState("");
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
@@ -102,9 +95,7 @@ export default function RefundAccountPage() {
             )}
             {refundRequest.status !== "REJECTED" && refundRequest.status !== "COMPLETED" && (
               <p className="mt-3 text-xs leading-5 text-[#A5A4A3]">
-                {refundRequest.paymentMethod === "BANK_TRANSFER"
-                  ? "계좌이체 환불은 관리자가 직접 송금한 뒤 완료 처리합니다."
-                  : "PayApp 환불은 PayApp 승인 결과에 따라 처리됩니다."}
+                결제 처리 결과에 따라 환불이 완료됩니다.
               </p>
             )}
             <Button onClick={() => navigate("/mypage/payment")} className="mt-5 h-11 w-full rounded-[10px]">
