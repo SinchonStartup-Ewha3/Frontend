@@ -83,8 +83,13 @@ export default function NotificationSettingsPage() {
         toast.error("알림 구독에 실패했어요. 잠시 후 다시 시도해 주세요.");
       }
     } catch (error) {
-      console.error("알림 설정 오류", error);
-      toast.error("알림 구독에 실패했어요. 잠시 후 다시 시도해 주세요.");
+      console.error("OneSignal 푸시 구독 실패", error);
+      const reason = error instanceof Error ? error.message : String(error ?? "");
+      toast.error(
+        reason
+          ? `푸시 구독 실패: ${reason}`
+          : "푸시 구독에 실패했어요. 잠시 후 다시 시도해 주세요.",
+      );
     }
   };
 
@@ -98,7 +103,7 @@ export default function NotificationSettingsPage() {
             title="맞춤형 행동 알림"
             description={"당신의 하루에 꼭 필요한 알림을\n미리 알려드릴게요"}
             className="mt-[15px]"
-            titleClassName="!text-[28px] !leading-[1.4] !tracking-[-0.84px]"
+            titleClassName="!text-[24px] !leading-[1.4] !tracking-[-0.72px]"
             descClassName="!mt-[8px] !text-[18px] !leading-[1.38] !tracking-[-0.54px] !text-[#D2D2D1]"
           />
 
