@@ -91,7 +91,7 @@ export default function MyPostDetailPage() {
                   </span>
                 </div>
                 <p className="mt-[18px] text-[15px] tracking-[-0.3px] text-[#797776]">
-                  스크랩 {post.scraps ?? post.likes ?? 0}
+                  공감 {post.scraps ?? post.likes ?? 0}
                 </p>
               </div>
             </>

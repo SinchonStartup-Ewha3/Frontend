@@ -32,7 +32,7 @@ const getCurrentCoordinates = () =>
                 : "현재 위치를 확인할 수 없어요. 위치 설정을 확인해 주세요.",
           ),
         ),
-      { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 },
+      { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 },
     );
   });
 
@@ -45,11 +45,12 @@ export default function CommunityWritePage() {
   const queryClient = useQueryClient();
   const toast = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const submittingRef = useRef(false); // state 는 비동기라 빠른 연타를 못 막아서 ref 로 한 번 더 잠가요
   const [formError, setFormError] = useState("");
 
   const close = () => navigate("/community");
   const submit = async () => {
-    if (isSubmitting) return;
+    if (isSubmitting || submittingRef.current) return;
     if (picker.isProcessing) {
       setFormError("사진 변환이 끝난 뒤 등록해주세요.");
       return;
@@ -64,6 +65,7 @@ export default function CommunityWritePage() {
       return;
     }
 
+    submittingRef.current = true;
     setIsSubmitting(true);
     try {
       // 위치 권한이 있으면 현재 위치(CURRENT), 없거나 실패하면 계정에 저장된 지역(SAVED)으로 등록
@@ -87,6 +89,19 @@ export default function CommunityWritePage() {
         toast.show("현재 위치를 확인하지 못해 저장된 동네로 등록했어요.");
       navigate("/community", { state: { createdPost: post } });
     } catch (error) {
+      const timedOut =
+        error.code === "ECONNABORTED" ||
+        error.code === "ETIMEDOUT" ||
+        (!error.response && error.message === "Network Error");
+      if (timedOut) {
+        // 서버에는 이미 저장됐을 수 있어요. 목록을 새로 받고, 다시 누르기 전에 확인하도록 안내해요(중복 글 방지)
+        queryClient.invalidateQueries({ queryKey: queryKeys.communityPosts });
+        queryClient.invalidateQueries({ queryKey: queryKeys.myPosts });
+        setFormError(
+          "응답이 늦어지고 있어요. 글이 이미 등록됐을 수 있으니 커뮤니티 목록을 확인한 뒤 다시 시도해 주세요.",
+        );
+        return;
+      }
       const data = error.response?.data;
       const locationError = data?.location;
       const regionError = data?.region;
@@ -101,6 +116,7 @@ export default function CommunityWritePage() {
           "게시글을 등록하지 못했어요. 다시 시도해 주세요.",
       );
     } finally {
+      submittingRef.current = false;
       setIsSubmitting(false);
     }
   };
