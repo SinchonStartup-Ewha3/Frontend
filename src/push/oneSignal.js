@@ -1,5 +1,7 @@
 const APP_ID = "1d3d0798-3038-4792-84df-8a8b7d066aaf";
-const WORKER_PATH = "push/onesignal/OneSignalSDKWorker.js";
+// Use the same root-scope worker registered by the PWA. A second nested
+// OneSignal worker can leave mobile browsers with competing registrations.
+const WORKER_PATH = "OneSignalSDKWorker.js";
 const INITIALIZATION_KEY = "__weeOneSignalInitialization";
 
 let initialization;
@@ -18,7 +20,7 @@ export const initializeOneSignal = () => {
         await OneSignal.init({
           appId: APP_ID,
           serviceWorkerPath: WORKER_PATH,
-          serviceWorkerParam: { scope: "/push/onesignal/" },
+          serviceWorkerParam: { scope: "/" },
         });
         resolve(OneSignal);
       } catch (error) {

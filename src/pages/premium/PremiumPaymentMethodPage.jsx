@@ -26,7 +26,7 @@ export default function PremiumPaymentMethodPage() {
 
   useEffect(() => {
     if (isLocalPreview || checkoutPending || statusQuery.isFetching) return;
-    if (isPayAppConfirmed && canCompleteSurvey) navigate("/premium/welcome", { replace: true });
+    if (isPayAppConfirmed && canCompleteSurvey) navigate("/premium/survey", { replace: true });
     else if (canCompleteSurvey) navigate("/premium/survey", { replace: true });
     else if (isPremium) navigate("/premium", { replace: true });
   }, [canCompleteSurvey, checkoutPending, isLocalPreview, isPayAppConfirmed, isPremium, navigate, statusQuery.isFetching]);
@@ -36,7 +36,7 @@ export default function PremiumPaymentMethodPage() {
     if (pollAttempt > 0 && isPayAppConfirmed) {
       setCheckoutPending(false);
       setConfirmationMessage("");
-      if (canCompleteSurvey) navigate("/premium/welcome", { replace: true });
+      if (canCompleteSurvey) navigate("/premium/survey", { replace: true });
       else navigate("/premium", { replace: true });
       return undefined;
     }

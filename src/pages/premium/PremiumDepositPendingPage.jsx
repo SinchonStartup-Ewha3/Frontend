@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import Header from "../../components/Header";
 import MobileLayout from "../../components/MobileLayout";
 import { PREMIUM_BANK_TRANSFER_PENDING_KEY, PREMIUM_PLAN } from "../../constants/premium";
@@ -15,10 +15,12 @@ const readPendingTransfer = () => {
 
 export default function PremiumDepositPendingPage() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { state } = location;
   const hasAccessToken = Boolean(localStorage.getItem("wee_access_token"));
   const statusQuery = useSubscriptionQuery({ enabled: hasAccessToken, refetchOnMount: "always" });
   const [pendingTransfer] = useState(readPendingTransfer);
+  const [statusCheckCount, setStatusCheckCount] = useState(0);
   const isPremium = Boolean(statusQuery.data?.subscription?.active);
   const subscription = statusQuery.data?.subscription;
   const paymentProvider = state?.paymentProvider ?? subscription?.paymentMethod ?? subscription?.paymentProvider ?? subscription?.payment_method ?? subscription?.provider ?? "";
@@ -33,6 +35,28 @@ export default function PremiumDepositPendingPage() {
   useEffect(() => {
     if (isPremium) localStorage.removeItem(PREMIUM_BANK_TRANSFER_PENDING_KEY);
   }, [isPremium]);
+
+  // PayApp 승인 통보는 서버에서 확정되므로 복귀 직후 상태가 아직 갱신되지 않았다면 잠시 재조회해요.
+  useEffect(() => {
+    const isPayAppReturn = location.pathname === "/premium/payment/status";
+    if (!isPayAppReturn || isPremium || statusCheckCount >= 10) return undefined;
+
+    const timer = window.setTimeout(async () => {
+      await statusQuery.refetch();
+      setStatusCheckCount((count) => count + 1);
+    }, 2000);
+    return () => window.clearTimeout(timer);
+  }, [isPremium, location.pathname, statusCheckCount, statusQuery.refetch]);
+
+  useEffect(() => {
+    if (
+      location.pathname === "/premium/payment/status" &&
+      isPremium &&
+      /payapp/i.test(String(paymentProvider))
+    ) {
+      navigate("/premium/survey", { replace: true });
+    }
+  }, [isPremium, location.pathname, navigate, paymentProvider]);
 
   return (
     <MobileLayout>
