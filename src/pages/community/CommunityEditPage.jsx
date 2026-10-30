@@ -33,6 +33,7 @@ const CommunityEditForm = ({ post, postId }) => {
     Boolean(trimmedMessage) &&
     Boolean(selectedTag) &&
     hasChanges &&
+    !picker.isProcessing &&
     !updatePost.isPending;
 
   const submit = () => {
@@ -149,7 +150,7 @@ const CommunityEditForm = ({ post, postId }) => {
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/jpeg,image/png,image/webp"
+          accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif"
           className="sr-only"
           onChange={(event) => {
             picker.choose(event.target.files?.[0]);
