@@ -18,6 +18,8 @@ import LocationSetupPage from "./pages/onboarding/LocationSetupPage.jsx";
 import HomePage from "./pages/home/HomePage.jsx";
 import WeatherFortunePage from "./pages/home/WeatherFortunePage.jsx";
 import WeatherFortuneBirthInfoPage from "./pages/home/WeatherFortuneBirthInfoPage.jsx";
+import WeatherFortunePaymentResultPage from "./pages/home/WeatherFortunePaymentResultPage.jsx";
+import FortuneRefundPage from "./pages/mypage/FortuneRefundPage.jsx";
 import WeatherFortuneCalendarPage from "./pages/home/WeatherFortuneCalendarPage.jsx";
 import WeatherFortuneBirthTimePage from "./pages/home/WeatherFortuneBirthTimePage.jsx";
 import WeatherFortuneLoadingPage from "./pages/home/WeatherFortuneLoadingPage.jsx";
@@ -185,6 +187,14 @@ export default function App() {
           </RequireAuth>
         }
       />
+      <Route
+        path="/weather-fortune/payment/result"
+        element={
+          <RequireAuth>
+            <WeatherFortunePaymentResultPage />
+          </RequireAuth>
+        }
+      />
       <Route path="/community" element={<CommunityPage />} />
       <Route
         path="/community/write"
@@ -309,6 +319,14 @@ export default function App() {
         }
       />
       <Route
+        path="/mypage/fortune-refund"
+        element={
+          <RequireAuth>
+            <FortuneRefundPage />
+          </RequireAuth>
+        }
+      />
+      <Route
         path="/mypage/activity"
         element={
           <RequireAuth>
@@ -352,9 +370,7 @@ function RequireAuth({ children }) {
     <LoginRequiredModal
       isOpen
       onClose={() => navigate("/home", { replace: true })}
-      onLogin={() =>
-        navigate("/login", { state: { from: returnTo } })
-      }
+      onLogin={() => navigate("/login", { state: { from: returnTo } })}
     />
   );
 }

@@ -4,11 +4,17 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Button from "../../components/Button";
 import Card from "../../components/Card";
 import CouponRegistrationSheet from "../../components/CouponRegistrationSheet";
+import FortuneCoinChip from "../../components/FortuneCoinChip";
 import Header from "../../components/Header";
 import MobileLayout from "../../components/MobileLayout";
 import wizardCharacter from "../../assets/images/fortune/fortune_wizard.svg";
-import { fetchFortuneProfile, fetchTodayFortune, redeemFortuneCoupon } from "../../api/fortune";
+import {
+  fetchFortuneProfile,
+  fetchTodayFortune,
+  redeemFortuneCoupon,
+} from "../../api/fortune";
 import queryKeys from "../../api/queryKeys";
+import { useFortunePurchasesQuery } from "../../hooks/useFortunePayment";
 
 export default function WeatherFortunePage() {
   const navigate = useNavigate();
@@ -28,15 +34,30 @@ export default function WeatherFortunePage() {
     enabled: !isLoggedIn || profileQuery.isSuccess,
   });
   const fortune = fortuneQuery.data;
+  const purchasesQuery = useFortunePurchasesQuery({
+    enabled: isLoggedIn && fortuneQuery.isSuccess,
+  });
+  const coins = purchasesQuery.data?.coins;
+  const { refetch: refetchPurchases } = purchasesQuery;
+  const fortuneUpdatedAt = fortuneQuery.dataUpdatedAt;
+  useEffect(() => {
+    if (isLoggedIn && fortuneUpdatedAt) refetchPurchases();
+  }, [isLoggedIn, fortuneUpdatedAt, refetchPurchases]);
 
   useEffect(() => {
-    if (profileQuery.error?.response?.status === 404 && profileQuery.error?.response?.data?.code === "FORTUNE_PROFILE_NOT_FOUND") {
+    if (
+      profileQuery.error?.response?.status === 404 &&
+      profileQuery.error?.response?.data?.code === "FORTUNE_PROFILE_NOT_FOUND"
+    ) {
       navigate("/weather-fortune/calendar", { replace: true });
     }
   }, [profileQuery.error, navigate]);
 
   useEffect(() => {
-    if (fortuneQuery.error?.response?.status === 409 && fortuneQuery.error?.response?.data?.code === "FORTUNE_PROFILE_REQUIRED") {
+    if (
+      fortuneQuery.error?.response?.status === 409 &&
+      fortuneQuery.error?.response?.data?.code === "FORTUNE_PROFILE_REQUIRED"
+    ) {
       navigate("/weather-fortune/calendar", { replace: true });
     }
   }, [fortuneQuery.error, navigate]);
@@ -44,7 +65,9 @@ export default function WeatherFortunePage() {
   const handleCouponRegister = async (code) => {
     const result = await redeemFortuneCoupon(code);
     await queryClient.invalidateQueries({ queryKey: queryKeys.todayFortune });
-    await queryClient.invalidateQueries({ queryKey: queryKeys.fortunePurchases });
+    await queryClient.invalidateQueries({
+      queryKey: queryKeys.fortunePurchases,
+    });
     return result;
   };
 
@@ -100,16 +123,35 @@ export default function WeatherFortunePage() {
           </p>
         </Card>
 
+        <FortuneCoinChip
+          coins={coins}
+          className="absolute left-1/2 top-[565px] -translate-x-1/2"
+        />
+
         <Button
           variant="white"
           onClick={() => navigate("/weather-fortune/result")}
-          disabled={(isLoggedIn && (profileQuery.isPending || profileQuery.isError)) || fortuneQuery.isPending || fortuneQuery.isError}
+          disabled={
+            (isLoggedIn && (profileQuery.isPending || profileQuery.isError)) ||
+            fortuneQuery.isPending ||
+            fortuneQuery.isError
+          }
           className="absolute left-1/2 top-[611px] !h-[44px] !w-[345px] -translate-x-1/2 rounded-[10px] text-[18px] tracking-[-0.18px]"
         >
-          {(isLoggedIn && profileQuery.isPending) || fortuneQuery.isPending ? "운세를 불러오는 중..." : "오늘의 운세 보기"}
+          {(isLoggedIn && profileQuery.isPending) || fortuneQuery.isPending
+            ? "운세를 불러오는 중..."
+            : "오늘의 운세 보기"}
         </Button>
         {((isLoggedIn && profileQuery.isError) || fortuneQuery.isError) && (
-          <button type="button" onClick={() => isLoggedIn && profileQuery.isError ? profileQuery.refetch() : fortuneQuery.refetch()} className="absolute left-1/2 top-[658px] -translate-x-1/2 text-xs text-[#797776] underline">
+          <button
+            type="button"
+            onClick={() =>
+              isLoggedIn && profileQuery.isError
+                ? profileQuery.refetch()
+                : fortuneQuery.refetch()
+            }
+            className="absolute left-1/2 top-[658px] -translate-x-1/2 text-xs text-[#797776] underline"
+          >
             다시 시도
           </button>
         )}
