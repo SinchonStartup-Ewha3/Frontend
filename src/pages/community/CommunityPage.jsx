@@ -39,8 +39,12 @@ export default function CommunityPage() {
   const location = useLocation();
   const queryClient = useQueryClient();
   const isLoggedIn = Boolean(localStorage.getItem("wee_access_token"));
-  // 프리미엄 구독자는 구독 유도 카드를 숨겨요 (누르면 /premium → 설문으로 넘어가던 문제)
-  const { isPremium, isLoading: isPremiumLoading } = useIsPremium({
+  // 프리미엄 구독자와 계좌이체 승인 대기 중인 사용자는 구독 유도 카드를 숨겨요.
+  const {
+    isPremium,
+    isLoading: isPremiumLoading,
+    bankTransferStatus,
+  } = useIsPremium({
     enabled: isLoggedIn,
   });
   const [activeCategory, setActiveCategory] = useState("all");
@@ -96,9 +100,15 @@ export default function CommunityPage() {
   const weatherCopy = weatherCopyQuery.data;
   const headline = weatherCopy?.headline;
   const premiumCard = weatherCopy?.premiumCard;
-  // 로그인 안 함: 항상 노출 / 구독자: 숨김 / 구독 상태 확인 중: 깜빡임 방지로 숨김
+  // 비로그인 사용자에게는 노출하고, 구독자·승인 대기 중 사용자는 숨겨요.
   const showPremiumCard =
-    !isLoggedIn || Boolean(premiumCard && !isPremiumLoading && !isPremium);
+    !isLoggedIn ||
+    Boolean(
+      premiumCard &&
+        !isPremiumLoading &&
+        !isPremium &&
+        bankTransferStatus !== "PENDING",
+    );
   const visiblePosts = postsQuery.data?.results ?? [];
   const pageCount = Math.max(
     1,
