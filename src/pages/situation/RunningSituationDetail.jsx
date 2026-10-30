@@ -145,6 +145,14 @@ const RunningSituationDetail = () => {
   // 낮이 지난 저녁에는 서버가 내일 기준으로 내려줘서 "오늘/내일" 문구를 바꿔줌
   const dayLabel = getDayLabel(data?.targetDate);
   const overview = data?.overview;
+  // 러닝 습도는 추천 시간대(첫 번째 구간의 시작 시각) 기준 값이에요. 예) "16:00" -> "16시 습도"
+  const humidityHour = Number.parseInt(
+    data?.recommendedTimes?.[0]?.start ?? "",
+    10,
+  );
+  const humidityLabel = Number.isNaN(humidityHour)
+    ? "습도"
+    : `${humidityHour}시 습도`;
   const uvIndex = data?.uvIndex;
   // 추천 시간대는 최대 2개(아침/저녁). 조건이 나쁘면 빈 배열이라서 안내 문구를 보여줌
   const timeText = (data?.recommendedTimes ?? [])
@@ -159,7 +167,10 @@ const RunningSituationDetail = () => {
           src={weeLogo}
           alt="WEE"
           className="absolute left-6 top-[28px] h-[24px] w-auto"
-          style={{ filter: "brightness(0) saturate(100%) invert(80%) sepia(28%) saturate(1492%) hue-rotate(154deg) brightness(101%) contrast(101%)" }}
+          style={{
+            filter:
+              "brightness(0) saturate(100%) invert(80%) sepia(28%) saturate(1492%) hue-rotate(154deg) brightness(101%) contrast(101%)",
+          }}
         />
         <div className="absolute left-[24px] right-[24px] top-[28px]">
           <Header />
@@ -271,13 +282,15 @@ const RunningSituationDetail = () => {
                 {...statBoxProps}
               />
               <StatBox
-                label="습도"
+                label={humidityLabel}
                 value={formatPercent(overview?.humidity)}
                 {...statBoxProps}
               />
               <StatBox
                 label="체감온도"
-                value={formatTemperature(overview?.feelsLike ?? overview?.feels_like)}
+                value={formatTemperature(
+                  overview?.feelsLike ?? overview?.feels_like,
+                )}
                 {...statBoxProps}
               />
               <StatBox

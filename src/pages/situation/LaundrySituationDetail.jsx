@@ -47,7 +47,10 @@ const LaundrySituationDetail = () => {
           src={weeLogo}
           alt="WEE"
           className="absolute left-6 top-[28px] h-[24px] w-auto"
-          style={{ filter: "brightness(0) saturate(100%) invert(80%) sepia(28%) saturate(1492%) hue-rotate(154deg) brightness(101%) contrast(101%)" }}
+          style={{
+            filter:
+              "brightness(0) saturate(100%) invert(80%) sepia(28%) saturate(1492%) hue-rotate(154deg) brightness(101%) contrast(101%)",
+          }}
         />
         <div className="absolute left-[24px] right-[24px] top-[28px]">
           <Header />
@@ -145,7 +148,7 @@ const LaundrySituationDetail = () => {
               {...statBoxProps}
             />
             <StatBox
-              label="습도"
+              label="낮 평균 습도" // 빨래: 낮 시간 평균 습도
               value={formatPercent(overview?.humidity)}
               {...statBoxProps}
             />
