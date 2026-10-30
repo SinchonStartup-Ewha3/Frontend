@@ -25,7 +25,12 @@ export default function MyPage() {
   const navigate = useNavigate();
   const isLoggedIn = Boolean(localStorage.getItem("wee_access_token"));
   const { data: profile } = useMyPageSummaryQuery({ enabled: isLoggedIn });
-  const { isPremium } = useIsPremium({ enabled: isLoggedIn });
+  const {
+    isPremium,
+    isLoading: isPremiumLoading,
+    bankTransferStatus,
+  } = useIsPremium({ enabled: isLoggedIn });
+  const isBankTransferPending = bankTransferStatus === "PENDING";
 
   if (!isLoggedIn) {
     return (
@@ -144,9 +149,10 @@ export default function MyPage() {
               {!isPremium && (
                 <button
                   type="button"
+                  disabled={isPremiumLoading || isBankTransferPending}
                   onClick={() => navigate("/premium/payment-method")}
                   aria-label="프리미엄 구독하기"
-                  className="absolute inset-x-[14px] top-[7px] z-10 flex h-[39px] items-center justify-center gap-[8px] bg-[rgba(255,255,255,0.86)] backdrop-blur-[2px]"
+                  className="absolute inset-x-[14px] top-[7px] z-10 flex h-[39px] items-center justify-center gap-[8px] bg-[rgba(255,255,255,0.86)] backdrop-blur-[2px] disabled:cursor-default"
                 >
                   <span className="flex h-6 w-6 shrink-0 items-center justify-center">
                     <img src={lockIcon} alt="" />
@@ -193,7 +199,7 @@ export default function MyPage() {
                     onClick={() => navigate("/mypage/activity?type=saved")}
                     className="h-[29px] text-[14px] leading-[20px]"
                   >
-                    저장한 게시물
+                    공감한 게시물
                   </ListRow>
                 </div>
               </div>

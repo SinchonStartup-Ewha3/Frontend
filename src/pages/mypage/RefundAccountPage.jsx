@@ -49,11 +49,6 @@ export default function RefundAccountPage() {
   const handleSubmit = (event) => {
     event.preventDefault();
     if (!reason.trim()) return;
-    if (!paymentMethod) {
-      billingQuery.refetch();
-      toast.error("결제 방식을 확인한 뒤 다시 시도해주세요.");
-      return;
-    }
     setIsConfirmOpen(true);
   };
 
@@ -139,7 +134,7 @@ export default function RefundAccountPage() {
 
           <Button
             type="submit"
-            disabled={!reason.trim() || refundMutation.isPending || !paymentMethod}
+            disabled={!reason.trim() || refundMutation.isPending}
             className="absolute left-[1px] top-[481px] h-[44px] w-[345px] rounded-[10px] text-[18px] tracking-[-0.18px]"
           >
             환불 요청

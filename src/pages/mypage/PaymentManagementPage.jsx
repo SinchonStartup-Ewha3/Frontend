@@ -83,7 +83,6 @@ export default function PaymentManagementPage() {
     subscription?.status === "PENDING"
   );
   const canPurchasePremium = !isLoading && !isError && !entitlementQuery.isError && !isCheckingEntitlement && !isActive && !isTransferPending;
-  const canRequestRefund = Boolean(subscription?.canRequestRefund);
   const purchasedAt = subscription?.purchasedAt ?? subscription?.paidAt;
   const paidAt = purchasedAt
     ? purchasedAt.slice(0, 10).replaceAll("-", ".")
@@ -105,12 +104,12 @@ export default function PaymentManagementPage() {
 
   return (
     <MobileLayout>
-      <main className="relative mx-auto min-h-[852px] w-full max-w-[402px] overflow-hidden bg-white text-[#353331]">
+      <main className="relative mx-auto flex min-h-screen w-full max-w-[402px] flex-col overflow-hidden bg-white text-[#353331]">
         <div className="absolute left-5 right-5 top-[73px] z-10">
           <Header back />
         </div>
 
-        <section className="px-[21px] pt-[114px]">
+        <section className="flex min-h-screen flex-1 flex-col px-[21px] pt-[114px]">
           <h1 className="ml-[6px] text-[24px] font-semibold leading-[1.4] tracking-[-0.72px]">
             맞춤형 행동 알림 구독
           </h1>
@@ -132,9 +131,6 @@ export default function PaymentManagementPage() {
               <p className="text-[14px] leading-[21px] text-[#797776]">구독 정보를 불러오지 못했어요.</p>
             ) : isTransferPending ? (
               <>
-                <p className="text-[14px] leading-[21px] tracking-[-0.43px] text-[#F35C4B]">
-                  입금 확인 중
-                </p>
                 <button
                   type="button"
                   onClick={() => navigate("/premium/bank-transfer/pending")}
@@ -151,7 +147,16 @@ export default function PaymentManagementPage() {
                 </button>
               </>
             ) : isActive && !subscription ? (
-              <p className="text-[14px] leading-[21px] text-[#19BBD8]">프리미엄 이용 중</p>
+              <>
+                <p className="text-[14px] leading-[21px] text-[#19BBD8]">프리미엄 이용 중</p>
+                <button
+                  type="button"
+                  onClick={() => navigate("/mypage/refund")}
+                  className="self-start text-[14px] leading-[21px] tracking-[-0.43px] text-[#F35C4B]"
+                >
+                  환불 신청
+                </button>
+              </>
             ) : subscription ? (
               <>
                 <p className="text-[14px] leading-[21px] tracking-[-0.43px]">
@@ -191,18 +196,14 @@ export default function PaymentManagementPage() {
                   >
                     환불 상태 확인
                   </button>
-                ) : isActive && canRequestRefund ? (
+                ) : isActive ? (
                   <button
                     type="button"
                     onClick={() => navigate("/mypage/refund")}
                     className="self-start text-[14px] leading-[21px] tracking-[-0.43px] text-[#F35C4B]"
                   >
-                    환불하기
+                    환불 신청
                   </button>
-                ) : isActive && !canRequestRefund ? (
-                  <p className="text-[14px] leading-[21px] tracking-[-0.43px] text-[#A5A4A3]">
-                    환불 요청이 불가능한 이용권이에요.
-                  </p>
                 ) : subscription.status === "COMPLETED" && subscription.remainingSeconds === 0 ? (
                   <p className="text-[14px] leading-[21px] tracking-[-0.43px] text-[#A5A4A3]">
                     이용 기간이 만료되었어요.
@@ -279,7 +280,7 @@ export default function PaymentManagementPage() {
                 )}
                 {redeemedAt && (
                   <p className="text-[14px] leading-[21px] tracking-[-0.43px]">
-                    최근 결제일 | {redeemedAt}
+                    코드 등록일 | {redeemedAt}
                   </p>
                 )}
                 {!hasFortuneVoucher && (
@@ -293,7 +294,7 @@ export default function PaymentManagementPage() {
 
           <footer
             aria-label="약관 및 문의"
-            className="mt-[28px] flex flex-wrap justify-center gap-x-[12px] gap-y-2 border-t border-[#E9E8E8] py-5 text-[12px] leading-[18px] text-[#A5A4A3]"
+            className="mt-auto flex flex-wrap justify-center gap-x-[12px] gap-y-2 border-t border-[#E9E8E8] py-5 text-[12px] leading-[18px] text-[#A5A4A3]"
           >
             <Link to="/terms" className="underline-offset-2 hover:underline">이용약관</Link>
             <Link to="/privacy" className="underline-offset-2 hover:underline">개인정보처리방침</Link>

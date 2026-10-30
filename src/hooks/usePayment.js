@@ -70,6 +70,8 @@ export const useIsPremium = ({ enabled = true } = {}) => {
   return {
     isPremium: Boolean(data?.subscription?.active),
     isLoading,
+    bankTransferStatus:
+      data?.bankTransferStatus ?? data?.subscription?.bankTransferStatus ?? null,
   };
 };
 
