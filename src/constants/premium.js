@@ -14,13 +14,6 @@ export const PREMIUM_PLAN = {
   description: "WEE Premium으로\n날씨에 맞춘 생활 알림을 받아보세요.",
 };
 
-export const PREMIUM_BANK_TRANSFER_PENDING_KEY = "wee:premium-bank-transfer-pending";
-export const PREMIUM_BANK_TRANSFER_ACCOUNT = {
-  bankName: "카카오뱅크",
-  accountNumber: "3333-30-8334122",
-  accountHolder: "이서인",
-};
-
 // 설문 Q1~Q3 (단일 선택)
 // key: 서버에 보낼 답변 키 / options: 선택지
 export const SURVEY_QUESTIONS = [

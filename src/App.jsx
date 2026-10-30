@@ -31,7 +31,6 @@ import CommunityEditPage from "./pages/community/CommunityEditPage.jsx";
 import PremiumPage from "./pages/premium/PremiumPage.jsx";
 import PremiumLandingPage from "./pages/premium/PremiumLandingPage.jsx";
 import PremiumPaymentMethodPage from "./pages/premium/PremiumPaymentMethodPage.jsx";
-import PremiumBankTransferPage from "./pages/premium/PremiumBankTransferPage.jsx";
 import PremiumDepositPendingPage from "./pages/premium/PremiumDepositPendingPage.jsx";
 import PublicPolicyPage from "./pages/legal/PublicPolicyPage.jsx";
 import PremiumSurveyPage from "./pages/premium/PremiumSurveyPage.jsx";
@@ -213,22 +212,6 @@ export default function App() {
         }
       />
       <Route
-        path="/premium/bank-transfer"
-        element={
-          <RequireAuth>
-            <PremiumBankTransferPage />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/premium/bank-transfer/pending"
-        element={
-          <RequireAuth>
-            <PremiumDepositPendingPage />
-          </RequireAuth>
-        }
-      />
-      <Route
         path="/premium/payment/status"
         element={
           <RequireAuth>
@@ -257,14 +240,6 @@ export default function App() {
         element={
           <RequireAuth>
             <PremiumSurveyCompletePage />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/premium/bank-transfer/survey-complete"
-        element={
-          <RequireAuth>
-            <PremiumSurveyCompletePage bankTransfer />
           </RequireAuth>
         }
       />
@@ -365,9 +340,7 @@ function RequireAuth({ children }) {
   const localPremiumPreviewPaths = [
     "/mypage/notifications",
     "/premium/payment-method",
-    "/premium/bank-transfer",
     "/premium/survey",
-    "/premium/bank-transfer/pending",
   ];
   const isLocalPremiumPreview =
     import.meta.env.DEV &&

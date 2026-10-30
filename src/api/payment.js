@@ -9,13 +9,11 @@ import { db, delay, persist } from "../mocks/db";
 export const fetchSubscription = async () => {
   if (USE_MOCK) {
     await delay(200);
-    const latestTransfer = db.bankTransferRequests?.at(-1);
-    const isPremium = Boolean(db.subscription?.active || latestTransfer?.status === "APPROVED");
+    const isPremium = Boolean(db.subscription?.active);
     return {
       isPremium,
-      canCompleteSurvey: isPremium || latestTransfer?.status === "PENDING",
-      bankTransferStatus: latestTransfer?.status ?? null,
-      paymentMethod: latestTransfer?.status === "APPROVED" ? "BANK_TRANSFER" : null,
+      canCompleteSurvey: isPremium,
+      paymentMethod: db.subscription?.paymentMethod ?? null,
       subscription: { ...db.subscription },
       fortunePass: { ...db.fortunePass },
     };
@@ -23,13 +21,7 @@ export const fetchSubscription = async () => {
   const { data } = await api.get("/api/premium/status/");
   const isPremium = Boolean(data.isPremium);
   const canCompleteSurvey = Boolean(data.canCompleteSurvey ?? isPremium);
-  const status = data.bankTransferStatus === "PENDING"
-    ? "PENDING"
-    : isPremium
-      ? "ACTIVE"
-      : data.premiumExpiresAt
-        ? "COMPLETED"
-        : "NONE";
+  const status = isPremium ? "ACTIVE" : data.premiumExpiresAt ? "COMPLETED" : "NONE";
   return {
     ...data,
     canCompleteSurvey,
@@ -38,7 +30,6 @@ export const fetchSubscription = async () => {
       isActive: isPremium,
       status,
       paymentMethod: data.paymentMethod,
-      bankTransferStatus: data.bankTransferStatus,
       canRequestRefund: Boolean(data.canRequestRefund),
       paidAt: data.premiumStartedAt,
       purchasedAt: data.premiumStartedAt,
@@ -81,51 +72,6 @@ export const fetchPremiumBilling = async () => {
         }
       : null,
   };
-};
-
-// 계좌이체 입금 확인 요청 — 서버가 금액과 통화를 지정해요.
-export const createBankTransferRequest = async ({ depositorName }) => {
-  const normalizedName = String(depositorName ?? "").trim();
-  if (normalizedName.length < 2 || normalizedName.length > 30) {
-    const error = new Error("입금자명을 2자 이상 입력해주세요.");
-    error.response = {
-      status: 400,
-      data: { depositorName: [error.message] },
-    };
-    throw error;
-  }
-
-  if (USE_MOCK) {
-    await delay(300);
-    if (db.subscription?.active) {
-      const error = new Error("이미 프리미엄을 이용 중입니다.");
-      error.response = {
-        status: 409,
-        data: { detail: error.message, code: "PREMIUM_ALREADY_ACTIVE" },
-      };
-      throw error;
-    }
-    const pending = db.bankTransferRequests?.find((request) => request.status === "PENDING");
-    if (pending) return { ...pending };
-    const result = {
-      requestId: Date.now(),
-      depositorName: normalizedName,
-      amount: 2500,
-      currencyCode: "KRW",
-      status: "PENDING",
-      requestedAt: new Date().toISOString(),
-      reviewedAt: null,
-    };
-    db.bankTransferRequests ??= [];
-    db.bankTransferRequests.push(result);
-    persist();
-    return result;
-  }
-
-  const { data } = await api.post("/api/premium/bank-transfer-requests/", {
-    depositorName: normalizedName,
-  });
-  return data;
 };
 
 export const createPayAppCheckout = async ({ recvphone }) => {

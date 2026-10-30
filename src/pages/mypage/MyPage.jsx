@@ -25,12 +25,9 @@ export default function MyPage() {
   const navigate = useNavigate();
   const isLoggedIn = Boolean(localStorage.getItem("wee_access_token"));
   const { data: profile } = useMyPageSummaryQuery({ enabled: isLoggedIn });
-  const {
-    isPremium,
-    isLoading: isPremiumLoading,
-    bankTransferStatus,
-  } = useIsPremium({ enabled: isLoggedIn });
-  const isBankTransferPending = bankTransferStatus === "PENDING";
+  const { isPremium, isLoading: isPremiumLoading } = useIsPremium({
+    enabled: isLoggedIn,
+  });
 
   if (!isLoggedIn) {
     return (
@@ -149,7 +146,7 @@ export default function MyPage() {
               {!isPremium && (
                 <button
                   type="button"
-                  disabled={isPremiumLoading || isBankTransferPending}
+                  disabled={isPremiumLoading}
                   onClick={() => navigate("/premium/payment-method")}
                   aria-label="프리미엄 구독하기"
                   className="absolute inset-x-[14px] top-[7px] z-10 flex h-[39px] items-center justify-center gap-[8px] bg-[rgba(255,255,255,0.86)] backdrop-blur-[2px] disabled:cursor-default"

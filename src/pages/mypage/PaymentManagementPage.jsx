@@ -1,25 +1,17 @@
-import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Header from "../../components/Header";
 import Button from "../../components/Button";
 import MobileLayout from "../../components/MobileLayout";
 import { usePremiumBillingQuery, useRefundRequestQuery, useSubscriptionQuery } from "../../hooks/usePayment";
-import { PREMIUM_BANK_TRANSFER_PENDING_KEY, PREMIUM_PLAN } from "../../constants/premium";
+import { PREMIUM_PLAN } from "../../constants/premium";
 import { fetchMyFortunePurchases } from "../../api/fortune";
 import queryKeys from "../../api/queryKeys";
 
 const cardClassName =
   "flex w-full flex-col gap-[15px] rounded-[13px] border-[1.5px] border-[#E9E8E8] bg-white px-4 py-[19px]";
-const readPendingTransfer = () => {
-  try {
-    return JSON.parse(localStorage.getItem(PREMIUM_BANK_TRANSFER_PENDING_KEY) ?? "null");
-  } catch {
-    return null;
-  }
-};
 const inactiveStatusMessages = {
-  PENDING: "입금 확인 중",
+  PENDING: "결제 확인 중",
   FAILED: "결제에 실패했어요.",
   CANCELED: "결제가 취소되었어요.",
   PARTIALLY_REFUNDED: "일부 환불 처리되었어요.",
@@ -47,8 +39,6 @@ const formatFortuneRedeemedAt = (value) => {
 
 export default function PaymentManagementPage() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const [pendingTransfer, setPendingTransfer] = useState(readPendingTransfer);
   const { data, isLoading, isError } = usePremiumBillingQuery();
   const entitlementQuery = useSubscriptionQuery({ refetchOnMount: "always" });
   const { data: refundRequest } = useRefundRequestQuery();
@@ -75,14 +65,7 @@ export default function PaymentManagementPage() {
   const subscription = data?.subscription;
   const isActive = entitlementQuery.data?.subscription?.active ?? subscription?.isActive ?? subscription?.active;
   const isCheckingEntitlement = entitlementQuery.isLoading || entitlementQuery.isFetching;
-  const isTransferPending = !isActive && (
-    pendingTransfer?.status === "PENDING" ||
-    location.state?.bankTransferManual === true ||
-    location.state?.bankTransferPreview === true ||
-    entitlementQuery.data?.bankTransferStatus === "PENDING" ||
-    subscription?.status === "PENDING"
-  );
-  const canPurchasePremium = !isLoading && !isError && !entitlementQuery.isError && !isCheckingEntitlement && !isActive && !isTransferPending;
+  const canPurchasePremium = !isLoading && !isError && !entitlementQuery.isError && !isCheckingEntitlement && !isActive;
   const purchasedAt = subscription?.purchasedAt ?? subscription?.paidAt;
   const paidAt = purchasedAt
     ? purchasedAt.slice(0, 10).replaceAll("-", ".")
@@ -95,12 +78,6 @@ export default function PaymentManagementPage() {
         day: "2-digit",
       }).format(new Date(expiresAt))
     : null;
-
-  useEffect(() => {
-    if (!isActive) return;
-    localStorage.removeItem(PREMIUM_BANK_TRANSFER_PENDING_KEY);
-    setPendingTransfer(null);
-  }, [isActive]);
 
   return (
     <MobileLayout>
@@ -129,23 +106,6 @@ export default function PaymentManagementPage() {
               </div>
             ) : isError ? (
               <p className="text-[14px] leading-[21px] text-[#797776]">구독 정보를 불러오지 못했어요.</p>
-            ) : isTransferPending ? (
-              <>
-                <button
-                  type="button"
-                  onClick={() => navigate("/premium/bank-transfer/pending")}
-                  className="self-start text-left text-[14px] leading-[19.296px] tracking-[-0.4288px]"
-                >
-                  결제 상태 확인
-                </button>
-                <button
-                  type="button"
-                  onClick={() => navigate("/mypage/refund")}
-                  className="self-start text-[14px] leading-[21px] tracking-[-0.43px] text-[#F35C4B]"
-                >
-                  환불 신청
-                </button>
-              </>
             ) : isActive && !subscription ? (
               <>
                 <p className="text-[14px] leading-[21px] text-[#19BBD8]">프리미엄 이용 중</p>
