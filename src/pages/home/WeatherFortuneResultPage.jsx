@@ -93,7 +93,7 @@ export default function WeatherFortuneResultPage() {
 
   return (
     <MobileLayout>
-      <main className="relative mx-auto min-h-[852px] w-full max-w-[402px] overflow-hidden bg-white text-[#353331]">
+      <main className="relative mx-auto min-h-[852px] w-full max-w-[402px] overflow-hidden bg-white pb-[140px] text-[#353331]">
         <button
           type="button"
           aria-label="운세 결과 공유하기"
@@ -147,7 +147,7 @@ export default function WeatherFortuneResultPage() {
 
         <section
           aria-label="운세 상세 풀이"
-          className="absolute left-6 right-6 top-[521px] h-[183px] overflow-hidden rounded-[20px] border border-[#D2D2D1]/60 px-[28px] pt-[17px]"
+          className={`relative mx-6 mt-[521px] min-h-[183px] rounded-[20px] border border-[#D2D2D1]/60 px-[28px] pb-[24px] pt-[17px] ${isFortuneLocked ? "overflow-hidden" : ""}`}
         >
           <h2 className="text-[16px] font-semibold leading-[1.38] tracking-[-0.48px]">
             상세 풀이
@@ -196,7 +196,7 @@ export default function WeatherFortuneResultPage() {
             <button
               type="button"
               onClick={() => fortuneQuery.refetch()}
-              className="absolute left-1/2 top-[710px] -translate-x-1/2 text-sm text-[#797776] underline"
+              className="mx-auto mt-[6px] block text-sm text-[#797776] underline"
             >
               {fortuneQuery.error?.response?.data?.detail ?? "다시 시도"}
             </button>
@@ -206,7 +206,7 @@ export default function WeatherFortuneResultPage() {
           <button
             type="button"
             onClick={() => navigate("/home")}
-            className="absolute right-[33px] top-[713px] text-[14px] font-semibold leading-[1.5] tracking-[-0.42px] text-[#D2D2D1] underline underline-offset-2"
+            className="ml-auto mr-[33px] mt-[9px] block text-[14px] font-semibold leading-[1.5] tracking-[-0.42px] text-[#D2D2D1] underline underline-offset-2"
           >
             홈으로
           </button>
