@@ -26,6 +26,10 @@ export const initializeOneSignal = () => {
         resolve(OneSignal);
       } catch (error) {
         // Preserve failed initialization until reload; the SDK may already be active.
+        if (error instanceof Error && error.message.startsWith("Can only be used on:")) {
+          reject(new Error(`${error.message} / 현재 접속 주소: ${window.location.origin}`, { cause: error }));
+          return;
+        }
         reject(error);
       }
     }));
