@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import BottomSheet from "./BottomSheet";
+import packageIcon1 from "../assets/images/fortune/fortune_package_1.svg";
+import packageIcon2 from "../assets/images/fortune/fortune_package_2.svg";
+import packageIcon3 from "../assets/images/fortune/fortune_package_3.svg";
 import {
   FORTUNE_FALLBACK_DAILY_PRICE,
   FORTUNE_PAYMENT_FAIL_MESSAGES,
@@ -18,6 +21,10 @@ import {
   loadPendingFortunePurchase,
   savePendingFortunePurchase,
 } from "../utils/fortunePayment";
+
+// 패키지 기간별 캐릭터 아이콘 (7일 이하 1마리 / 14일 이하 2마리 / 그 이상 3마리)
+const getPackageIcon = (days) =>
+  days <= 7 ? packageIcon1 : days <= 14 ? packageIcon2 : packageIcon3;
 
 // 날씨 운세 "유료 결제" 바텀시트
 // 열릴 때마다 새로 마운트돼서 상태가 자동 초기화돼요.
@@ -205,12 +212,18 @@ function FortunePaymentSheetBody({ isOpen, onClose, onOpenCoupon, onPaid }) {
                         type="button"
                         onClick={() => handleSelect(product)}
                         aria-label={`${product.title} ${formatWon(product.price)}원 결제`}
-                        className="block w-full px-2 pb-[14px] pt-[6px] text-left"
+                        className="relative block w-full px-2 pb-[14px] pt-[6px] text-left"
                       >
+                        <img
+                          src={getPackageIcon(product.duration_days)}
+                          alt=""
+                          aria-hidden="true"
+                          className="pointer-events-none absolute left-2 top-1/2 h-[60px] w-[56px] -translate-y-1/2 object-contain"
+                        />
                         <span className="block text-right text-[10px] leading-[1.5] text-white">
                           {getFortunePackageLabel(product.duration_days)}
                         </span>
-                        <span className="mt-[6px] flex items-baseline gap-4 pl-[42px]">
+                        <span className="mt-[6px] flex items-baseline gap-4 pl-[72px]">
                           <span className="text-[20px] font-medium leading-[1.2] tracking-[-0.6px] text-white">
                             {formatWon(product.price)}₩
                           </span>
@@ -220,7 +233,7 @@ function FortunePaymentSheetBody({ isOpen, onClose, onOpenCoupon, onPaid }) {
                             </span>
                           )}
                         </span>
-                        <span className="mt-[6px] block pl-[42px] text-[11px] leading-[1.4] text-white">
+                        <span className="mt-[6px] block pl-[72px] text-[11px] leading-[1.4] text-white">
                           {formatWon(dailyPrice)}₩ x {product.duration_days}days
                           ⇒ {formatWon(base)}₩
                         </span>
