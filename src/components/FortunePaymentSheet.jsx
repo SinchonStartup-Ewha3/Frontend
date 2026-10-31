@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import BottomSheet from "./BottomSheet";
-import packageIcon1 from "../assets/images/fortune/fortune_package_1.svg";
-import packageIcon2 from "../assets/images/fortune/fortune_package_2.svg";
-import packageIcon3 from "../assets/images/fortune/fortune_package_3.svg";
+import packageMascot from "../assets/images/fortune/fortune_package_sprites.png";
 import {
   FORTUNE_FALLBACK_DAILY_PRICE,
   FORTUNE_PAYMENT_FAIL_MESSAGES,
@@ -154,26 +152,26 @@ function FortunePaymentSheetBody({ isOpen, onClose, onOpenCoupon, onPaid }) {
       showHeader={false}
       hideScrollbar
       backdropClassName="bg-[#D9D9D9]/75"
-      className="!max-h-[90dvh] !rounded-t-[30px] !bg-[#555]/55 !px-7 !pb-0 !pt-[25px] !shadow-none"
+      className="!max-h-[90dvh] !rounded-t-[30px] !bg-[#434343]/40 !px-0 !pb-0 !pt-6 !shadow-none"
     >
-      <div className="mb-[14px] flex h-[38px] items-center justify-between">
-        <h2 className="text-[26px] font-semibold leading-[1.2] tracking-[-0.78px] text-white">
+      <div className="mx-auto mb-[14px] flex h-[38px] w-[calc(100%-72px)] items-center justify-between">
+        <h2 className="text-[26px] font-semibold leading-[1.4] tracking-[-0.78px] text-white">
           유료 결제
         </h2>
         <button
           type="button"
           aria-label="유료 결제 창 닫기"
           onClick={onClose}
-          className="flex h-6 w-6 items-center justify-center rounded-full bg-white/70 text-[12px] leading-none text-[#797776]"
+          className="flex h-[23px] w-[23px] items-center justify-center rounded-full bg-white/70 text-[12px] leading-none text-[#797776]"
         >
           ×
         </button>
       </div>
 
-      <div className="mx-2 mb-2 rounded-[20px] bg-[#555]/55 px-[18px] pb-4 pt-[14px]">
+      <div className="mx-auto mb-2 h-[322px] w-[calc(100%-72px)] overflow-y-auto rounded-[20px] bg-[#575757]/60 px-[20px] pb-3 pt-[10px]">
         {step === "select" && (
           <>
-            <p className={panelText}>
+            <p className="text-[10px] font-semibold leading-[1.5] tracking-[-0.3px] text-[#E9E8E8]">
               테루테루 카드 속 코드를 등록해 날씨 운세를 볼 수 있어요.
               <br />
               원하는 패키지 상품을 클릭하여 Wee의 날씨 운세 서비스를
@@ -201,29 +199,36 @@ function FortunePaymentSheetBody({ isOpen, onClose, onOpenCoupon, onPaid }) {
                 </button>
               </div>
             ) : (
-              <ul className="mt-3">
+              <ul className="mt-[9px]">
                 {packages.map((product) => {
                   const base = dailyPrice * product.duration_days;
                   const save =
                     base > 0 ? Math.round((1 - product.price / base) * 100) : 0;
+                  const mascotCount = Math.min(
+                    3,
+                    Math.max(1, Math.ceil(product.duration_days / 7)),
+                  );
+                  const mascotSize =
+                    mascotCount === 1
+                      ? "h-[52px] w-[43px]"
+                      : mascotCount === 2
+                        ? "h-[40px] w-[33px]"
+                        : "h-[36px] w-[30px]";
                   return (
-                    <li key={product.id} className="border-t border-white">
+                    <li
+                      key={product.id}
+                      className="h-[74px] border-t border-white/90"
+                    >
                       <button
                         type="button"
                         onClick={() => handleSelect(product)}
                         aria-label={`${product.title} ${formatWon(product.price)}원 결제`}
-                        className="relative block w-full px-2 pb-[14px] pt-[6px] text-left"
+                        className="block w-full px-2 pb-[14px] pt-[6px] text-left"
                       >
-                        <img
-                          src={getPackageIcon(product.duration_days)}
-                          alt=""
-                          aria-hidden="true"
-                          className="pointer-events-none absolute left-2 top-1/2 h-[60px] w-[56px] -translate-y-1/2 object-contain"
-                        />
                         <span className="block text-right text-[10px] leading-[1.5] text-white">
                           {getFortunePackageLabel(product.duration_days)}
                         </span>
-                        <span className="mt-[6px] flex items-baseline gap-4 pl-[72px]">
+                        <span className="mt-[6px] flex items-baseline gap-4 pl-[42px]">
                           <span className="text-[20px] font-medium leading-[1.2] tracking-[-0.6px] text-white">
                             {formatWon(product.price)}₩
                           </span>
@@ -233,7 +238,7 @@ function FortunePaymentSheetBody({ isOpen, onClose, onOpenCoupon, onPaid }) {
                             </span>
                           )}
                         </span>
-                        <span className="mt-[6px] block pl-[72px] text-[11px] leading-[1.4] text-white">
+                        <span className="mt-[6px] block pl-[42px] text-[11px] leading-[1.4] text-white">
                           {formatWon(dailyPrice)}₩ x {product.duration_days}days
                           ⇒ {formatWon(base)}₩
                         </span>
@@ -245,24 +250,24 @@ function FortunePaymentSheetBody({ isOpen, onClose, onOpenCoupon, onPaid }) {
             )}
 
             {!productsQuery.isPending && !productsQuery.isError && (
-              <div className="mt-1 flex flex-col items-center gap-[10px]">
+              <div className="mt-0 flex flex-col items-center gap-[5px]">
                 {daily && (
                   <button
                     type="button"
                     onClick={() => handleSelect(daily)}
-                    className="text-[13px] font-medium text-white underline underline-offset-2"
+                    className="text-[8px] font-medium leading-[1.5] text-[#D2D2D1] underline underline-offset-2"
                   >
                     {formatWon(daily.price)}원 하루만 결제하기
                   </button>
                 )}
-                <p className="text-center text-[10px] leading-[1.5] text-[#E9E8E8]">
+                <p className="text-center text-[8px] leading-[1.5] text-[#E9E8E8]">
                   날짜가 지나면 그 날 사용하지 않은 코인은 자동 소멸됩니다.
                 </p>
                 {onOpenCoupon && (
                   <button
                     type="button"
                     onClick={onOpenCoupon}
-                    className="text-[12px] text-[#E9E8E8] underline underline-offset-2"
+                    className="text-[8px] leading-[1.5] text-[#E9E8E8] underline underline-offset-2"
                   >
                     쿠폰 코드가 있어요
                   </button>
