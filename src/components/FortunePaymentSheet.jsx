@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import BottomSheet from "./BottomSheet";
 import packageMascot from "../assets/images/fortune/fortune_package_sprites.png";
+import payIcon2 from "../assets/icons/payicon2.svg";
+import payIcon3 from "../assets/icons/payicon3.svg";
 import {
   FORTUNE_FALLBACK_DAILY_PRICE,
   FORTUNE_PAYMENT_FAIL_MESSAGES,
@@ -200,11 +202,18 @@ function FortunePaymentSheetBody({ isOpen, onClose, onOpenCoupon, onPaid }) {
                     3,
                     Math.max(1, Math.ceil(product.duration_days / 7)),
                   );
-                  const mascotSize = mascotCount === 1
-                    ? "h-[52px] w-[43px]"
-                    : mascotCount === 2
-                      ? "h-[40px] w-[33px]"
-                      : "h-[36px] w-[30px]";
+                  const packageIcon =
+                    mascotCount === 3
+                      ? payIcon3
+                      : mascotCount === 2
+                        ? payIcon2
+                        : packageMascot;
+                  const packageIconSize =
+                    mascotCount === 3
+                      ? "h-[63px] w-[52px]"
+                      : mascotCount === 2
+                        ? "h-[52px] w-[52px]"
+                        : "h-[52px] w-[43px]";
                   return (
                     <li key={product.id} className="h-[74px] border-t border-white/90">
                       <button
@@ -214,15 +223,12 @@ function FortunePaymentSheetBody({ isOpen, onClose, onOpenCoupon, onPaid }) {
                         className="relative flex h-full w-full items-center text-left"
                       >
                         <span className="flex h-full w-[52px] shrink-0 items-center">
-                          {Array.from({ length: mascotCount }, (_, index) => (
-                            <img
-                              key={`${product.id}-mascot-${index}`}
-                              src={packageMascot}
-                              alt=""
-                              aria-hidden="true"
-                              className={`${mascotSize} shrink-0 object-contain ${index ? "-ml-[13px]" : ""}`}
-                            />
-                          ))}
+                          <img
+                            src={packageIcon}
+                            alt=""
+                            aria-hidden="true"
+                            className={`${packageIconSize} shrink-0 object-contain`}
+                          />
                         </span>
                         <span className="min-w-0 flex-1 translate-y-[5px] pl-[4px]">
                           <span className="flex items-baseline gap-[10px]">
