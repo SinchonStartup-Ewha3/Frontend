@@ -70,11 +70,15 @@ const usePushNotification = () => {
       if (Notification.permission === "granted" && (await resetOnce())) {
         return { ok: false, reason: "reset" };
       }
+      if (Notification.permission === "granted") {
+        throw new Error("알림 권한은 허용됐지만 기기 구독이 완료되지 않았어요.");
+      }
       return { ok: false, reason: "dismissed" };
     } catch (error) {
       console.error("푸시 구독 실패", error); // 원인 확인용 로그
       if (await resetOnce()) return { ok: false, reason: "reset" };
-      return { ok: false, reason: "failed" };
+      // Preserve the SDK error so the settings page can show the actual cause.
+      throw error;
     }
   }, []);
 
