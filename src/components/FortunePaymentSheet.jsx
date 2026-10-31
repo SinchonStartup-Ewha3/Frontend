@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import BottomSheet from "./BottomSheet";
 import packageMascot from "../assets/images/fortune/fortune_package_sprites.png";
+import payIcon2 from "../assets/icons/payicon2.svg";
+import payIcon3 from "../assets/icons/payicon3.svg";
 import {
   FORTUNE_FALLBACK_DAILY_PRICE,
   FORTUNE_PAYMENT_FAIL_MESSAGES,
@@ -208,12 +210,18 @@ function FortunePaymentSheetBody({ isOpen, onClose, onOpenCoupon, onPaid }) {
                     3,
                     Math.max(1, Math.ceil(product.duration_days / 7)),
                   );
-                  const mascotSize =
-                    mascotCount === 1
-                      ? "h-[52px] w-[43px]"
+                  const packageIcon =
+                    mascotCount === 3
+                      ? payIcon3
                       : mascotCount === 2
-                        ? "h-[40px] w-[33px]"
-                        : "h-[36px] w-[30px]";
+                        ? payIcon2
+                        : packageMascot;
+                  const packageIconSize =
+                    mascotCount === 3
+                      ? "h-[63px] w-[52px]"
+                      : mascotCount === 2
+                        ? "h-[52px] w-[52px]"
+                        : "h-[52px] w-[43px]";
                   return (
                     <li
                       key={product.id}
@@ -225,8 +233,13 @@ function FortunePaymentSheetBody({ isOpen, onClose, onOpenCoupon, onPaid }) {
                         aria-label={`${product.title} ${formatWon(product.price)}원 결제`}
                         className="block w-full px-2 pb-[14px] pt-[6px] text-left"
                       >
-                        <span className="block text-right text-[10px] leading-[1.5] text-white">
-                          {getFortunePackageLabel(product.duration_days)}
+                        <span className="flex h-full w-[52px] shrink-0 items-center">
+                          <img
+                            src={packageIcon}
+                            alt=""
+                            aria-hidden="true"
+                            className={`${packageIconSize} shrink-0 object-contain`}
+                          />
                         </span>
                         <span className="mt-[6px] flex items-baseline gap-4 pl-[42px]">
                           <span className="text-[20px] font-medium leading-[1.2] tracking-[-0.6px] text-white">
