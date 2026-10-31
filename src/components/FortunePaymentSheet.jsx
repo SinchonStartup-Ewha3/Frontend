@@ -70,8 +70,7 @@ function FortunePaymentSheetBody({ isOpen, onClose, onOpenCoupon, onPaid }) {
 
   const products = productsQuery.data ?? [];
   const daily = products.find((product) => product.duration_days === 1);
-  // 화면의 하루 기준 단가는 1,000원으로 고정해 표시합니다.
-  const dailyPrice = FORTUNE_FALLBACK_DAILY_PRICE;
+  const dailyPrice = daily?.price ?? FORTUNE_FALLBACK_DAILY_PRICE;
   const packages = products
     .filter((product) => product.duration_days > 1)
     .sort((a, b) => a.duration_days - b.duration_days);
@@ -211,7 +210,7 @@ function FortunePaymentSheetBody({ isOpen, onClose, onOpenCoupon, onPaid }) {
                       <button
                         type="button"
                         onClick={() => handleSelect(product)}
-                        aria-label={`${product.title} ${formatWon(product.duration_days === 1 ? dailyPrice : product.price)}원 결제`}
+                        aria-label={`${product.title} ${formatWon(product.price)}원 결제`}
                         className="relative flex h-full w-full items-center text-left"
                       >
                         <span className="flex h-full w-[52px] shrink-0 items-center">
@@ -258,7 +257,7 @@ function FortunePaymentSheetBody({ isOpen, onClose, onOpenCoupon, onPaid }) {
                     onClick={() => handleSelect(daily)}
                     className="text-[8px] font-medium leading-[1.5] text-[#D2D2D1] underline underline-offset-2"
                   >
-                    {formatWon(dailyPrice)}원 하루만 결제하기
+                    {formatWon(daily.price)}원 하루만 결제하기
                   </button>
                 )}
                 <p className="text-center text-[8px] leading-[1.5] text-[#E9E8E8]">
@@ -283,7 +282,7 @@ function FortunePaymentSheetBody({ isOpen, onClose, onOpenCoupon, onPaid }) {
             <div>
               <p className="text-[12px] text-[#E9E8E8]">선택한 상품</p>
               <p className="mt-1 text-[18px] font-semibold tracking-[-0.54px] text-white">
-                {selected.title} · {formatWon(selected.duration_days === 1 ? dailyPrice : selected.price)}원
+                {selected.title} · {formatWon(selected.price)}원
               </p>
               <p className="mt-[2px] text-[11px] text-[#E9E8E8]">
                 {selected.duration_days}일 동안 하루 1코인으로 상세 풀이를
