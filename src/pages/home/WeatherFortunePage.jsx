@@ -5,6 +5,7 @@ import Button from "../../components/Button";
 import Card from "../../components/Card";
 import CouponRegistrationSheet from "../../components/CouponRegistrationSheet";
 import FortuneCoinChip from "../../components/FortuneCoinChip";
+import FortunePaymentSheet from "../../components/FortunePaymentSheet";
 import Header from "../../components/Header";
 import MobileLayout from "../../components/MobileLayout";
 import wizardCharacter from "../../assets/images/fortune/fortune_wizard.svg";
@@ -20,6 +21,7 @@ export default function WeatherFortunePage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isCouponDialogOpen, setIsCouponDialogOpen] = useState(false);
+  const [isPaymentSheetOpen, setIsPaymentSheetOpen] = useState(false);
   const isLoggedIn = Boolean(localStorage.getItem("wee_access_token"));
   const profileQuery = useQuery({
     queryKey: queryKeys.fortuneProfile,
@@ -167,11 +169,26 @@ export default function WeatherFortunePage() {
           aria-hidden="true"
           className="absolute left-1/2 top-[703px] h-px w-[112px] -translate-x-1/2 bg-[#D2D2D1]"
         />
+        <button
+          type="button"
+          onClick={() => setIsPaymentSheetOpen(true)}
+          className="absolute left-1/2 top-[716px] -translate-x-1/2 whitespace-nowrap text-[16px] font-medium leading-[1.5] tracking-[-0.48px] text-[#A5A4A3] underline underline-offset-2"
+        >
+          이용권 결제하기
+        </button>
       </main>
       <CouponRegistrationSheet
         isOpen={isCouponDialogOpen}
         onClose={() => setIsCouponDialogOpen(false)}
         onRegister={handleCouponRegister}
+      />
+      <FortunePaymentSheet
+        isOpen={isPaymentSheetOpen}
+        onClose={() => setIsPaymentSheetOpen(false)}
+        onOpenCoupon={() => {
+          setIsPaymentSheetOpen(false);
+          setIsCouponDialogOpen(true);
+        }}
       />
     </MobileLayout>
   );

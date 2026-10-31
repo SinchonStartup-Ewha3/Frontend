@@ -73,6 +73,11 @@ export default function PaymentManagementPage() {
     entitlementQuery.data?.subscription?.active ??
     subscription?.isActive ??
     subscription?.active;
+  const canRequestPremiumRefund = Boolean(
+    entitlementQuery.data?.canRequestRefund ||
+      entitlementQuery.data?.subscription?.canRequestRefund ||
+      subscription?.canRequestRefund,
+  );
   const isCheckingEntitlement =
     entitlementQuery.isLoading || entitlementQuery.isFetching;
   const canPurchasePremium =
@@ -140,13 +145,19 @@ export default function PaymentManagementPage() {
                 <p className="text-[14px] leading-[21px] text-[#19BBD8]">
                   프리미엄 이용 중
                 </p>
-                <button
-                  type="button"
-                  onClick={() => navigate("/mypage/refund")}
-                  className="self-start text-[14px] leading-[21px] tracking-[-0.43px] text-[#F35C4B]"
-                >
-                  환불 신청
-                </button>
+                {canRequestPremiumRefund ? (
+                  <button
+                    type="button"
+                    onClick={() => navigate("/mypage/refund")}
+                    className="self-start text-[14px] leading-[21px] tracking-[-0.43px] text-[#F35C4B]"
+                  >
+                    환불 신청
+                  </button>
+                ) : (
+                  <p className="text-[14px] leading-[21px] text-[#A5A4A3]">
+                    환불 가능한 프리미엄 결제 내역이 없어요.
+                  </p>
+                )}
               </>
             ) : subscription ? (
               <>
@@ -169,7 +180,7 @@ export default function PaymentManagementPage() {
                   >
                     환불 상태 확인
                   </button>
-                ) : isActive ? (
+                ) : isActive && canRequestPremiumRefund ? (
                   <button
                     type="button"
                     onClick={() => navigate("/mypage/refund")}
@@ -177,6 +188,10 @@ export default function PaymentManagementPage() {
                   >
                     환불 신청
                   </button>
+                ) : isActive ? (
+                  <p className="text-[14px] leading-[21px] tracking-[-0.43px] text-[#A5A4A3]">
+                    환불 가능한 프리미엄 결제 내역이 없어요.
+                  </p>
                 ) : subscription.status === "COMPLETED" &&
                   subscription.remainingSeconds === 0 ? (
                   <p className="text-[14px] leading-[21px] tracking-[-0.43px] text-[#A5A4A3]">
