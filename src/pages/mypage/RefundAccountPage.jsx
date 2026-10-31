@@ -8,6 +8,7 @@ import MobileLayout from "../../components/MobileLayout";
 import {
   useRefundRequestQuery,
   useRequestRefund,
+  useSubscriptionQuery,
 } from "../../hooks/usePayment";
 import queryKeys from "../../api/queryKeys";
 import useToast from "../../hooks/useToast";
@@ -33,7 +34,12 @@ export default function RefundAccountPage() {
   const toast = useToast();
   const refundMutation = useRequestRefund();
   const refundQuery = useRefundRequestQuery();
+  const subscriptionQuery = useSubscriptionQuery({ refetchOnMount: "always" });
   const refundRequest = refundMutation.data ?? refundQuery.data;
+  const canRequestRefund = Boolean(
+    subscriptionQuery.data?.canRequestRefund ??
+      subscriptionQuery.data?.subscription?.canRequestRefund,
+  );
   const confirmDescription =
     "결제 처리 결과에 따라 환불이 진행됩니다.\n환불 요청 후에도 프리미엄 기능은 계속 이용할 수 있어요.";
   const [reason, setReason] = useState("");
@@ -79,7 +85,7 @@ export default function RefundAccountPage() {
           </p>
         </div>
 
-        {refundQuery.isLoading && !refundMutation.data ? (
+        {(refundQuery.isLoading || subscriptionQuery.isLoading) && !refundMutation.data ? (
           <p className="px-[27px] pt-[72px] text-sm text-[#797776]">환불 요청 내역을 확인하고 있어요.</p>
         ) : refundRequest ? (
           <section className="mx-[22px] mt-[64px] rounded-[16px] border border-[#E9E8E8] p-5">
@@ -98,6 +104,15 @@ export default function RefundAccountPage() {
                 결제 처리 결과에 따라 환불이 완료됩니다.
               </p>
             )}
+            <Button onClick={() => navigate("/mypage/payment")} className="mt-5 h-11 w-full rounded-[10px]">
+              결제 관리로
+            </Button>
+          </section>
+        ) : !canRequestRefund ? (
+          <section className="mx-[22px] mt-[64px] rounded-[16px] border border-[#E9E8E8] p-5">
+            <p className="text-sm leading-6 text-[#797776]">
+              환불 가능한 프리미엄 결제 내역이 없어요. 실제 결제 내역이 있다면 고객지원에 문의해 주세요.
+            </p>
             <Button onClick={() => navigate("/mypage/payment")} className="mt-5 h-11 w-full rounded-[10px]">
               결제 관리로
             </Button>

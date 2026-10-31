@@ -10,7 +10,7 @@ export const FORTUNE_CALENDAR_SELECTIONS = [
 ];
 
 // 하루권(1일 상품)의 기준 단가 계산용: duration_days === 1 인 상품의 가격을 사용
-export const FORTUNE_FALLBACK_DAILY_PRICE = 990;
+export const FORTUNE_FALLBACK_DAILY_PRICE = 1000;
 
 // 결제 상태별 안내 문구 (PENDING/PAID 는 화면에서 따로 처리)
 export const FORTUNE_PAYMENT_FAIL_MESSAGES = {
