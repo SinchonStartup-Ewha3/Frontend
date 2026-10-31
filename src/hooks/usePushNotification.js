@@ -2,9 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import {
   getOneSignalPushState,
   initializeOneSignal,
-  PUSH_RESET_KEY,
   requestOneSignalPush,
-  resetOneSignalLocalState,
 } from "../push/oneSignal";
 
 const isSupported = () =>
@@ -43,14 +41,6 @@ const usePushNotification = () => {
       });
   }, [iosInstallRequired]);
 
-  // 기존 기기에 남은 예전 상태 때문에 실패했을 가능성 → 1회만 자동 초기화 후 새로고침 안내
-  const resetOnce = async () => {
-    if (sessionStorage.getItem(PUSH_RESET_KEY)) return false;
-    sessionStorage.setItem(PUSH_RESET_KEY, "1");
-    await resetOneSignalLocalState();
-    return true;
-  };
-
   const enable = useCallback(async () => {
     if (!isSupported()) return { ok: false, reason: "unsupported" };
     if (isIos() && !isStandalone()) return { ok: false, reason: "ios-install" };
@@ -66,17 +56,12 @@ const usePushNotification = () => {
       if (result?.subscribed) return { ok: true };
       if (Notification.permission === "denied")
         return { ok: false, reason: "denied" };
-      // 권한은 허용인데 구독이 안 만들어진 경우 → 예전 상태 초기화
-      if (Notification.permission === "granted" && (await resetOnce())) {
-        return { ok: false, reason: "reset" };
-      }
       if (Notification.permission === "granted") {
         throw new Error("알림 권한은 허용됐지만 기기 구독이 완료되지 않았어요.");
       }
       return { ok: false, reason: "dismissed" };
     } catch (error) {
       console.error("푸시 구독 실패", error); // 원인 확인용 로그
-      if (await resetOnce()) return { ok: false, reason: "reset" };
       // Preserve the SDK error so the settings page can show the actual cause.
       throw error;
     }
