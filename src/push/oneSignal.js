@@ -15,7 +15,8 @@ export const initializeOneSignal = () => {
 
   window.OneSignalDeferred = window.OneSignalDeferred || [];
   initialization = new Promise((resolve, reject) => {
-    window.OneSignalDeferred.push(async (OneSignal) => {
+    // Publish the shared promise before an already-loaded SDK runs the callback.
+    queueMicrotask(() => window.OneSignalDeferred.push(async (OneSignal) => {
       try {
         await OneSignal.init({
           appId: APP_ID,
@@ -24,11 +25,10 @@ export const initializeOneSignal = () => {
         });
         resolve(OneSignal);
       } catch (error) {
-        window[INITIALIZATION_KEY] = null;
-        initialization = null;
+        // Preserve failed initialization until reload; the SDK may already be active.
         reject(error);
       }
-    });
+    }));
   });
   window[INITIALIZATION_KEY] = initialization;
   return initialization;
@@ -102,52 +102,3 @@ export const requestOneSignalPush = () =>
     };
   });
 
-// 푸시 재설정 1회 제한용 플래그 (무한 새로고침 방지)
-export const PUSH_RESET_KEY = "wee_push_reset_done";
-
-// 기존 기기에 남은 OneSignal 흔적(서비스워커·푸시 구독·로컬 DB·저장소)을 정리하고 ㅠ..
-// 대시보드에서 기기를 삭제해도 폰에 남아 있는 예전 상태가 충돌하는 경우를 풀어주면?
-export const resetOneSignalLocalState = async () => {
-  try {
-    const registrations = await navigator.serviceWorker.getRegistrations();
-    await Promise.all(
-      registrations.map(async (registration) => {
-        try {
-          const sub = await registration.pushManager?.getSubscription();
-          await sub?.unsubscribe();
-        } catch {
-          /* 이미 만료된 구독은 무시 */
-        }
-        try {
-          await registration.unregister();
-        } catch {
-          /* 무시 */
-        }
-      }),
-    );
-  } catch {
-    /* 서비스워커 조회 실패는 무시 */
-  }
-
-  try {
-    const dbs = (await indexedDB.databases?.()) ?? [];
-    const names = dbs
-      .map((db) => db.name)
-      .filter((name) => /onesignal/i.test(name ?? ""));
-    if (!names.includes("ONE_SIGNAL_SDK_DB")) names.push("ONE_SIGNAL_SDK_DB");
-    names.forEach((name) => indexedDB.deleteDatabase(name));
-  } catch {
-    /* 무시 */
-  }
-
-  [localStorage, sessionStorage].forEach((storage) => {
-    Object.keys(storage)
-      .filter((key) => /onesignal/i.test(key))
-      .forEach((key) => storage.removeItem(key));
-  });
-
-  // 메모리에 남은 초기화 상태도 비우면..?
-  window[INITIALIZATION_KEY] = null;
-  initialization = null;
-  activeExternalId = null;
-};
