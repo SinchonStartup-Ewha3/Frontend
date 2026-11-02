@@ -30,6 +30,12 @@ export const fetchCommunityPosts = async ({
   return data;
 };
 
+// 게시글 상세 조회 (로그인 선택)
+export const fetchCommunityPost = async (postId) => {
+  const { data } = await api.get(`/api/community/posts/${postId}/`);
+  return data;
+};
+
 // 커뮤니티 날씨 문구 (로그인 선택)
 //  - 위치 우선순위: regionCode > lat,lng > 로그인 사용자의 저장 지역
 //  - 비로그인은 regionCode 또는 lat,lng 가 꼭 필요 / lat 과 lng 는 항상 같이 보내야

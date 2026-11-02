@@ -47,7 +47,8 @@ export default function PaymentManagementPage() {
   const navigate = useNavigate();
   const { data, isLoading, isError } = usePremiumBillingQuery();
   const entitlementQuery = useSubscriptionQuery({ refetchOnMount: "always" });
-  const { data: refundRequest } = useRefundRequestQuery();
+  const refundQuery = useRefundRequestQuery();
+  const refundRequest = refundQuery.data;
   const [isFortunePaymentOpen, setIsFortunePaymentOpen] = useState(false);
   const fortunePurchasesQuery = useFortunePurchasesQuery();
   const fortunePurchases = fortunePurchasesQuery.data;
@@ -80,11 +81,17 @@ export default function PaymentManagementPage() {
   );
   const isCheckingEntitlement =
     entitlementQuery.isLoading || entitlementQuery.isFetching;
+  const isRefundInProgress =
+    refundRequest?.status === "REQUESTED" ||
+    refundRequest?.status === "PROCESSING";
   const canPurchasePremium =
     !isLoading &&
     !isError &&
     !entitlementQuery.isError &&
     !isCheckingEntitlement &&
+    !refundQuery.isPending &&
+    !refundQuery.isError &&
+    !isRefundInProgress &&
     !isActive;
   const purchasedAt = subscription?.purchasedAt ?? subscription?.paidAt;
   const paidAt = purchasedAt
