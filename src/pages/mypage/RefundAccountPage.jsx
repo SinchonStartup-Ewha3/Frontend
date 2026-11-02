@@ -6,6 +6,7 @@ import ConfirmDialog from "../../components/ConfirmDialog";
 import Header from "../../components/Header";
 import MobileLayout from "../../components/MobileLayout";
 import {
+  usePremiumBillingQuery,
   useRefundRequestQuery,
   useRequestRefund,
   useSubscriptionQuery,
@@ -34,12 +35,19 @@ export default function RefundAccountPage() {
   const toast = useToast();
   const refundMutation = useRequestRefund();
   const refundQuery = useRefundRequestQuery();
+  const billingQuery = usePremiumBillingQuery();
   const subscriptionQuery = useSubscriptionQuery({ refetchOnMount: "always" });
   const refundRequest = refundMutation.data ?? refundQuery.data;
   const canRequestRefund = Boolean(
-    subscriptionQuery.data?.canRequestRefund ??
-      subscriptionQuery.data?.subscription?.canRequestRefund,
+    subscriptionQuery.data?.canRequestRefund ||
+      subscriptionQuery.data?.subscription?.canRequestRefund ||
+      billingQuery.data?.subscription?.canRequestRefund,
   );
+  const isLoading =
+    (billingQuery.isPending || subscriptionQuery.isPending || refundQuery.isPending) &&
+    !refundMutation.data;
+  const isLoadError =
+    billingQuery.isError || subscriptionQuery.isError || refundQuery.isError;
   const confirmDescription =
     "결제 처리 결과에 따라 환불이 진행됩니다.\n환불 요청 후에도 프리미엄 기능은 계속 이용할 수 있어요.";
   const [reason, setReason] = useState("");
@@ -47,7 +55,7 @@ export default function RefundAccountPage() {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    if (!reason.trim()) return;
+    if (!reason.trim() || !canRequestRefund) return;
     setIsConfirmOpen(true);
   };
 
@@ -85,7 +93,7 @@ export default function RefundAccountPage() {
           </p>
         </div>
 
-        {(refundQuery.isLoading || subscriptionQuery.isLoading) && !refundMutation.data ? (
+        {isLoading ? (
           <p className="px-[27px] pt-[72px] text-sm text-[#797776]">환불 요청 내역을 확인하고 있어요.</p>
         ) : refundRequest ? (
           <section className="mx-[22px] mt-[64px] rounded-[16px] border border-[#E9E8E8] p-5">
@@ -106,6 +114,22 @@ export default function RefundAccountPage() {
             )}
             <Button onClick={() => navigate("/mypage/payment")} className="mt-5 h-11 w-full rounded-[10px]">
               결제 관리로
+            </Button>
+          </section>
+        ) : isLoadError ? (
+          <section className="mx-[22px] mt-[64px] rounded-[16px] border border-[#E9E8E8] p-5">
+            <p role="alert" className="text-sm leading-6 text-[#797776]">
+              환불 정보를 불러오지 못했어요. 다시 시도해주세요.
+            </p>
+            <Button
+              onClick={() => {
+                billingQuery.refetch();
+                subscriptionQuery.refetch();
+                refundQuery.refetch();
+              }}
+              className="mt-5 h-11 w-full rounded-[10px]"
+            >
+              다시 시도
             </Button>
           </section>
         ) : !canRequestRefund ? (
