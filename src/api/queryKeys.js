@@ -34,6 +34,7 @@ const queryKeys = {
   running: (regionCode) => ["situations", "running", regionCode ?? "me"],
   // 커뮤니티: 피드(태그/페이지별) + 날씨 문구(로그인은 "me", 비로그인은 지역코드/좌표별)
   communityPosts: ["community", "posts"],
+  communityPost: (postId) => ["community", "posts", "detail", String(postId)],
   communityPostsPage: (tag, page, pageSize) => [
     "community",
     "posts",

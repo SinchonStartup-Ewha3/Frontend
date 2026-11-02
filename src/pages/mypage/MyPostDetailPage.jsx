@@ -6,9 +6,9 @@ import ConfirmDialog from "../../components/ConfirmDialog";
 import Header from "../../components/Header";
 import MobileLayout from "../../components/MobileLayout";
 import PageLayout from "../../components/PageLayout";
+import PostDetailContent from "../../components/PostDetailContent";
 import useToast from "../../hooks/useToast";
 import { useDeleteMyPost, useMyPostQuery } from "../../hooks/useActivity";
-import { formatMonthDay, timeAgo } from "../../utils/format";
 
 export default function MyPostDetailPage() {
   const { postId } = useParams();
@@ -32,7 +32,7 @@ export default function MyPostDetailPage() {
   return (
     <MobileLayout>
       <PageLayout nav={false} className="!px-0 !pb-0">
-        <main className="min-h-screen px-[26px] pt-[73px] pb-40 text-[#353331]">
+        <main className="mx-auto min-h-screen w-full max-w-[390px] px-6 pt-[73px] pb-[200px] text-[#353331]">
           <Header back />
 
           {postQuery.isLoading && (
@@ -51,49 +51,7 @@ export default function MyPostDetailPage() {
               <h1 className="mt-[18px] text-[24px] font-semibold leading-[1.4] tracking-[-0.72px]">
                 작성한 게시물
               </h1>
-              <p className="mt-[22px] whitespace-pre-line text-[16px] leading-[1.55] tracking-[-0.32px] text-[#62605F]">
-                {post.message}
-              </p>
-
-              {(post.tagLabel || post.region) && (
-                <p className="mt-[12px] text-[13px] leading-[18px] text-[#8F8E8D]">
-                  {[
-                    post.tagLabel,
-                    typeof post.region === "string"
-                      ? post.region
-                      : post.region?.shortName,
-                  ]
-                    .filter(Boolean)
-                    .join(" · ")}
-                </p>
-              )}
-
-              {post.image ? (
-                <img
-                  src={post.image}
-                  alt="게시물 첨부 이미지"
-                  className="mt-[22px] aspect-[346/212] w-full rounded-[13px] object-cover"
-                />
-              ) : (
-                <div
-                  aria-label="첨부 이미지 없음"
-                  className="mt-[22px] aspect-[346/212] w-full rounded-[13px] bg-[#E9E8E8]"
-                />
-              )}
-
-              <div className="mt-[22px] border-t border-[#E9E8E8] pt-[18px]">
-                <div className="flex items-center justify-between">
-                  <span className="text-[17px] font-semibold tracking-[-0.34px]">
-                    {formatMonthDay(post.createdAt)}
-                  </span>
-                  <span className="text-[15px] tracking-[-0.3px] text-[#A5A4A3]">
-                    {post.createdAtDisplay ?? timeAgo(post.createdAt)}
-                  </span>
-                </div>
-                <p className="mt-[18px] text-[15px] tracking-[-0.3px] text-[#797776]">
-                  공감 {post.scraps ?? post.likes ?? 0}
-                </p>
-              </div>
+              <PostDetailContent post={post} />
             </>
           )}
         </main>
