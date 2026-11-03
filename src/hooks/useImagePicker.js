@@ -156,7 +156,12 @@ const useImagePicker = () => {
     }
   };
 
-  return { photo, preview, error, isProcessing, choose };
+  const clear = () => {
+    replacePhoto(null);
+    setError("");
+  };
+
+  return { photo, preview, error, isProcessing, choose, clear };
 };
 
 export default useImagePicker;

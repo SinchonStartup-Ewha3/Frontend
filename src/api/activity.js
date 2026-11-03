@@ -6,11 +6,11 @@ import { USE_MOCK } from "./config";
 import { db, delay, persist } from "../mocks/db";
 import { toggleCommunityPostLike } from "./community";
 
-const toMyPostModel = (post) => ({
+export const toMyPostModel = (post) => ({
   ...post,
   id: post.postId ?? post.id,
   message: post.content ?? post.message,
-  image: post.imageUrl ?? post.image ?? null,
+  image: post.imageUrl !== undefined ? post.imageUrl : post.image ?? null,
   likes: post.likeCount ?? post.likes ?? post.scraps ?? 0,
   scraps: post.likeCount ?? post.scraps ?? 0,
 });
@@ -38,9 +38,9 @@ export const fetchMyPosts = async ({ page = 1, pageSize = 10 } = {}) => {
 export const fetchMyPost = async (id) => {
   if (USE_MOCK) {
     await delay(200);
-    const post = db.myPosts.find((p) => p.id === id);
+    const post = db.myPosts.find((p) => String(p.id) === String(id));
     if (!post) throw new Error("게시물을 찾을 수 없어요");
-    return { ...post };
+    return { ...post, isMine: true };
   }
   const { data } = await api.get(`/api/community/posts/${id}/`);
   return toMyPostModel(data);
@@ -49,11 +49,12 @@ export const fetchMyPost = async (id) => {
 export const deleteMyPost = async (id) => {
   if (USE_MOCK) {
     await delay(300);
-    db.myPosts = db.myPosts.filter((p) => p.id !== id);
-    db.savedPosts = db.savedPosts.filter((p) => p.id !== id);
+    db.myPosts = db.myPosts.filter((p) => String(p.id) !== String(id));
+    db.savedPosts = db.savedPosts.filter((p) => String(p.id) !== String(id));
     persist();
-    return { ok: true };
+    return;
   }
+  // 성공 응답은 204 No Content이므로 본문을 읽지 않아요.
   await api.delete(`/api/community/posts/${id}/`);
 };
 

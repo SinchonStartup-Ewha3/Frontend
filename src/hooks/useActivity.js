@@ -6,6 +6,7 @@ import {
   fetchMyPosts,
   fetchLikedPosts,
   unlikePost,
+  toMyPostModel,
 } from "../api/activity";
 import { updateCommunityPost } from "../api/community";
 import queryKeys from "../api/queryKeys";
@@ -21,7 +22,9 @@ export const useMyPostQuery = (id) =>
   useQuery({
     queryKey: queryKeys.myPost(id),
     queryFn: () => fetchMyPost(id),
-    enabled: Boolean(id),
+    enabled: /^[1-9]\d*$/.test(String(id ?? "")),
+    retry: false,
+    refetchOnMount: "always",
   });
 
 export const useDeleteMyPost = () => {
@@ -29,10 +32,18 @@ export const useDeleteMyPost = () => {
   return useMutation({
     mutationFn: deleteMyPost,
     retry: false,
-    onSuccess: (_data, id) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.myPosts });
-      queryClient.invalidateQueries({ queryKey: queryKeys.likedPosts });
+    onSuccess: async (_data, id) => {
+      await Promise.all([
+        queryClient.cancelQueries({ queryKey: queryKeys.myPost(id), exact: true }),
+        queryClient.cancelQueries({ queryKey: queryKeys.communityPost(id), exact: true }),
+      ]);
+      queryClient.removeQueries({ queryKey: queryKeys.communityPost(id) });
       queryClient.removeQueries({ queryKey: queryKeys.myPost(id) });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.myPosts }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.likedPosts }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.communityPosts }),
+      ]);
     },
   });
 };
@@ -44,12 +55,20 @@ export const useUpdateMyPost = () => {
   return useMutation({
     mutationFn: updateCommunityPost,
     retry: false,
-    onSuccess: () =>
-      Promise.all([
+    onSuccess: async (post, { postId }) => {
+      // PATCH가 반환한 전체 게시물을 사용해 삭제된 이미지(null)까지 즉시 반영해요.
+      await Promise.all([
+        queryClient.cancelQueries({ queryKey: queryKeys.myPost(postId), exact: true }),
+        queryClient.cancelQueries({ queryKey: queryKeys.communityPost(postId), exact: true }),
+      ]);
+      queryClient.setQueryData(queryKeys.myPost(postId), toMyPostModel(post));
+      queryClient.setQueryData(queryKeys.communityPost(postId), post);
+      await Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.myPosts }), // 내 글 목록 + 상세
         queryClient.invalidateQueries({ queryKey: queryKeys.likedPosts }), // 좋아요한 글 목록
         queryClient.invalidateQueries({ queryKey: queryKeys.communityPosts }), // 커뮤니티 피드
-      ]),
+      ]);
+    },
   });
 };
 
