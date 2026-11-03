@@ -10,7 +10,7 @@ import {
 } from "../../hooks/usePayment";
 import { PREMIUM_PLAN } from "../../constants/premium";
 import FortunePaymentSheet from "../../components/FortunePaymentSheet";
-import { useFortunePurchasesQuery } from "../../hooks/useFortunePayment";
+import { useFortunePurchasesQuery, useFortuneRefundQuery } from "../../hooks/useFortunePayment";
 import {
   FORTUNE_PAYMENT_METHOD_LABELS,
   FORTUNE_REFUND_STATUS_LABELS,
@@ -51,6 +51,7 @@ export default function PaymentManagementPage() {
   const refundRequest = refundQuery.data;
   const [isFortunePaymentOpen, setIsFortunePaymentOpen] = useState(false);
   const fortunePurchasesQuery = useFortunePurchasesQuery();
+  const fortuneRefundQuery = useFortuneRefundQuery();
   const fortunePurchases = fortunePurchasesQuery.data;
   const currentFortunePass = fortunePurchases?.current;
   const activeFortunePurchase =
@@ -59,10 +60,21 @@ export default function PaymentManagementPage() {
     fortunePurchases?.upcoming?.[0];
   const hasFortuneVoucher = Boolean(activeFortunePurchase);
   const fortuneCoins = currentFortunePass ? fortunePurchases?.coins : null;
-  const fortuneRefundStatus = activeFortunePurchase?.refund_status;
+  const latestFortuneRefund = fortuneRefundQuery.data;
+  const relevantFortuneRefund = latestFortuneRefund && (
+    !activeFortunePurchase ||
+    String(latestFortuneRefund.purchaseId) === String(activeFortunePurchase.purchase_id)
+  ) ? latestFortuneRefund : null;
+  const fortuneRefundStatus = activeFortunePurchase?.refund_status ?? relevantFortuneRefund?.status;
+  const isFortuneRefundInProgress = [
+    fortuneRefundStatus,
+    latestFortuneRefund?.status,
+    ...(fortunePurchases?.upcoming ?? []).map((pass) => pass.refund_status),
+  ].some((status) => status === "REQUESTED" || status === "PROCESSING");
   const canRefundFortune = canRequestFortuneRefund(currentFortunePass);
-  // 이용 중인 이용권이 있으면 서버가 새 결제를 막아요 -> 버튼도 숨김
-  const canBuyFortune = !currentFortunePass;
+  // 이용 중이거나 환불을 접수·처리 중인 동안에는 새 결제 버튼을 숨겨요.
+  const canBuyFortune = !currentFortunePass && !isFortuneRefundInProgress &&
+    !fortuneRefundQuery.isPending && !fortuneRefundQuery.isError;
   const activeFrom = formatDotDate(activeFortunePurchase?.active_from);
   const activeUntil = formatDotDate(activeFortunePurchase?.active_until);
   const redeemedAt = formatFortuneRedeemedAt(
@@ -333,6 +345,15 @@ export default function PaymentManagementPage() {
                     쿠폰 이용권은 환불할 수 없어요.
                   </p>
                 ) : null}
+                {fortuneRefundQuery.isPending && (
+                  <p role="status" className="text-[13px] text-[#A5A4A3]">환불 상태를 확인하는 중...</p>
+                )}
+                {fortuneRefundQuery.isError && (
+                  <div className="flex items-center justify-between gap-3 text-[13px]">
+                    <p role="alert" className="text-[#797776]">환불 상태를 확인하지 못했어요.</p>
+                    <button type="button" onClick={() => fortuneRefundQuery.refetch()} className="shrink-0 text-[#19BBD8] underline">다시 시도</button>
+                  </div>
+                )}
                 {canBuyFortune && (
                   <Button
                     onClick={() => setIsFortunePaymentOpen(true)}
