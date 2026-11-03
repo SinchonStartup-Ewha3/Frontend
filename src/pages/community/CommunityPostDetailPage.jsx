@@ -4,11 +4,13 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchCommunityPost, toggleCommunityPostLike } from "../../api/community";
 import queryKeys from "../../api/queryKeys";
 import Header from "../../components/Header";
+import BottomNav from "../../components/BottomNav";
 import LoginRequiredModal from "../../components/LoginRequiredModal";
 import MobileLayout from "../../components/MobileLayout";
 import PostDetailContent from "../../components/PostDetailContent";
+import PostOwnerActions from "../../components/PostOwnerActions";
 import useToast from "../../hooks/useToast";
-import heartIcon from "../../assets/icons/heart.svg";
+import starIcon from "../../assets/icons/star.svg";
 
 export default function CommunityPostDetailPage() {
   const { postId } = useParams();
@@ -16,6 +18,7 @@ export default function CommunityPostDetailPage() {
   const queryClient = useQueryClient();
   const toast = useToast();
   const [isLoginPromptOpen, setIsLoginPromptOpen] = useState(false);
+  const [loginReturnTo, setLoginReturnTo] = useState(`/community/${postId}`);
   const validId = /^[1-9]\d*$/.test(postId ?? "");
   const postQuery = useQuery({
     queryKey: queryKeys.communityPost(postId),
@@ -45,6 +48,7 @@ export default function CommunityPostDetailPage() {
   });
   const toggleLike = () => {
     if (!localStorage.getItem("wee_access_token")) {
+      setLoginReturnTo(`/community/${postId}`);
       setIsLoginPromptOpen(true);
       return;
     }
@@ -53,14 +57,12 @@ export default function CommunityPostDetailPage() {
 
   return (
     <MobileLayout>
-      <main className="mx-auto min-h-screen w-full max-w-[390px] px-6 pt-[73px] pb-12 text-[#353331]">
+      <main className="mx-auto flex min-h-[max(852px,100dvh)] w-full max-w-[390px] flex-col px-6 pt-[73px] pb-[137px] text-[#353331]">
         <Header back onLeft={() => {
           if (window.history.state?.idx > 0) navigate(-1);
           else navigate("/community", { replace: true });
         }} />
-        <h1 className="mt-[18px] text-[24px] font-semibold leading-[1.4] tracking-[-0.72px]">
-          게시글 상세
-        </h1>
+        <h1 className="sr-only">글 상세보기</h1>
 
         {notFound ? (
           <div className="mt-8 text-sm text-[#797776]">
@@ -75,7 +77,7 @@ export default function CommunityPostDetailPage() {
             <button type="button" onClick={() => postQuery.refetch()} className="mt-3 text-[#19BBD8] underline">다시 시도</button>
           </div>
         ) : post ? (
-          <PostDetailContent post={post}>
+          <PostDetailContent post={post} layout="community">
               <button
                 type="button"
                 onClick={toggleLike}
@@ -83,22 +85,54 @@ export default function CommunityPostDetailPage() {
                 aria-pressed={Boolean(post.isLiked)}
                 aria-label={post.isLiked ? "공감 취소" : "공감"}
                 aria-busy={likeMutation.isPending}
-                className="flex min-h-11 items-center gap-2 rounded-full border border-[#E9E8E8] px-4 text-[14px] disabled:opacity-50"
+                className="relative inline-flex min-h-9 items-center gap-[7px] before:absolute before:-inset-x-1 before:-inset-y-1 disabled:opacity-50"
               >
                 {post.isLiked ? (
                   <svg width="16" height="16" viewBox="0 0 13 13" fill="#60E1FF" aria-hidden="true">
                     <path d="M9.425 0C11.3994 0 13 1.64696 13 3.9527C13 8.56419 8.125 11.1993 6.5 12.1875C4.875 11.1993 0 8.56419 0 3.9527C0 1.64696 1.625 0 3.575 0C4.78398 0 5.85 0.658784 6.5 1.31757C7.15 0.658784 8.216 0 9.425 0Z" />
                   </svg>
-                ) : <img src={heartIcon} alt="" className="h-4 w-4" />}
-                공감 {post.likeCount ?? post.likes ?? 0}
+                ) : (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60E1FF" strokeWidth="2" aria-hidden="true">
+                    <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z" />
+                  </svg>
+                )}
+                <span>{post.likeCount ?? post.likes ?? 0}</span>
               </button>
           </PostDetailContent>
         ) : null}
+        {post && !notFound && !postQuery.isError && (
+          <div className="mt-auto pt-8">
+            {post.isMine === true && (
+              <div className="mb-6">
+                <PostOwnerActions post={post} postId={postId} returnTo="/community" />
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                if (localStorage.getItem("wee_access_token")) navigate("/weather-fortune");
+                else {
+                  setLoginReturnTo("/weather-fortune");
+                  setIsLoginPromptOpen(true);
+                }
+              }}
+              aria-label="오늘의 날씨 운세 열기"
+              className="relative flex h-[80px] w-full items-center justify-between gap-3 rounded-[20px] border border-[#F3F3F3] bg-gradient-to-r from-[rgba(240,227,255,0.12)] to-[rgba(5,196,240,0.12)] px-[19px] text-left shadow-[0_4px_4px_rgba(0,0,0,0.1)]"
+            >
+              <span>
+                <span className="block text-[16px] font-semibold leading-6 tracking-[-0.48px] text-[#62605F]">오늘의 날씨 운세</span>
+                <span className="block text-[12px] font-medium leading-[18px] tracking-[-0.36px] text-[#8F8E8D]">오늘 나의 날씨 운세는 몇점일까?</span>
+              </span>
+              <img src={starIcon} alt="" className="mr-[14px] shrink-0" />
+            </button>
+          </div>
+        )}
       </main>
+      <BottomNav />
       <LoginRequiredModal
         isOpen={isLoginPromptOpen}
         onClose={() => setIsLoginPromptOpen(false)}
-        onLogin={() => navigate("/login", { state: { from: `/community/${postId}` } })}
+        onLogin={() => navigate("/login", { state: { from: loginReturnTo } })}
       />
     </MobileLayout>
   );

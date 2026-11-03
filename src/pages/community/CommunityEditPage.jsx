@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import BottomNav from "../../components/BottomNav";
 import Header from "../../components/Header";
 import MobileLayout from "../../components/MobileLayout";
-import { COMMUNITY_TAGS, MAX_CONTENT_LENGTH } from "../../constants/community";
+import { COMMUNITY_TAGS, MAX_CONTENT_LENGTH, MAX_IMAGE_BYTES } from "../../constants/community";
 import { useMyPostQuery, useUpdateMyPost } from "../../hooks/useActivity";
 import useImagePicker from "../../hooks/useImagePicker";
 import useToast from "../../hooks/useToast";
@@ -21,20 +21,25 @@ const CommunityEditForm = ({ post, postId }) => {
   const updatePost = useUpdateMyPost();
   const picker = useImagePicker();
   const [selectedTag, setSelectedTag] = useState(post.tag);
-  const [message, setMessage] = useState(post.message ?? "");
+  const [message, setMessage] = useState(post.content ?? post.message ?? "");
   const [formError, setFormError] = useState("");
+  const [removeImage, setRemoveImage] = useState(false);
+  const [isForbidden, setIsForbidden] = useState(false);
+  const originalImage = post.imageUrl !== undefined ? post.imageUrl : post.image;
 
   const detailPath = `/mypage/activity/${postId}`;
   const trimmedMessage = message.trim();
-  const contentChanged = trimmedMessage !== (post.message ?? "").trim();
+  const contentChanged = trimmedMessage !== (post.content ?? post.message ?? "").trim();
   const tagChanged = selectedTag !== post.tag;
-  const hasChanges = contentChanged || tagChanged || Boolean(picker.photo);
+  const hasChanges = contentChanged || tagChanged || Boolean(picker.photo) || removeImage;
   const canSubmit =
     Boolean(trimmedMessage) &&
-    Boolean(selectedTag) &&
+    trimmedMessage.length <= MAX_CONTENT_LENGTH &&
+    COMMUNITY_TAGS.some((tag) => tag.value === selectedTag) &&
     hasChanges &&
     !picker.isProcessing &&
-    !updatePost.isPending;
+    !updatePost.isPending &&
+    !isForbidden;
 
   const submit = () => {
     if (!canSubmit) return;
@@ -45,6 +50,7 @@ const CommunityEditForm = ({ post, postId }) => {
     if (contentChanged) payload.content = trimmedMessage;
     if (tagChanged) payload.tag = selectedTag;
     if (picker.photo) payload.image = picker.photo;
+    else if (removeImage) payload.removeImage = true;
 
     updatePost.mutate(payload, {
       onSuccess: () => {
@@ -52,22 +58,25 @@ const CommunityEditForm = ({ post, postId }) => {
         navigate(detailPath, { replace: true });
       },
       onError: (error) => {
-        // 내 글이 아니거나 이미 삭제된 글 -> 404
+        // 삭제된 게시물은 404, 다른 작성자의 게시물은 403으로 응답해요.
         if (error.response?.status === 404) {
           toast.error("게시글을 찾을 수 없어요.");
           navigate("/mypage/activity?type=written", { replace: true });
           return;
         }
+        if (error.response?.status === 403) setIsForbidden(true);
         const data = error.response?.data;
         setFormError(
-          pickMessage(data?.content, data?.tag, data?.image, data?.detail) ??
+          pickMessage(data?.content, data?.tag, data?.image, data?.removeImage, data?.detail) ??
+            (error.response?.status === 403 ? "게시글 작성자만 수정할 수 있습니다." : null) ??
+            (!error.response ? error.message : null) ??
             "게시글을 수정하지 못했어요. 다시 시도해 주세요.",
         );
       },
     });
   };
 
-  const previewSrc = picker.preview || post.image;
+  const previewSrc = picker.preview || (removeImage ? null : originalImage);
 
   return (
     <main className="relative mx-auto min-h-[852px] w-full max-w-[390px] overflow-hidden bg-white text-[#353331]">
@@ -150,10 +159,16 @@ const CommunityEditForm = ({ post, postId }) => {
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif"
+          accept="image/jpeg,image/png,image/webp"
           className="sr-only"
           onChange={(event) => {
-            picker.choose(event.target.files?.[0]);
+            const file = event.target.files?.[0];
+            if (file && file.size > MAX_IMAGE_BYTES) {
+              setFormError("사진은 5MB 이하로 선택해주세요.");
+            } else if (file) {
+              setFormError("");
+              picker.choose(file);
+            }
             event.target.value = ""; // 같은 파일을 다시 골라도 change 가 발생하도록 초기화
           }}
         />
@@ -165,6 +180,7 @@ const CommunityEditForm = ({ post, postId }) => {
               : "사진 변경"
           }
           onClick={() => fileInputRef.current?.click()}
+          disabled={picker.isProcessing || updatePost.isPending || isForbidden}
           className="mt-[17px] flex h-[76px] w-[78px] items-center justify-center overflow-hidden rounded-[15px] bg-[#E9E8E8]/60 text-[#A5A4A3]"
         >
           {previewSrc ? (
@@ -195,6 +211,24 @@ const CommunityEditForm = ({ post, postId }) => {
             </svg>
           )}
         </button>
+        {previewSrc && (
+          <button type="button" disabled={picker.isProcessing || updatePost.isPending || isForbidden}
+            onClick={() => {
+              picker.clear();
+              setRemoveImage(Boolean(originalImage));
+              setFormError("");
+            }}
+            className="mt-2 block text-[14px] text-[#797776] underline disabled:opacity-50">
+            사진 삭제
+          </button>
+        )}
+        {removeImage && !picker.photo && originalImage && (
+          <button type="button" disabled={picker.isProcessing || updatePost.isPending || isForbidden}
+            onClick={() => setRemoveImage(false)}
+            className="mt-2 block text-[14px] text-[#797776] underline disabled:opacity-50">
+            사진 삭제 취소
+          </button>
+        )}
       </section>
 
       {(formError || picker.error) && (
@@ -221,7 +255,7 @@ export default function CommunityEditPage() {
 
   return (
     <MobileLayout>
-      {post ? (
+      {post?.isMine === true && !postQuery.isError ? (
         <CommunityEditForm key={postId} post={post} postId={postId} />
       ) : (
         <main className="relative mx-auto min-h-[852px] w-full max-w-[390px] bg-white px-[26px] pt-[73px] text-[#353331]">
@@ -230,7 +264,9 @@ export default function CommunityEditPage() {
             onLeft={() => navigate("/mypage/activity?type=written")}
           />
           <p className="mt-8 text-center text-sm text-[#A5A4A3]">
-            {postQuery.isError
+            {post && !postQuery.isError
+              ? "게시글 작성자만 수정할 수 있습니다."
+              : postQuery.isError
               ? "게시글을 찾을 수 없어요."
               : "게시글을 불러오는 중이에요."}
           </p>
