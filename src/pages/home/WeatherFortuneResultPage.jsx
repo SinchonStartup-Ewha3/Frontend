@@ -7,22 +7,10 @@ import FortuneCoinChip from "../../components/FortuneCoinChip";
 import FortunePaymentSheet from "../../components/FortunePaymentSheet";
 import MobileLayout from "../../components/MobileLayout";
 import lockIcon from "../../assets/icons/fortune-lock.svg";
-import angelFortune from "../../assets/images/fortune/fortune_angel.svg";
-import travelerFortune from "../../assets/images/fortune/fortune_traveler.svg";
-import crownFortune from "../../assets/images/fortune/fortune_crown.svg";
-import detectiveFortune from "../../assets/images/fortune/fortune_detective.svg";
-import wizardFortune from "../../assets/images/fortune/fortune_wizard.svg";
+import { getFortuneCharacter } from "../../utils/fortuneCharacter";
 import { fetchTodayFortune, redeemFortuneCoupon } from "../../api/fortune";
 import queryKeys from "../../api/queryKeys";
 import { useFortunePurchasesQuery } from "../../hooks/useFortunePayment";
-
-const luckCharacters = {
-  GREAT: crownFortune,
-  GOOD: angelFortune,
-  NORMAL: travelerFortune,
-  CAUTION: detectiveFortune,
-  BAD: wizardFortune,
-};
 
 export default function WeatherFortuneResultPage() {
   const navigate = useNavigate();
@@ -120,7 +108,7 @@ export default function WeatherFortuneResultPage() {
 
         <div className="absolute left-1/2 top-[209px] h-[182px] w-[167px] -translate-x-1/2 overflow-hidden">
           <img
-            src={luckCharacters[fortune?.luck_level] ?? travelerFortune}
+            src={getFortuneCharacter(fortune)}
             alt={`${fortune?.luck_label ?? "오늘 운세"} 테루테루 캐릭터`}
             className="h-full w-full object-contain"
           />
