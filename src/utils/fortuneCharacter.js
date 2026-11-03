@@ -49,8 +49,12 @@ function hashText(text) {
 
 export function getFortuneCharacterName(fortune, now = new Date()) {
   const data = fortune && typeof fortune === "object" ? fortune : { luck_level: fortune };
+  const serverCharacter = typeof data.character === "string" ? data.character.toLowerCase() : "";
+  if (images[`../assets/images/fortune/fortune_${serverCharacter}.svg`]) return serverCharacter;
   const fields = [
-    [data.title, 8], [data.summary, 3], [data.detail_text, 1],
+    [data.title, 8], [data.summary, 3],
+    // 서버가 캐릭터를 지정한 결과는 무료·유료에서 같은 공개 정보만으로 보완해요.
+    [data.character ? null : data.detail_text, 1],
     [data.lucky_item, 1], [data.lucky_place, 1],
   ].filter(([text]) => typeof text === "string" && text.trim());
   let highestScore = 0;
@@ -70,7 +74,10 @@ export function getFortuneCharacterName(fortune, now = new Date()) {
   // 구체적인 주제가 없는 경우에만 한국 날짜와 운세 등급으로 선택해요.
   const luckLevel = data.luck_level;
   const candidates = FORTUNE_CHARACTER_GROUPS[luckLevel] ?? FORTUNE_CHARACTER_GROUPS.NORMAL;
-  const day = Math.floor((now.getTime() + 9 * 60 * 60 * 1000) / (24 * 60 * 60 * 1000));
+  const targetDay = typeof data.target_date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(data.target_date)
+    ? Date.parse(`${data.target_date}T00:00:00+09:00`) : NaN;
+  const timestamp = Number.isFinite(targetDay) ? targetDay : now.getTime();
+  const day = Math.floor((timestamp + 9 * 60 * 60 * 1000) / (24 * 60 * 60 * 1000));
   const index = ((day % candidates.length) + candidates.length) % candidates.length;
   return candidates[index];
 }
