@@ -16,7 +16,7 @@ export default function WeatherFortuneCalendarPage() {
       return;
     }
 
-    navigate("/weather-fortune/birth-info", { state: { calendarType } });
+    navigate("/weather-fortune/birth-info", { state: { calendarType, continueToPayment: location.state?.continueToPayment === true } });
   };
 
   return (

@@ -171,7 +171,7 @@ export default function WeatherFortuneBirthInfoPage() {
 
         <Button
           variant="primary"
-          onClick={() => navigate("/weather-fortune/birth-time", { state: { calendarType, date } })}
+          onClick={() => navigate("/weather-fortune/birth-time", { state: { calendarType, date, continueToPayment: location.state?.continueToPayment === true } })}
           className="absolute left-1/2 top-[696px] !h-[44px] !w-[345px] -translate-x-1/2 rounded-[10px] text-[18px] tracking-[-0.18px]"
         >
           다음
@@ -179,7 +179,7 @@ export default function WeatherFortuneBirthInfoPage() {
 
         <Button
           variant="ghost"
-          onClick={() => navigate("/weather-fortune/calendar", { state: { calendarType } })}
+          onClick={() => navigate("/weather-fortune/calendar", { state: { calendarType, continueToPayment: location.state?.continueToPayment === true } })}
           className="absolute left-1/2 top-[750px] !h-[44px] !w-[345px] -translate-x-1/2 rounded-[10px] text-[18px] tracking-[-0.18px]"
         >
           이전

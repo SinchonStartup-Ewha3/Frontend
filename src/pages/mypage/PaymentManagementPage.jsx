@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { fetchFortuneProfile } from "../../api/fortune";
 import Header from "../../components/Header";
 import Button from "../../components/Button";
 import MobileLayout from "../../components/MobileLayout";
@@ -45,11 +46,37 @@ const formatFortuneRedeemedAt = (value) => {
 
 export default function PaymentManagementPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { data, isLoading, isError } = usePremiumBillingQuery();
   const entitlementQuery = useSubscriptionQuery({ refetchOnMount: "always" });
   const refundQuery = useRefundRequestQuery();
   const refundRequest = refundQuery.data;
-  const [isFortunePaymentOpen, setIsFortunePaymentOpen] = useState(false);
+  const [isFortunePaymentOpen, setIsFortunePaymentOpen] = useState(
+    location.state?.openFortunePayment === true,
+  );
+  const [isCheckingFortuneProfile, setIsCheckingFortuneProfile] = useState(false);
+  const [fortuneProfileError, setFortuneProfileError] = useState("");
+  const handleFortunePayment = async () => {
+    if (isCheckingFortuneProfile) return;
+    setIsCheckingFortuneProfile(true);
+    setFortuneProfileError("");
+    try {
+      await fetchFortuneProfile();
+      setIsFortunePaymentOpen(true);
+    } catch (error) {
+      const { status, data } = error.response ?? {};
+      if (
+        (status === 404 && data?.code === "FORTUNE_PROFILE_NOT_FOUND") ||
+        (status === 409 && data?.code === "FORTUNE_PROFILE_REQUIRED")
+      ) {
+        navigate("/weather-fortune/calendar", { state: { continueToPayment: true } });
+      } else {
+        setFortuneProfileError("생년월일 등록 여부를 확인하지 못했어요. 다시 시도해주세요.");
+      }
+    } finally {
+      setIsCheckingFortuneProfile(false);
+    }
+  };
   const fortunePurchasesQuery = useFortunePurchasesQuery();
   const fortuneRefundQuery = useFortuneRefundQuery();
   const fortunePurchases = fortunePurchasesQuery.data;
@@ -356,12 +383,14 @@ export default function PaymentManagementPage() {
                 )}
                 {canBuyFortune && (
                   <Button
-                    onClick={() => setIsFortunePaymentOpen(true)}
+                    onClick={handleFortunePayment}
+                    disabled={isCheckingFortuneProfile}
                     className="h-[44px] rounded-[10px] text-[14px]"
                   >
-                    운세 이용권 결제하러 가기
+                    {isCheckingFortuneProfile ? "생년월일 등록 여부 확인 중..." : "운세 이용권 결제하러 가기"}
                   </Button>
                 )}
+                {fortuneProfileError && <p role="alert" className="text-[13px] text-[#F35C4B]">{fortuneProfileError}</p>}
               </>
             )}
           </article>
@@ -387,7 +416,12 @@ export default function PaymentManagementPage() {
       </main>
       <FortunePaymentSheet
         isOpen={isFortunePaymentOpen}
-        onClose={() => setIsFortunePaymentOpen(false)}
+        onClose={() => {
+          setIsFortunePaymentOpen(false);
+          if (location.state?.openFortunePayment) {
+            navigate("/mypage/payment", { replace: true, state: null });
+          }
+        }}
       />
     </MobileLayout>
   );

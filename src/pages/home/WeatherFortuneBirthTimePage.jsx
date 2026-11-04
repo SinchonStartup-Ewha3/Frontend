@@ -24,7 +24,7 @@ export default function WeatherFortuneBirthTimePage() {
     };
 
     setIsSubmitting(true);
-    navigate("/weather-fortune/loading", { replace: true, state: { profilePayload: payload } });
+    navigate("/weather-fortune/loading", { replace: true, state: { profilePayload: payload, continueToPayment: state?.continueToPayment === true } });
   };
 
   return (
@@ -81,6 +81,7 @@ export default function WeatherFortuneBirthTimePage() {
           onClick={() =>
             navigate("/weather-fortune/birth-info", {
               state: {
+                continueToPayment: state?.continueToPayment === true,
                 calendarType: state?.calendarType ?? "SOLAR",
                 date: state?.date ?? { year: 2004, month: 12, day: 6 },
               },
