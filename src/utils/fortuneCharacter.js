@@ -6,10 +6,19 @@ const images = import.meta.glob("../assets/images/fortune/fortune_*.svg", {
 
 export const FORTUNE_CHARACTER_GROUPS = {
   GREAT: ["crown", "clover", "rainbow", "party", "sunshine"],
-  GOOD: ["angel", "heart", "sprout", "musician", "artist"],
-  NORMAL: ["traveler", "scholar", "book", "balance", "cloud"],
-  CAUTION: ["detective", "wind", "rain", "moon"],
-  BAD: ["wizard", "devil", "lightning", "snow", "sleep"],
+  GOOD: ["heart", "book", "musician", "artist", "sprout"],
+  NORMAL: ["cloud", "moon", "scholar", "traveler", "wizard"],
+  CAUTION: ["detective", "balance", "rain", "wind", "lightning"],
+  BAD: ["sleep", "devil", "snow", "angel"],
+};
+
+// 서버 코드와 로컬 이미지 파일명이 다른 캐릭터도 명시적으로 매칭해요.
+export const FORTUNE_CHARACTER_IMAGES = {
+  KING: "crown", RAINBOW: "rainbow", SUNSHINE: "sunshine", CLOVER: "clover", PARTY: "party",
+  HEART: "heart", STARRY: "book", MUSICIAN: "musician", PAINTER: "artist", SPROUT: "sprout",
+  CLOUD: "cloud", MOONLIGHT: "moon", SCHOLAR: "scholar", TRAVELER: "traveler", WIZARD: "wizard",
+  DETECTIVE: "detective", BALANCE: "balance", RAIN_CLOUD: "rain", BREEZE: "wind", THUNDER: "lightning",
+  SLEEPY: "sleep", DEVIL: "devil", SNOWFLAKE: "snow", ANGEL: "angel",
 };
 
 // 제목·요약의 주제를 우선하고, 상세 풀이와 행운 정보로 보완해요.
@@ -49,6 +58,8 @@ function hashText(text) {
 
 export function getFortuneCharacterName(fortune, now = new Date()) {
   const data = fortune && typeof fortune === "object" ? fortune : { luck_level: fortune };
+  const mappedCharacter = FORTUNE_CHARACTER_IMAGES[data.character];
+  if (mappedCharacter) return mappedCharacter;
   const serverCharacter = typeof data.character === "string" ? data.character.toLowerCase() : "";
   if (images[`../assets/images/fortune/fortune_${serverCharacter}.svg`]) return serverCharacter;
   const fields = [
