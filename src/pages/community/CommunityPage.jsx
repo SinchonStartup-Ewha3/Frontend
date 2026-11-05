@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import BottomNav from "../../components/BottomNav";
 import Card from "../../components/Card";
@@ -325,6 +325,11 @@ export default function CommunityPage() {
             const likePending = pendingLikeIds.has(Number(postId));
             return (
               <article key={postId} className="relative h-[110px]">
+                <Link
+                  to={`/community/${postId}`}
+                  aria-label={`게시글 상세보기: ${postMessage}`}
+                  className="absolute inset-x-0 top-0 bottom-[18px] z-[1] rounded-[13px] focus-visible:outline-2 focus-visible:outline-main"
+                />
                 <div className="absolute left-0 top-0 h-[76px] w-[78px] overflow-hidden rounded-[13px] bg-[#E9E8E8]/60">
                   {(post.imageUrl ?? post.image) && (
                     <img
@@ -340,7 +345,7 @@ export default function CommunityPage() {
                     aria-pressed={liked}
                     aria-busy={likePending}
                     onClick={() => toggleLike(post)}
-                    className="absolute left-[8px] top-[8px] flex h-[16px] w-[16px] items-center justify-center"
+                    className="absolute left-[8px] top-[8px] z-10 flex h-[16px] w-[16px] items-center justify-center"
                   >
                     {liked ? (
                       <svg

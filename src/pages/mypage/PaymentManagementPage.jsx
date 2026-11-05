@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { fetchFortuneProfile } from "../../api/fortune";
 import Header from "../../components/Header";
 import Button from "../../components/Button";
 import MobileLayout from "../../components/MobileLayout";
@@ -10,7 +11,7 @@ import {
 } from "../../hooks/usePayment";
 import { PREMIUM_PLAN } from "../../constants/premium";
 import FortunePaymentSheet from "../../components/FortunePaymentSheet";
-import { useFortunePurchasesQuery } from "../../hooks/useFortunePayment";
+import { useFortunePurchasesQuery, useFortuneRefundQuery } from "../../hooks/useFortunePayment";
 import {
   FORTUNE_PAYMENT_METHOD_LABELS,
   FORTUNE_REFUND_STATUS_LABELS,
@@ -45,11 +46,39 @@ const formatFortuneRedeemedAt = (value) => {
 
 export default function PaymentManagementPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { data, isLoading, isError } = usePremiumBillingQuery();
   const entitlementQuery = useSubscriptionQuery({ refetchOnMount: "always" });
-  const { data: refundRequest } = useRefundRequestQuery();
-  const [isFortunePaymentOpen, setIsFortunePaymentOpen] = useState(false);
+  const refundQuery = useRefundRequestQuery();
+  const refundRequest = refundQuery.data;
+  const [isFortunePaymentOpen, setIsFortunePaymentOpen] = useState(
+    location.state?.openFortunePayment === true,
+  );
+  const [isCheckingFortuneProfile, setIsCheckingFortuneProfile] = useState(false);
+  const [fortuneProfileError, setFortuneProfileError] = useState("");
+  const handleFortunePayment = async () => {
+    if (isCheckingFortuneProfile) return;
+    setIsCheckingFortuneProfile(true);
+    setFortuneProfileError("");
+    try {
+      await fetchFortuneProfile();
+      setIsFortunePaymentOpen(true);
+    } catch (error) {
+      const { status, data } = error.response ?? {};
+      if (
+        (status === 404 && data?.code === "FORTUNE_PROFILE_NOT_FOUND") ||
+        (status === 409 && data?.code === "FORTUNE_PROFILE_REQUIRED")
+      ) {
+        navigate("/weather-fortune/calendar", { state: { continueToPayment: true } });
+      } else {
+        setFortuneProfileError("생년월일 등록 여부를 확인하지 못했어요. 다시 시도해주세요.");
+      }
+    } finally {
+      setIsCheckingFortuneProfile(false);
+    }
+  };
   const fortunePurchasesQuery = useFortunePurchasesQuery();
+  const fortuneRefundQuery = useFortuneRefundQuery();
   const fortunePurchases = fortunePurchasesQuery.data;
   const currentFortunePass = fortunePurchases?.current;
   const activeFortunePurchase =
@@ -58,10 +87,21 @@ export default function PaymentManagementPage() {
     fortunePurchases?.upcoming?.[0];
   const hasFortuneVoucher = Boolean(activeFortunePurchase);
   const fortuneCoins = currentFortunePass ? fortunePurchases?.coins : null;
-  const fortuneRefundStatus = activeFortunePurchase?.refund_status;
+  const latestFortuneRefund = fortuneRefundQuery.data;
+  const relevantFortuneRefund = latestFortuneRefund && (
+    !activeFortunePurchase ||
+    String(latestFortuneRefund.purchaseId) === String(activeFortunePurchase.purchase_id)
+  ) ? latestFortuneRefund : null;
+  const fortuneRefundStatus = activeFortunePurchase?.refund_status ?? relevantFortuneRefund?.status;
+  const isFortuneRefundInProgress = [
+    fortuneRefundStatus,
+    latestFortuneRefund?.status,
+    ...(fortunePurchases?.upcoming ?? []).map((pass) => pass.refund_status),
+  ].some((status) => status === "REQUESTED" || status === "PROCESSING");
   const canRefundFortune = canRequestFortuneRefund(currentFortunePass);
-  // 이용 중인 이용권이 있으면 서버가 새 결제를 막아요 -> 버튼도 숨김
-  const canBuyFortune = !currentFortunePass;
+  // 이용 중이거나 환불을 접수·처리 중인 동안에는 새 결제 버튼을 숨겨요.
+  const canBuyFortune = !currentFortunePass && !isFortuneRefundInProgress &&
+    !fortuneRefundQuery.isPending && !fortuneRefundQuery.isError;
   const activeFrom = formatDotDate(activeFortunePurchase?.active_from);
   const activeUntil = formatDotDate(activeFortunePurchase?.active_until);
   const redeemedAt = formatFortuneRedeemedAt(
@@ -80,11 +120,17 @@ export default function PaymentManagementPage() {
   );
   const isCheckingEntitlement =
     entitlementQuery.isLoading || entitlementQuery.isFetching;
+  const isRefundInProgress =
+    refundRequest?.status === "REQUESTED" ||
+    refundRequest?.status === "PROCESSING";
   const canPurchasePremium =
     !isLoading &&
     !isError &&
     !entitlementQuery.isError &&
     !isCheckingEntitlement &&
+    !refundQuery.isPending &&
+    !refundQuery.isError &&
+    !isRefundInProgress &&
     !isActive;
   const purchasedAt = subscription?.purchasedAt ?? subscription?.paidAt;
   const paidAt = purchasedAt
@@ -326,14 +372,25 @@ export default function PaymentManagementPage() {
                     쿠폰 이용권은 환불할 수 없어요.
                   </p>
                 ) : null}
+                {fortuneRefundQuery.isPending && (
+                  <p role="status" className="text-[13px] text-[#A5A4A3]">환불 상태를 확인하는 중...</p>
+                )}
+                {fortuneRefundQuery.isError && (
+                  <div className="flex items-center justify-between gap-3 text-[13px]">
+                    <p role="alert" className="text-[#797776]">환불 상태를 확인하지 못했어요.</p>
+                    <button type="button" onClick={() => fortuneRefundQuery.refetch()} className="shrink-0 text-[#19BBD8] underline">다시 시도</button>
+                  </div>
+                )}
                 {canBuyFortune && (
                   <Button
-                    onClick={() => setIsFortunePaymentOpen(true)}
+                    onClick={handleFortunePayment}
+                    disabled={isCheckingFortuneProfile}
                     className="h-[44px] rounded-[10px] text-[14px]"
                   >
-                    운세 이용권 결제하러 가기
+                    {isCheckingFortuneProfile ? "생년월일 등록 여부 확인 중..." : "운세 이용권 결제하러 가기"}
                   </Button>
                 )}
+                {fortuneProfileError && <p role="alert" className="text-[13px] text-[#F35C4B]">{fortuneProfileError}</p>}
               </>
             )}
           </article>
@@ -359,7 +416,12 @@ export default function PaymentManagementPage() {
       </main>
       <FortunePaymentSheet
         isOpen={isFortunePaymentOpen}
-        onClose={() => setIsFortunePaymentOpen(false)}
+        onClose={() => {
+          setIsFortunePaymentOpen(false);
+          if (location.state?.openFortunePayment) {
+            navigate("/mypage/payment", { replace: true, state: null });
+          }
+        }}
       />
     </MobileLayout>
   );

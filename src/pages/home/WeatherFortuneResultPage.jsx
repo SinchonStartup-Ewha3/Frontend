@@ -7,22 +7,11 @@ import FortuneCoinChip from "../../components/FortuneCoinChip";
 import FortunePaymentSheet from "../../components/FortunePaymentSheet";
 import MobileLayout from "../../components/MobileLayout";
 import lockIcon from "../../assets/icons/fortune-lock.svg";
-import angelFortune from "../../assets/images/fortune/fortune_angel.svg";
-import travelerFortune from "../../assets/images/fortune/fortune_traveler.svg";
-import crownFortune from "../../assets/images/fortune/fortune_crown.svg";
-import detectiveFortune from "../../assets/images/fortune/fortune_detective.svg";
-import wizardFortune from "../../assets/images/fortune/fortune_wizard.svg";
+import FortuneCharacterImage from "../../components/FortuneCharacterImage";
+import FortuneDetailContent from "../../components/FortuneDetailContent";
 import { fetchTodayFortune, redeemFortuneCoupon } from "../../api/fortune";
 import queryKeys from "../../api/queryKeys";
 import { useFortunePurchasesQuery } from "../../hooks/useFortunePayment";
-
-const luckCharacters = {
-  GREAT: crownFortune,
-  GOOD: angelFortune,
-  NORMAL: travelerFortune,
-  CAUTION: detectiveFortune,
-  BAD: wizardFortune,
-};
 
 export default function WeatherFortuneResultPage() {
   const navigate = useNavigate();
@@ -119,9 +108,8 @@ export default function WeatherFortuneResultPage() {
         </h1>
 
         <div className="absolute left-1/2 top-[209px] h-[182px] w-[167px] -translate-x-1/2 overflow-hidden">
-          <img
-            src={luckCharacters[fortune?.luck_level] ?? travelerFortune}
-            alt={`${fortune?.luck_label ?? "오늘 운세"} 테루테루 캐릭터`}
+          <FortuneCharacterImage
+            fortune={fortune}
             className="h-full w-full object-contain"
           />
         </div>
@@ -156,8 +144,9 @@ export default function WeatherFortuneResultPage() {
             className={`mt-[18px] whitespace-pre-line text-[16px] font-medium leading-[1.5] tracking-[-0.48px] text-[#62605F] ${isFortuneLocked ? "select-none blur-[5px]" : ""}`}
             aria-hidden={isFortuneLocked}
           >
-            {fortune?.detail_text ??
-              "상세 운세는 이용권 등록 후 확인할 수 있어요."}
+            {isFortuneLocked
+              ? "상세 운세는 이용권 등록 후 확인할 수 있어요."
+              : <FortuneDetailContent fortune={fortune} />}
           </div>
           {isFortuneLocked ? (
             <div className="absolute inset-x-0 top-1/2 flex -translate-y-1/2 flex-col items-center gap-[6px]">

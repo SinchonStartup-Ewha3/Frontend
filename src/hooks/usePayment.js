@@ -111,6 +111,7 @@ export const useRequestRefund = () => {
     mutationFn: requestRefund,
     onSuccess: (data) => {
       queryClient.setQueryData(queryKeys.refundRequest, data);
+      queryClient.invalidateQueries({ queryKey: queryKeys.premiumBilling });
       invalidate();
     },
   });

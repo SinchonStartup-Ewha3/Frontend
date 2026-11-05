@@ -21,6 +21,7 @@ import {
   loadPendingFortunePurchase,
   savePendingFortunePurchase,
 } from "../utils/fortunePayment";
+import { navigateToPayment } from "../utils/paymentWindow";
 
 // 패키지 기간별 캐릭터 아이콘 (7일 이하 1마리 / 14일 이하 2마리 / 그 이상 3마리)
 const getPackageIcon = (days) =>
@@ -90,8 +91,6 @@ function FortunePaymentSheetBody({ isOpen, onClose, onOpenCoupon, onPaid }) {
   const handleCheckout = async () => {
     if (!selected || createCheckout.isPending) return;
     setErrorMessage("");
-    // 팝업 차단을 피하려고 클릭 직후에 먼저 빈 창을 열어 둬요
-    const checkoutWindow = window.open("about:blank", "_blank");
     try {
       const checkout = await createCheckout.mutateAsync({
         productId: selected.id,
@@ -109,10 +108,8 @@ function FortunePaymentSheetBody({ isOpen, onClose, onOpenCoupon, onPaid }) {
       setPending(nextPending);
       paidHandled.current = false;
       setBaseStep("waiting");
-      if (checkoutWindow) checkoutWindow.location.href = checkout.paymentUrl;
-      else window.location.assign(checkout.paymentUrl);
+      navigateToPayment(checkout.paymentUrl);
     } catch (error) {
-      checkoutWindow?.close();
       const data = error.response?.data;
       setErrorMessage(
         data?.recvphone?.[0] ??
@@ -128,8 +125,12 @@ function FortunePaymentSheetBody({ isOpen, onClose, onOpenCoupon, onPaid }) {
 
   const reopenPaymentWindow = () => {
     if (!pending?.paymentUrl) return;
-    const opened = window.open(pending.paymentUrl, "_blank");
-    if (!opened) window.location.assign(pending.paymentUrl);
+    try {
+      navigateToPayment(pending.paymentUrl);
+      setErrorMessage("");
+    } catch {
+      setErrorMessage("결제창을 열지 못했어요. 아래 현재 탭에서 결제하기를 눌러주세요.");
+    }
   };
 
   const backToSelect = () => {
@@ -365,6 +366,7 @@ function FortunePaymentSheetBody({ isOpen, onClose, onOpenCoupon, onPaid }) {
               결제창에서 결제를 마치면 자동으로 이용권이 적용돼요.
               {isTimedOut ? "\n아직 결제 승인 정보를 확인하지 못했어요." : ""}
             </p>
+            {errorMessage && <p role="alert" className={panelText}>{errorMessage}</p>}
             <div className="mt-1 flex flex-col items-center gap-[10px]">
               <button
                 type="button"
@@ -373,6 +375,11 @@ function FortunePaymentSheetBody({ isOpen, onClose, onOpenCoupon, onPaid }) {
               >
                 결제창 다시 열기
               </button>
+              {pending?.paymentUrl && (
+                <a href={pending.paymentUrl} target="_self" className={linkButton}>
+                  현재 탭에서 결제하기
+                </a>
+              )}
               {isTimedOut && (
                 <button type="button" onClick={restart} className={linkButton}>
                   결제 상태 다시 확인

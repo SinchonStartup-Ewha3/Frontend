@@ -1,4 +1,5 @@
 import api from "./axios";
+import { ALLOWED_IMAGE_TYPES, COMMUNITY_TAGS, MAX_CONTENT_LENGTH, MAX_IMAGE_BYTES } from "../constants/community";
 
 // 사진이 포함된 multipart 요청은 모바일 회선에서 10초(공통 타임아웃)를 넘기기 쉬워요
 const UPLOAD_TIMEOUT_MS = 60_000;
@@ -27,6 +28,12 @@ export const fetchCommunityPosts = async ({
       pageSize: Math.min(toPositiveInt(pageSize, 10), 30), // 명세: 최대 30
     },
   });
+  return data;
+};
+
+// 게시글 상세 조회 (로그인 선택)
+export const fetchCommunityPost = async (postId) => {
+  const { data } = await api.get(`/api/community/posts/${postId}/`);
   return data;
 };
 
@@ -75,16 +82,36 @@ export const createCommunityPost = async ({
 };
 
 // 게시글 수정 (PATCH: 보낸 필드만 수정) — 작성 당시 저장된 지역은 수정할 수 없음
-//  - content / tag / image 중 바꾼 것만 넘기기
-export const updateCommunityPost = async ({ postId, content, tag, image }) => {
-  const formData = new FormData();
-  if (content !== undefined) formData.append("content", content.trim());
-  if (tag !== undefined) formData.append("tag", tag);
-  if (image) formData.append("image", image);
+// 이미지가 있을 때만 multipart, 그 외에는 JSON으로 변경한 필드만 전달해요.
+export const updateCommunityPost = async ({ postId, content, tag, image, removeImage }) => {
+  if (image && removeImage === true) throw new Error("사진 업로드와 삭제는 동시에 요청할 수 없어요.");
+  const payload = {};
+  if (content !== undefined) {
+    if (typeof content !== "string" || !content.trim() || content.trim().length > MAX_CONTENT_LENGTH) {
+      throw new Error("게시물 내용은 1자 이상 200자 이하로 입력해주세요.");
+    }
+    payload.content = content.trim();
+  }
+  if (tag !== undefined) {
+    if (!COMMUNITY_TAGS.some((item) => item.value === tag)) throw new Error("올바른 태그를 선택해주세요.");
+    payload.tag = tag;
+  }
+  if (removeImage !== undefined) {
+    if (typeof removeImage !== "boolean") throw new Error("사진 삭제 여부를 확인해주세요.");
+    payload.removeImage = removeImage;
+  }
+  let body = payload;
+  if (image) {
+    if (!ALLOWED_IMAGE_TYPES.includes(image.type)) throw new Error("JPG, PNG, WEBP 이미지만 등록할 수 있습니다.");
+    if (image.size > MAX_IMAGE_BYTES) throw new Error("사진은 5MB 이하로 선택해주세요.");
+    body = new FormData();
+    for (const [key, value] of Object.entries(payload)) body.append(key, String(value));
+    body.append("image", image);
+  }
 
   const { data } = await api.patch(
     `/api/community/posts/${postId}/`,
-    formData,
+    body,
     {
       timeout: UPLOAD_TIMEOUT_MS,
     },

@@ -25,6 +25,7 @@ import WeatherFortuneBirthTimePage from "./pages/home/WeatherFortuneBirthTimePag
 import WeatherFortuneLoadingPage from "./pages/home/WeatherFortuneLoadingPage.jsx";
 import WeatherFortuneResultPage from "./pages/home/WeatherFortuneResultPage.jsx";
 import CommunityPage from "./pages/community/CommunityPage.jsx";
+import CommunityPostDetailPage from "./pages/community/CommunityPostDetailPage.jsx";
 import SituationDetail from "./pages/situation/SituationDetail.jsx";
 import LaundrySituationDetail from "./pages/situation/LaundrySituationDetail.jsx";
 import RunningSituationDetail from "./pages/situation/RunningSituationDetail.jsx";
@@ -196,6 +197,7 @@ export default function App() {
         }
       />
       <Route path="/community" element={<CommunityPage />} />
+      <Route path="/community/:postId" element={<CommunityPostDetailPage />} />
       <Route
         path="/community/write"
         element={

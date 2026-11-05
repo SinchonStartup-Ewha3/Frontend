@@ -5,6 +5,7 @@ import Header from "../../components/Header";
 import MobileLayout from "../../components/MobileLayout";
 import { PREMIUM_PLAN } from "../../constants/premium";
 import { useCreatePayAppCheckout, useSubscriptionQuery } from "../../hooks/usePayment";
+import { navigateToPayment } from "../../utils/paymentWindow";
 
 export default function PremiumPaymentMethodPage() {
   const navigate = useNavigate();
@@ -55,16 +56,13 @@ export default function PremiumPaymentMethodPage() {
     if (isLocalPreview || createCheckout.isPending) return;
     setPaymentError("");
     setConfirmationMessage("");
-    const checkoutWindow = window.open("about:blank", "_blank");
     try {
       const checkout = await createCheckout.mutateAsync({ recvphone });
       if (!checkout?.paymentUrl) throw new Error("결제창 주소를 받지 못했어요. 다시 시도해 주세요.");
+      navigateToPayment(checkout.paymentUrl);
       setPollAttempt(0);
       setCheckoutPending(true);
-      if (checkoutWindow) checkoutWindow.location.href = checkout.paymentUrl;
-      else window.location.assign(checkout.paymentUrl);
     } catch (error) {
-      checkoutWindow?.close();
       const data = error.response?.data;
       setPaymentError(data?.recvphone?.[0] ?? data?.detail ?? (error.response?.status === 401
         ? "로그인 정보가 만료됐어요. 다시 로그인해 주세요."
