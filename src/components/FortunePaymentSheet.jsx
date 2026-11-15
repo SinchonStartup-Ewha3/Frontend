@@ -262,7 +262,7 @@ function FortunePaymentSheetBody({ isOpen, onClose, onOpenCoupon, onPaid }) {
                   <button
                     type="button"
                     onClick={() => handleSelect(daily)}
-                    className="text-[8px] font-medium leading-[1.5] text-[#D2D2D1] underline underline-offset-2"
+                    className="text-[12px] font-medium leading-[1.5] text-[#D2D2D1] underline underline-offset-2"
                   >
                     {formatWon(daily.price)}원 하루만 결제하기
                   </button>
