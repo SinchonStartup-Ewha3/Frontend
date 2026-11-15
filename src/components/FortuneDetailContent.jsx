@@ -1,8 +1,19 @@
 const CATEGORY_ORDER = ["ACADEMIC", "LOVE", "MONEY", "WEATHER", "COMMUTE", "RELATIONSHIPS"];
 
 function getRating(category) {
-  const value = Number(category.score ?? category.rating);
-  return Number.isFinite(value) ? Math.max(1, Math.min(5, Math.round(value))) : 3;
+  if (category.rating !== undefined && category.rating !== null) {
+    const rating = Number(category.rating);
+    return Number.isFinite(rating)
+      ? Math.max(0, Math.min(5, Math.round(rating)))
+      : 0;
+  }
+  if (category.score !== undefined && category.score !== null) {
+    const score = Number(category.score);
+    return Number.isFinite(score)
+      ? Math.max(0, Math.min(5, Math.round((score / 100) * 5)))
+      : 0;
+  }
+  return 0;
 }
 
 export default function FortuneDetailContent({ fortune }) {
@@ -29,7 +40,7 @@ export default function FortuneDetailContent({ fortune }) {
               <span aria-hidden="true" className="h-[6px] w-[6px] rounded-full bg-[#60E1FF]" />
               {category.label}
             </h3>
-            <div className="flex items-center gap-[3px]" aria-label={`${getRating(category)}점` }>
+            <div className="flex items-center gap-[3px]" aria-label={`운수 점수 ${getRating(category)}점 / 5점`}>
               {Array.from({ length: 5 }, (_, index) => (
                 <span
                   key={index}

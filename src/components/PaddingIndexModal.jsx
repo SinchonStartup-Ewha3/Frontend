@@ -1,5 +1,11 @@
 import Modal from "./Modal";
-import jacketImage from "../assets/images/padding-index-jacket.png";
+import jacketStatesImage from "../assets/images/padding-index-states-4.png";
+
+const JACKET_SCALE = 1.4;
+const JACKET_POSITIONS = [
+  [8, 30], [80, 30], [151, 30], [222, 30], [293, 30], [364, 30],
+  [12, 120], [93, 120], [177, 120], [263, 120], [341, 120],
+];
 
 export default function PaddingIndexModal({
   isOpen,
@@ -8,7 +14,9 @@ export default function PaddingIndexModal({
   index = 40,
 }) {
   const value = Math.max(0, Math.min(100, Math.round(Number(index) || 0)));
-  const title = value >= 70 ? "오늘의 롱패딩 지수" : "오늘의 패딩 지수";
+  const jacketLevel = Math.round(value / 10);
+  const [jacketX, jacketY] = JACKET_POSITIONS[jacketLevel];
+  const title = "오늘의 롱패딩 지수";
   const description =
     value >= 70
       ? "오늘은 롱패딩을 꼭 챙겨야 하는 날씨입니다!"
@@ -35,10 +43,15 @@ export default function PaddingIndexModal({
         >
           {title}
         </h2>
-        <img
-          src={jacketImage}
-          alt="포근한 패딩 재킷 일러스트"
-          className="mx-auto h-[240px] w-full object-contain"
+        <div
+          role="img"
+          aria-label={`롱패딩 지수 ${jacketLevel * 10}% 단계 패딩 일러스트`}
+          className="mx-auto h-[150px] w-[120px] bg-no-repeat"
+          style={{
+            backgroundImage: `url(${jacketStatesImage})`,
+            backgroundSize: `${444 * JACKET_SCALE}px ${222 * JACKET_SCALE}px`,
+            backgroundPosition: `${-jacketX * JACKET_SCALE}px ${-jacketY * JACKET_SCALE}px`,
+          }}
         />
         <div className="flex flex-col items-center px-[15px] pb-[9px] text-center">
           <p className="text-[22px] font-semibold leading-[21px] tracking-[-0.38px] text-[#60E1FF]">

@@ -52,6 +52,7 @@ import MyPostDetailPage from "./pages/mypage/MyPostDetailPage.jsx";
 import LoginRequiredModal from "./components/LoginRequiredModal.jsx";
 import { USE_MOCK } from "./api/config";
 import { loginOneSignalUser } from "./push/oneSignal";
+import FortunePaymentPreview from "./pages/dev/FortunePaymentPreview.jsx";
 
 export default function App() {
   const navigate = useNavigate();
@@ -120,6 +121,9 @@ export default function App() {
 
   return (
     <Routes>
+      {import.meta.env.DEV && (
+        <Route path="/__preview/payment" element={<FortunePaymentPreview />} />
+      )}
       <Route path="/" element={<LoginPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route
