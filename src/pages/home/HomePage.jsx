@@ -88,15 +88,6 @@ export default function HomePage() {
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [hasEditedSearch, setHasEditedSearch] = useState(false);
   const [locationQuery, setLocationQuery] = useState("");
-  const location = hasAccessToken
-    ? (homeData?.region?.shortName ??
-      currentUser?.region?.shortName ??
-      currentUser?.region ??
-      "서대문구 아현동")
-    : (selectedRegion?.shortName ??
-      selectedRegion ??
-      homeData?.region?.shortName ??
-      "서대문구 아현동");
   const [isSelectingLocation, setIsSelectingLocation] = useState(false);
   const messagePillRef = useRef(null);
   const [messagePillOffset, setMessagePillOffset] = useState(0);
@@ -126,6 +117,15 @@ export default function HomePage() {
       hasAccessToken || Boolean(selectedRegionCode || selectedCoordinates),
     retry: false,
   });
+  const location = hasAccessToken
+    ? (homeData?.region?.shortName ??
+      currentUser?.region?.shortName ??
+      currentUser?.region ??
+      "서대문구 아현동")
+    : (selectedRegion?.shortName ??
+      selectedRegion ??
+      homeData?.region?.shortName ??
+      "서대문구 아현동");
   const toast = useToast();
   const queryClient = useQueryClient();
   const setUser = useUserStore((state) => state.setUser);
