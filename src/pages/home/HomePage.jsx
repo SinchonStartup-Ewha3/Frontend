@@ -29,7 +29,6 @@ import useToast from "../../hooks/useToast";
 import useUserStore from "../../store/useUserStore";
 import useLocationStore from "../../store/useLocationStore";
 import LoginRequiredModal from "../../components/LoginRequiredModal";
-import PaddingIndexModal from "../../components/PaddingIndexModal";
 import weeLogo from "../../assets/icons/logo.svg";
 
 const formatTemperature = (value) =>
@@ -86,18 +85,18 @@ export default function HomePage() {
     () => !hasAccessToken && !selectedRegionCode && !selectedCoordinates,
   );
   const [isLoginPromptOpen, setIsLoginPromptOpen] = useState(false);
-  const [isPaddingIndexOpen, setIsPaddingIndexOpen] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [hasEditedSearch, setHasEditedSearch] = useState(false);
   const [locationQuery, setLocationQuery] = useState("");
-  const [location, setLocation] = useState(
-    () =>
-      selectedRegion?.shortName ??
-      selectedRegion ??
+  const location = hasAccessToken
+    ? (homeData?.region?.shortName ??
       currentUser?.region?.shortName ??
       currentUser?.region ??
-      "서대문구 아현동",
-  );
+      "서대문구 아현동")
+    : (selectedRegion?.shortName ??
+      selectedRegion ??
+      homeData?.region?.shortName ??
+      "서대문구 아현동");
   const [isSelectingLocation, setIsSelectingLocation] = useState(false);
   const messagePillRef = useRef(null);
   const [messagePillOffset, setMessagePillOffset] = useState(0);
@@ -134,35 +133,12 @@ export default function HomePage() {
   const isSearchingRegions =
     isSearchActive && hasEditedSearch && normalizedQuery.length > 0;
   const weather = homeData?.weather;
-  const feelsLikeTemperature = Number(
-    weather?.feelsLike ?? weather?.feels_like ?? weather?.temperature ?? 5,
-  );
-  const paddingIndex = Math.max(
-    0,
-    Math.min(100, Math.round((15 - feelsLikeTemperature) * 4)),
-  );
   const character = getCharacter(homeData?.character?.state);
   const message =
     homeData?.message ??
     (isHomeLoading
       ? "날씨 정보를 불러오는 중..."
       : "오늘의 날씨를 확인해 보세요!");
-
-  useEffect(() => {
-    if (!homeData || isLocationPickerOpen) return;
-    const today = new Date().toLocaleDateString("sv-SE");
-    if (localStorage.getItem("padding-index-dismissed-date") !== today) {
-      setIsPaddingIndexOpen(true);
-    }
-  }, [homeData, isLocationPickerOpen]);
-
-  const dismissPaddingIndexForToday = () => {
-    localStorage.setItem(
-      "padding-index-dismissed-date",
-      new Date().toLocaleDateString("sv-SE"),
-    );
-    setIsPaddingIndexOpen(false);
-  };
 
   useLayoutEffect(() => {
     const pill = messagePillRef.current;
@@ -200,23 +176,6 @@ export default function HomePage() {
   ];
 
   useEffect(() => {
-    // 로그인 사용자의 저장 지역은 서버 응답을 기준으로 표시합니다.
-    // 비로그인 때 남은 Zustand 선택값이 로그인 계정의 위치를 덮어쓰지 않게 합니다.
-    const regionName = hasAccessToken
-      ? (homeData?.region?.shortName ?? currentUser?.region?.shortName)
-      : (selectedRegion?.shortName ??
-        selectedRegion ??
-        homeData?.region?.shortName);
-    if (regionName) setLocation(regionName);
-  }, [
-    hasAccessToken,
-    currentUser?.region?.shortName,
-    homeData?.region?.shortName,
-    selectedRegion,
-    selectedRegionCode,
-  ]);
-
-  useEffect(() => {
     // 비로그인 GPS 좌표를 홈 API가 행정구역으로 변환해 주면,
     // 상황 탭에서도 같은 지역을 조회할 수 있도록 지역 코드를 저장합니다.
     if (hasAccessToken || !selectedCoordinates || !homeData?.region?.regionCode)
@@ -228,7 +187,6 @@ export default function HomePage() {
     if (isSelectingLocation) return;
     if (!localStorage.getItem("wee_access_token")) {
       selectRegion({ ...region, shortName: region.shortName });
-      setLocation(region.shortName);
       setIsLocationPickerOpen(false);
       queryClient.invalidateQueries({ queryKey: queryKeys.home });
       return;
@@ -243,7 +201,6 @@ export default function HomePage() {
       queryClient.setQueryData(queryKeys.profile, user);
       selectRegion(region);
       queryClient.invalidateQueries({ queryKey: queryKeys.home });
-      setLocation(user.region?.shortName ?? region.shortName);
       setIsLocationPickerOpen(false);
     } catch (error) {
       toast.error(
@@ -302,7 +259,6 @@ export default function HomePage() {
       toast.error("현재 위치를 설정하지 못했어요. 위치 권한을 확인해 주세요.");
       return;
     }
-    setLocation(region);
     queryClient.invalidateQueries({ queryKey: queryKeys.profile });
     queryClient.invalidateQueries({ queryKey: queryKeys.home });
     setIsLocationPickerOpen(false);
@@ -375,13 +331,6 @@ export default function HomePage() {
             <span>{formatTemperature(weather?.maxTemperature)}</span>
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setIsPaddingIndexOpen(true)}
-          className="absolute left-[155px] top-[165px] rounded-full bg-[#F4FAFF] px-[9px] py-[4px] text-[10px] font-semibold tracking-[-0.3px] text-[#60CDE8]"
-        >
-          패딩지수 {paddingIndex}%
-        </button>
         <div className="absolute left-1/2 top-[217px] h-[218px] w-[248px] -translate-x-1/2">
           <img
             src={character.src}
@@ -664,12 +613,6 @@ export default function HomePage() {
         onLogin={() =>
           navigate("/login", { state: { from: "/weather-fortune" } })
         }
-      />
-      <PaddingIndexModal
-        isOpen={isPaddingIndexOpen}
-        onClose={() => setIsPaddingIndexOpen(false)}
-        onDismissForToday={dismissPaddingIndexForToday}
-        index={paddingIndex}
       />
     </MobileLayout>
   );

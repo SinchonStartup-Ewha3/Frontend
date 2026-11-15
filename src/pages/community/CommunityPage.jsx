@@ -9,6 +9,7 @@ import heartIcon from "../../assets/icons/heart.svg";
 import modifyIcon from "../../assets/icons/modify.svg";
 import diamondIcon from "../../assets/icons/diamond.svg";
 import LoginRequiredModal from "../../components/LoginRequiredModal";
+import PaddingIndexModal from "../../components/PaddingIndexModal";
 import {
   fetchCommunityPosts,
   fetchCommunityWeatherCopy,
@@ -20,6 +21,7 @@ import queryKeys from "../../api/queryKeys";
 import useLocationStore from "../../store/useLocationStore";
 import weeLogo from "../../assets/icons/logo.svg";
 import { COMMUNITY_TAGS } from "../../constants/community";
+import { fetchHomeData } from "../../api/weather";
 
 const categories = [
   { label: "전체", value: "all" },
@@ -46,6 +48,7 @@ export default function CommunityPage() {
   const [activeCategory, setActiveCategory] = useState("all");
   const [page, setPage] = useState(1);
   const [isLoginPromptOpen, setIsLoginPromptOpen] = useState(false);
+  const [hasClosedPaddingIndex, setHasClosedPaddingIndex] = useState(false);
   const [loginReturnTo, setLoginReturnTo] = useState("/community");
   const [pendingLikeIds, setPendingLikeIds] = useState(() => new Set());
   const toast = useToast();
@@ -105,6 +108,48 @@ export default function CommunityPage() {
     1,
     Math.ceil((postsQuery.data?.count ?? 0) / PAGE_SIZE),
   );
+  const hasWeatherLocation = isLoggedIn || hasGuestLocation;
+  const homeWeatherQuery = useQuery({
+    queryKey: [
+      ...queryKeys.home,
+      isLoggedIn ? "me" : (guestRegionCode ?? guestLat ?? "unselected"),
+    ],
+    queryFn: () =>
+      fetchHomeData({
+        regionCode: isLoggedIn ? undefined : guestRegionCode,
+        lat: isLoggedIn ? undefined : guestLat,
+        lng: isLoggedIn ? undefined : guestLng,
+        skipAuth: !isLoggedIn,
+      }),
+    enabled: hasWeatherLocation,
+    retry: false,
+  });
+  const feelsLikeTemperature = Number(
+    homeWeatherQuery.data?.weather?.feelsLike ??
+      homeWeatherQuery.data?.weather?.feels_like ??
+      homeWeatherQuery.data?.weather?.temperature ??
+      5,
+  );
+  const paddingIndex = Math.max(
+    0,
+    Math.min(100, Math.round((15 - feelsLikeTemperature) * 4)),
+  );
+
+  const today = new Date().toLocaleDateString("sv-SE");
+  const wasDismissedToday =
+    localStorage.getItem("padding-index-dismissed-date") === today;
+  const isPaddingIndexOpen =
+    !hasClosedPaddingIndex &&
+    !wasDismissedToday &&
+    (!hasWeatherLocation || !homeWeatherQuery.isLoading);
+
+  const dismissPaddingIndexForToday = () => {
+    localStorage.setItem(
+      "padding-index-dismissed-date",
+      new Date().toLocaleDateString("sv-SE"),
+    );
+    setHasClosedPaddingIndex(true);
+  };
 
   useEffect(() => {
     if (
@@ -473,6 +518,12 @@ export default function CommunityPage() {
             state: { from: loginReturnTo },
           })
         }
+      />
+      <PaddingIndexModal
+        isOpen={isPaddingIndexOpen}
+        onClose={() => setHasClosedPaddingIndex(true)}
+        onDismissForToday={dismissPaddingIndexForToday}
+        index={paddingIndex}
       />
     </MobileLayout>
   );
