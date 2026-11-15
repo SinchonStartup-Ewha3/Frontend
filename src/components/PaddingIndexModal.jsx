@@ -1,10 +1,22 @@
 import Modal from "./Modal";
-import jacketStatesImage from "../assets/images/padding-index-states-4.png";
+import padding1 from "../assets/images/padding1.svg";
+import padding2 from "../assets/images/padding2.svg";
+import padding3 from "../assets/images/padding3.svg";
+import padding4 from "../assets/images/padding4.svg";
+import padding5 from "../assets/images/padding5.svg";
+import padding6 from "../assets/images/padding6.svg";
+import padding7 from "../assets/images/padding7.svg";
+import padding8 from "../assets/images/padding8.svg";
 
-const JACKET_SCALE = 1.4;
-const JACKET_POSITIONS = [
-  [8, 30], [80, 30], [151, 30], [222, 30], [293, 30], [364, 30],
-  [12, 120], [93, 120], [177, 120], [263, 120], [341, 120],
+const JACKET_STAGES = [
+  padding1,
+  padding2,
+  padding3,
+  padding4,
+  padding5,
+  padding6,
+  padding7,
+  padding8,
 ];
 
 export default function PaddingIndexModal({
@@ -14,8 +26,10 @@ export default function PaddingIndexModal({
   index = 40,
 }) {
   const value = Math.max(0, Math.min(100, Math.round(Number(index) || 0)));
-  const jacketLevel = Math.round(value / 10);
-  const [jacketX, jacketY] = JACKET_POSITIONS[jacketLevel];
+  const jacketLevel = Math.min(
+    Math.round(value / 10),
+    JACKET_STAGES.length - 1,
+  );
   const title = "오늘의 롱패딩 지수";
   const description =
     value >= 70
@@ -43,15 +57,10 @@ export default function PaddingIndexModal({
         >
           {title}
         </h2>
-        <div
-          role="img"
-          aria-label={`롱패딩 지수 ${jacketLevel * 10}% 단계 패딩 일러스트`}
-          className="mx-auto h-[150px] w-[120px] bg-no-repeat"
-          style={{
-            backgroundImage: `url(${jacketStatesImage})`,
-            backgroundSize: `${444 * JACKET_SCALE}px ${222 * JACKET_SCALE}px`,
-            backgroundPosition: `${-jacketX * JACKET_SCALE}px ${-jacketY * JACKET_SCALE}px`,
-          }}
+        <img
+          src={JACKET_STAGES[jacketLevel]}
+          alt={`롱패딩 지수 ${value}% 단계 패딩 일러스트`}
+          className="mx-auto h-[150px] w-[120px] object-contain"
         />
         <div className="flex flex-col items-center px-[15px] pb-[9px] text-center">
           <p className="text-[22px] font-semibold leading-[21px] tracking-[-0.38px] text-[#60E1FF]">

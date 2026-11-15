@@ -54,6 +54,7 @@ import { USE_MOCK } from "./api/config";
 import { loginOneSignalUser } from "./push/oneSignal";
 import FortunePaymentPreview from "./pages/dev/FortunePaymentPreview.jsx";
 import FortuneResultPreview from "./pages/dev/FortuneResultPreview.jsx";
+import PaddingIndexPreview from "./pages/dev/PaddingIndexPreview.jsx";
 
 export default function App() {
   const navigate = useNavigate();
@@ -127,6 +128,9 @@ export default function App() {
       )}
       {import.meta.env.DEV && (
         <Route path="/__preview/fortune-result" element={<FortuneResultPreview />} />
+      )}
+      {import.meta.env.DEV && (
+        <Route path="/__preview/padding-index" element={<PaddingIndexPreview />} />
       )}
       <Route path="/" element={<LoginPage />} />
       <Route path="/login" element={<LoginPage />} />
