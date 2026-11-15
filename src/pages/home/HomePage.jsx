@@ -88,14 +88,15 @@ export default function HomePage() {
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [hasEditedSearch, setHasEditedSearch] = useState(false);
   const [locationQuery, setLocationQuery] = useState("");
-  const [location, setLocation] = useState(
-    () =>
-      selectedRegion?.shortName ??
-      selectedRegion ??
+  const location = hasAccessToken
+    ? (homeData?.region?.shortName ??
       currentUser?.region?.shortName ??
       currentUser?.region ??
-      "서대문구 아현동",
-  );
+      "서대문구 아현동")
+    : (selectedRegion?.shortName ??
+      selectedRegion ??
+      homeData?.region?.shortName ??
+      "서대문구 아현동");
   const [isSelectingLocation, setIsSelectingLocation] = useState(false);
   const messagePillRef = useRef(null);
   const [messagePillOffset, setMessagePillOffset] = useState(0);
@@ -175,23 +176,6 @@ export default function HomePage() {
   ];
 
   useEffect(() => {
-    // 로그인 사용자의 저장 지역은 서버 응답을 기준으로 표시합니다.
-    // 비로그인 때 남은 Zustand 선택값이 로그인 계정의 위치를 덮어쓰지 않게 합니다.
-    const regionName = hasAccessToken
-      ? (homeData?.region?.shortName ?? currentUser?.region?.shortName)
-      : (selectedRegion?.shortName ??
-        selectedRegion ??
-        homeData?.region?.shortName);
-    if (regionName) setLocation(regionName);
-  }, [
-    hasAccessToken,
-    currentUser?.region?.shortName,
-    homeData?.region?.shortName,
-    selectedRegion,
-    selectedRegionCode,
-  ]);
-
-  useEffect(() => {
     // 비로그인 GPS 좌표를 홈 API가 행정구역으로 변환해 주면,
     // 상황 탭에서도 같은 지역을 조회할 수 있도록 지역 코드를 저장합니다.
     if (hasAccessToken || !selectedCoordinates || !homeData?.region?.regionCode)
@@ -203,7 +187,6 @@ export default function HomePage() {
     if (isSelectingLocation) return;
     if (!localStorage.getItem("wee_access_token")) {
       selectRegion({ ...region, shortName: region.shortName });
-      setLocation(region.shortName);
       setIsLocationPickerOpen(false);
       queryClient.invalidateQueries({ queryKey: queryKeys.home });
       return;
@@ -218,7 +201,6 @@ export default function HomePage() {
       queryClient.setQueryData(queryKeys.profile, user);
       selectRegion(region);
       queryClient.invalidateQueries({ queryKey: queryKeys.home });
-      setLocation(user.region?.shortName ?? region.shortName);
       setIsLocationPickerOpen(false);
     } catch (error) {
       toast.error(
@@ -277,7 +259,6 @@ export default function HomePage() {
       toast.error("현재 위치를 설정하지 못했어요. 위치 권한을 확인해 주세요.");
       return;
     }
-    setLocation(region);
     queryClient.invalidateQueries({ queryKey: queryKeys.profile });
     queryClient.invalidateQueries({ queryKey: queryKeys.home });
     setIsLocationPickerOpen(false);

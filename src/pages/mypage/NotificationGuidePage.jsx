@@ -94,7 +94,7 @@ export default function NotificationGuidePage({ onClose }) {
                 <BrowserMockup platform="iphone" />
               </Step>
               <Step number="2" title="공유 버튼 → ‘홈 화면에 추가’ 선택" description="추가 화면에서 ‘웹 앱으로 열기’ 옵션이 보이면 켜주세요.">
-                <div className="rounded-[10px] bg-[#EAF9FC] p-3 text-center text-[13px] font-medium text-[#05758C]">Safari 공유 메뉴　›　홈 화면에 추가　›　추가</div>
+              <div className="rounded-[10px] bg-[#EAF9FC] p-3 text-center text-[13px] font-medium text-[#05758C]">Safari 공유 메뉴 › 홈 화면에 추가 › 추가</div>
               </Step>
               <Step number="3" title="홈 화면의 WEE 아이콘 실행" description="Safari 탭이 아닌 홈 화면에 추가된 아이콘으로 열어주세요.">
                 <div className="flex items-center justify-center gap-3 rounded-[12px] bg-[#D6F2FA] p-4">

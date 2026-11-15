@@ -19,6 +19,7 @@ export default function PremiumPaymentMethodPage() {
   const [confirmationMessage, setConfirmationMessage] = useState("");
   const createCheckout = useCreatePayAppCheckout();
   const statusQuery = useSubscriptionQuery({ enabled: hasAccessToken && !isLocalPreview, refetchOnMount: "always" });
+  const { refetch: refetchStatus } = statusQuery;
   const canCompleteSurvey = Boolean(statusQuery.data?.canCompleteSurvey);
   const isPremium = Boolean(statusQuery.data?.subscription?.active);
   const paymentMethod = statusQuery.data?.paymentMethod ?? statusQuery.data?.subscription?.paymentMethod;
@@ -33,24 +34,41 @@ export default function PremiumPaymentMethodPage() {
 
   useEffect(() => {
     if (!checkoutPending || isLocalPreview) return undefined;
-    if (pollAttempt > 0 && isPayAppConfirmed) {
-      setCheckoutPending(false);
-      setConfirmationMessage("");
-      if (canCompleteSurvey) navigate("/premium/survey", { replace: true });
-      else navigate("/premium", { replace: true });
-      return undefined;
-    }
-    if (pollAttempt >= 10) {
-      setCheckoutPending(false);
-      setConfirmationMessage("결제 승인 정보를 아직 확인하지 못했어요. 결제는 접수되었을 수 있으니 잠시 후 다시 확인해 주세요.");
-      return undefined;
-    }
+    let isActive = true;
     const timer = window.setTimeout(async () => {
-      await statusQuery.refetch();
+      const result = await refetchStatus();
+      if (!isActive) return;
+
+      const latestStatus = result.data;
+      const latestPaymentMethod =
+        latestStatus?.paymentMethod ??
+        latestStatus?.subscription?.paymentMethod;
+      const latestPaymentConfirmed = Boolean(
+        latestStatus?.isPremium && latestPaymentMethod === "PAYAPP",
+      );
+      if (latestPaymentConfirmed) {
+        setCheckoutPending(false);
+        setConfirmationMessage("");
+        if (latestStatus?.canCompleteSurvey)
+          navigate("/premium/survey", { replace: true });
+        else navigate("/premium", { replace: true });
+        return;
+      }
+
+      if (pollAttempt >= 9) {
+        setCheckoutPending(false);
+        setConfirmationMessage(
+          "결제 승인 정보를 아직 확인하지 못했어요. 결제는 접수되었을 수 있으니 잠시 후 다시 확인해 주세요.",
+        );
+        return;
+      }
       setPollAttempt((attempt) => attempt + 1);
     }, 2000);
-    return () => window.clearTimeout(timer);
-  }, [canCompleteSurvey, checkoutPending, isLocalPreview, isPayAppConfirmed, navigate, pollAttempt, statusQuery.refetch]);
+    return () => {
+      isActive = false;
+      window.clearTimeout(timer);
+    };
+  }, [checkoutPending, isLocalPreview, navigate, pollAttempt, refetchStatus]);
 
   const handlePayAppCheckout = async () => {
     if (isLocalPreview || createCheckout.isPending) return;

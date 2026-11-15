@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Button from "../../components/Button";
@@ -38,9 +38,17 @@ export default function ProfileEditPage() {
   const uploadImage = useUploadProfileImage();
   const withdraw = useWithdraw();
   const toast = useToast();
-  const [nickname, setNickname] = useState("김멋사");
-  const [region, setRegion] = useState("서울특별시 서대문구");
-  const [profileImage, setProfileImage] = useState("");
+  const [nicknameOverride, setNicknameOverride] = useState(null);
+  const [regionOverride, setRegionOverride] = useState(null);
+  const [profileImageOverride, setProfileImageOverride] = useState(null);
+  const nickname = nicknameOverride ?? profile?.nickname ?? "김멋사";
+  const region =
+    regionOverride ??
+    profile?.region?.regionName ??
+    profile?.region?.shortName ??
+    profile?.region ??
+    "서울특별시 서대문구";
+  const profileImage = profileImageOverride ?? profile?.profileImage ?? "";
   const [showWithdrawDialog, setShowWithdrawDialog] = useState(false);
   const [showLocationSearch, setShowLocationSearch] = useState(false);
   const loginEmail =
@@ -60,13 +68,6 @@ export default function ProfileEditPage() {
         ? "불러오는 중..."
         : "생년월일 정보를 불러오지 못했어요";
 
-  useEffect(() => {
-    if (!profile) return;
-    setNickname(profile.nickname ?? "");
-    setRegion(profile.region?.regionName ?? profile.region?.shortName ?? profile.region ?? "");
-    setProfileImage(profile.profileImage ?? "");
-  }, [profile]);
-
   const handlePhotoChange = (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -85,7 +86,7 @@ export default function ProfileEditPage() {
 
     uploadImage.mutate(file, {
       onSuccess: (user) => {
-        setProfileImage(user.profileImage ?? "");
+        setProfileImageOverride(user.profileImage ?? "");
         toast.success("프로필 사진을 변경했어요.");
       },
       onError: (error) => {
@@ -114,7 +115,7 @@ export default function ProfileEditPage() {
   };
 
   const handleLocationSelect = async (regionName, selection = {}) => {
-    setRegion(regionName);
+    setRegionOverride(regionName);
     if (selection.locationMode === "GPS") {
       // LocationSearchSheet already sends GPS coordinates and saves the region.
       await queryClient.invalidateQueries({ queryKey: queryKeys.profile });
@@ -133,7 +134,7 @@ export default function ProfileEditPage() {
         ) ?? candidates[0];
       }
       if (!selectedRegion?.regionCode) {
-        setRegion(profile?.region?.regionName ?? profile?.region?.shortName ?? "");
+        setRegionOverride(profile?.region?.regionName ?? profile?.region?.shortName ?? "");
         toast.error("지역을 찾지 못했어요. 검색해서 다시 선택해 주세요.");
         return;
       }
@@ -144,10 +145,10 @@ export default function ProfileEditPage() {
       });
       setUser(user);
       queryClient.setQueryData(queryKeys.profile, user);
-      setRegion(user.region?.regionName ?? user.region?.shortName ?? regionName);
+      setRegionOverride(user.region?.regionName ?? user.region?.shortName ?? regionName);
       toast.success("지역을 변경했어요.");
     } catch (error) {
-      setRegion(profile?.region?.regionName ?? profile?.region?.shortName ?? "");
+      setRegionOverride(profile?.region?.regionName ?? profile?.region?.shortName ?? "");
       toast.error(
         error.response?.data?.regionCode?.[0] ??
           error.response?.data?.location?.[0] ??
@@ -214,7 +215,7 @@ export default function ProfileEditPage() {
             <FormField
               label="닉네임"
               value={nickname}
-              onChange={(event) => setNickname(event.target.value.slice(0, 10))}
+              onChange={(event) => setNicknameOverride(event.target.value.slice(0, 10))}
               maxLength={10}
               className="!mb-0"
               labelClassName="!mb-[15px] !text-[18px] !leading-[22px]"

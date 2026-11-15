@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import BottomSheet from "./BottomSheet";
 import angelFortune from "../assets/images/fortune/fortune_angel.svg";
 import travelerFortune from "../assets/images/fortune/fortune_traveler.svg";
@@ -15,19 +15,20 @@ const couponCharacters = [
 ];
 
 export default function CouponRegistrationSheet({ isOpen, onClose, onRegister }) {
+  if (!isOpen) return null;
+  return (
+    <CouponRegistrationForm
+      onClose={onClose}
+      onRegister={onRegister}
+    />
+  );
+}
+
+function CouponRegistrationForm({ onClose, onRegister }) {
   const [couponCode, setCouponCode] = useState("");
   const [couponMessage, setCouponMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    setCouponCode("");
-    setCouponMessage("");
-    setIsRegistered(false);
-  }, [isOpen]);
-
-  if (!isOpen) return null;
 
   const handleRegister = async () => {
     if (isRegistered) {
@@ -65,7 +66,7 @@ export default function CouponRegistrationSheet({ isOpen, onClose, onRegister })
 
   return (
     <BottomSheet
-      isOpen={isOpen}
+      isOpen
       title="쿠폰 등록"
       onClose={onClose}
       showHandle={false}

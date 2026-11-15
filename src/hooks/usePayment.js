@@ -1,5 +1,5 @@
 // 결제 기능 관련 custom hook
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -65,21 +65,15 @@ export const useRedirectIfPremium = ({ enabled = true } = {}) => {
   const navigate = useNavigate();
   const query = useSubscriptionQuery({ enabled });
   const done = useRef(false);
-  const [isChecking, setIsChecking] = useState(enabled);
   useEffect(() => {
-    if (!enabled) {
-      setIsChecking(false);
-      return;
-    }
-    if (done.current || query.isFetching) return;
+    if (!enabled || done.current || query.isFetching || query.isPending) return;
     done.current = true;
-    setIsChecking(false);
     if (query.data?.canCompleteSurvey)
       navigate("/premium/survey", { replace: true });
     else if (query.data?.subscription?.active)
       navigate("/premium", { replace: true });
-  }, [enabled, query.isFetching, query.data, navigate]);
-  return { isChecking };
+  }, [enabled, query.isFetching, query.isPending, query.data, navigate]);
+  return { isChecking: enabled && (query.isPending || query.isFetching) };
 };
 
 const useInvalidateSubscription = () => {
