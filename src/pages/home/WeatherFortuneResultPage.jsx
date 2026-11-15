@@ -123,7 +123,7 @@ export default function WeatherFortuneResultPage() {
         <h2 className="absolute left-6 top-[537px] text-[18px] font-semibold leading-[1.38] tracking-[-0.54px]">
           상세 풀이
         </h2>
-        <section aria-label="운세 상세 풀이" className="absolute left-0 right-0 top-[575px] px-6 pb-[120px]">
+        <section aria-label="운세 상세 풀이" className="absolute left-0 right-0 top-[575px] px-6 pb-[180px]">
           {isFortuneLocked ? (
             <div className="pointer-events-none select-none blur-[5px]" aria-hidden="true">
               <div className="space-y-[13px]">
