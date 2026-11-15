@@ -29,6 +29,7 @@ import useToast from "../../hooks/useToast";
 import useUserStore from "../../store/useUserStore";
 import useLocationStore from "../../store/useLocationStore";
 import LoginRequiredModal from "../../components/LoginRequiredModal";
+import PaddingIndexModal from "../../components/PaddingIndexModal";
 import weeLogo from "../../assets/icons/logo.svg";
 
 const formatTemperature = (value) =>
@@ -85,6 +86,7 @@ export default function HomePage() {
     () => !hasAccessToken && !selectedRegionCode && !selectedCoordinates,
   );
   const [isLoginPromptOpen, setIsLoginPromptOpen] = useState(false);
+  const [isPaddingIndexOpen, setIsPaddingIndexOpen] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [hasEditedSearch, setHasEditedSearch] = useState(false);
   const [locationQuery, setLocationQuery] = useState("");
@@ -132,12 +134,35 @@ export default function HomePage() {
   const isSearchingRegions =
     isSearchActive && hasEditedSearch && normalizedQuery.length > 0;
   const weather = homeData?.weather;
+  const feelsLikeTemperature = Number(
+    weather?.feelsLike ?? weather?.feels_like ?? weather?.temperature ?? 5,
+  );
+  const paddingIndex = Math.max(
+    0,
+    Math.min(100, Math.round((15 - feelsLikeTemperature) * 4)),
+  );
   const character = getCharacter(homeData?.character?.state);
   const message =
     homeData?.message ??
     (isHomeLoading
       ? "날씨 정보를 불러오는 중..."
       : "오늘의 날씨를 확인해 보세요!");
+
+  useEffect(() => {
+    if (!homeData || isLocationPickerOpen) return;
+    const today = new Date().toLocaleDateString("sv-SE");
+    if (localStorage.getItem("padding-index-dismissed-date") !== today) {
+      setIsPaddingIndexOpen(true);
+    }
+  }, [homeData, isLocationPickerOpen]);
+
+  const dismissPaddingIndexForToday = () => {
+    localStorage.setItem(
+      "padding-index-dismissed-date",
+      new Date().toLocaleDateString("sv-SE"),
+    );
+    setIsPaddingIndexOpen(false);
+  };
 
   useLayoutEffect(() => {
     const pill = messagePillRef.current;
@@ -350,6 +375,13 @@ export default function HomePage() {
             <span>{formatTemperature(weather?.maxTemperature)}</span>
           </p>
         </div>
+        <button
+          type="button"
+          onClick={() => setIsPaddingIndexOpen(true)}
+          className="absolute left-[155px] top-[165px] rounded-full bg-[#F4FAFF] px-[9px] py-[4px] text-[10px] font-semibold tracking-[-0.3px] text-[#60CDE8]"
+        >
+          패딩지수 {paddingIndex}%
+        </button>
         <div className="absolute left-1/2 top-[217px] h-[218px] w-[248px] -translate-x-1/2">
           <img
             src={character.src}
@@ -632,6 +664,12 @@ export default function HomePage() {
         onLogin={() =>
           navigate("/login", { state: { from: "/weather-fortune" } })
         }
+      />
+      <PaddingIndexModal
+        isOpen={isPaddingIndexOpen}
+        onClose={() => setIsPaddingIndexOpen(false)}
+        onDismissForToday={dismissPaddingIndexForToday}
+        index={paddingIndex}
       />
     </MobileLayout>
   );
