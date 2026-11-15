@@ -33,7 +33,7 @@ export default function FortuneDetailContent({ fortune }) {
         <article
           key={category.code ?? category.label}
           aria-label={category.label}
-          className="relative min-h-[188px] rounded-[20px] border border-[#D2D2D1]/60 px-[33px] pb-5 pt-[17px]"
+          className="relative rounded-[20px] border border-[#D2D2D1]/60 px-[33px] pb-5 pt-[17px]"
         >
           <div className="mb-[7px] flex items-center justify-between gap-3">
             <h3 className="flex items-center gap-[7px] text-[14px] font-semibold leading-[1.5] tracking-[-0.42px]">
@@ -60,14 +60,14 @@ export default function FortuneDetailContent({ fortune }) {
         </article>
       ))}
       {categories.length === 0 && fortune.detail_text && (
-        <article className="min-h-[188px] rounded-[20px] border border-[#D2D2D1]/60 px-[33px] py-[18px]">
+        <article className="rounded-[20px] border border-[#D2D2D1]/60 px-[33px] py-[18px]">
           <p className="whitespace-pre-line break-words text-[12px] font-medium leading-[1.6] text-[#797776]">
             {fortune.detail_text}
           </p>
         </article>
       )}
       {categories.length === 0 && !fortune.detail_text && (
-        <article className="min-h-[188px] rounded-[20px] border border-[#D2D2D1]/60 px-[33px] py-[18px] text-[12px] text-[#797776]">
+        <article className="rounded-[20px] border border-[#D2D2D1]/60 px-[33px] py-[18px] text-[12px] text-[#797776]">
           상세 풀이가 아직 준비되지 않았어요.
         </article>
       )}
