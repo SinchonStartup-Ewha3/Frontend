@@ -3,7 +3,15 @@ import { useEffect } from "react";
 // 화면 전체를 어둡게 덮는 오버레이 + 가운데 내용 (토스트/다이얼로그 배경 오버레이 공통 틀)
 //  - 배경(오버레이)을 누르면 onClose, ESC 로도 닫혀요.
 //  - 열려 있는 동안 본문 스크롤을 막습니다.
-const Modal = ({ isOpen, onClose, children, overlayClassName = "bg-black/40", closeOnOverlay = true }) => {
+const Modal = ({
+  isOpen,
+  onClose,
+  children,
+  overlayClassName = "bg-black/40",
+  closeOnOverlay = true,
+  overlayPadding,
+  contentMaxWidth,
+}) => {
   useEffect(() => {
     if (!isOpen) return;
     const prevOverflow = document.body.style.overflow;
@@ -19,7 +27,10 @@ const Modal = ({ isOpen, onClose, children, overlayClassName = "bg-black/40", cl
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center px-[33px]">
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center px-[33px]"
+      style={overlayPadding ? { paddingInline: overlayPadding } : undefined}
+    >
       {/* 어두운 배경 오버레이 */}
       <button
         type="button"
@@ -28,7 +39,12 @@ const Modal = ({ isOpen, onClose, children, overlayClassName = "bg-black/40", cl
         onClick={closeOnOverlay ? onClose : undefined}
         className={`absolute inset-0 cursor-default ${overlayClassName}`}
       />
-      <div className="relative w-full max-w-[327px]">{children}</div>
+      <div
+        className="relative w-full max-w-[327px]"
+        style={contentMaxWidth ? { maxWidth: contentMaxWidth } : undefined}
+      >
+        {children}
+      </div>
     </div>
   );
 };

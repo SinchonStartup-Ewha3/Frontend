@@ -5,7 +5,7 @@ export default function PaddingIndexPreview() {
     <main className="min-h-screen bg-[#e7e7e7]">
       <PaddingIndexModal
         isOpen
-        index={21}
+        index={40}
         onClose={() => {}}
         onDismissForToday={() => {}}
       />

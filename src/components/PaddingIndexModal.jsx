@@ -44,47 +44,49 @@ export default function PaddingIndexModal({
       onClose={onClose}
       overlayClassName="bg-black/25"
       closeOnOverlay={false}
+      overlayPadding="30px"
+      contentMaxWidth="330px"
     >
       <section
         role="dialog"
         aria-modal="true"
         aria-labelledby="padding-index-title"
-        className="w-full overflow-hidden rounded-[8px] bg-[#F4FAFF] pt-[17px] shadow-[0_4px_12px_rgba(0,0,0,0.18)]"
+        className="flex w-full flex-col items-center gap-[3.75px] overflow-hidden rounded-[7.5px] bg-[#F4FAFF] pt-[16.875px] shadow-[4.688px_0_7.5px_0_rgba(0,0,0,0.15),0_4.688px_7.5px_0_rgba(0,0,0,0.15)]"
       >
         <h2
           id="padding-index-title"
-          className="text-center text-[16px] font-semibold leading-[21px] tracking-[-0.38px] text-[#1F1C1A]"
+          className="w-full text-center text-[16.875px] font-semibold leading-[20.625px] tracking-[-0.375px] text-[#1F1C1A]"
         >
           {title}
         </h2>
         <img
           src={JACKET_STAGES[jacketLevel]}
           alt={`롱패딩 지수 ${value}% 단계 패딩 일러스트`}
-          className="mx-auto h-[150px] w-[120px] object-contain"
+          className="mx-auto h-[240.317px] w-[304.688px] max-w-full object-contain"
         />
-        <div className="flex flex-col items-center px-[15px] pb-[9px] text-center">
-          <p className="text-[22px] font-semibold leading-[21px] tracking-[-0.38px] text-[#60E1FF]">
+        <div className="flex w-full flex-col items-center gap-[9.375px] px-[15px] pb-[9.375px] text-center">
+          <p className="w-full text-[22.5px] font-semibold leading-[20.625px] tracking-[-0.375px] text-[#60E1FF]">
             {value}%
           </p>
-          <p className="mt-[9px] text-[12px] font-medium leading-[17px] tracking-[-0.36px] text-[#62605F]">
+          <p className="text-[12.188px] font-medium leading-[16.875px] tracking-[-0.375px] text-[#62605F]">
             {description}
             <br />
             {value >= 70 ? "따뜻하게 입고 외출하세요" : "용감하게 스타트를 끊어보세요"}
           </p>
         </div>
-        <div className="flex h-[42px] border-t border-[#D2D2D1]/60">
+        <div className="flex h-[41.25px] w-full shrink-0">
           <button
             type="button"
             onClick={onDismissForToday}
-            className="flex-1 text-[13px] font-semibold leading-[21px] tracking-[-0.4px] text-[#BCBBBA]"
+            className="flex min-w-0 flex-[1_0_0] items-center justify-center border-t-[0.312px] border-t-[#A5A4A3] text-[13.125px] font-semibold leading-[20.625px] tracking-[-0.4031px] text-[#BCBBBA]"
           >
             오늘 하루 보지 않기
           </button>
-          <span aria-hidden="true" className="w-px bg-[#D2D2D1]/60" />
+          <span aria-hidden="true" className="w-[0.312px] bg-[#A5A4A3]" />
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 text-[13px] font-semibold leading-[21px] tracking-[-0.4px] text-[#8F8E8D]"
+            className="flex min-w-0 flex-[1_0_0] items-center justify-center border-t-[0.312px] border-t-[#A5A4A3] text-[15px] font-medium leading-[20.625px] tracking-[-0.4031px] text-[#8F8E8D]"
           >
             닫기
           </button>
