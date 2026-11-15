@@ -495,19 +495,6 @@ export default function CommunityPage() {
           </Card>
         )}
 
-        <Card
-          aria-label="광고 영역"
-          className="relative mx-auto mt-[14px] h-[80px] w-[345px] max-w-[calc(100%-48px)] shrink-0 !border-[#F3F3F3] !p-0 shadow-[0px_4px_4px_0px_rgba(0,0,0,0.1)]"
-        >
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 rounded-[13px] bg-gradient-to-r from-[rgba(240,227,255,0.2)] to-[rgba(5,196,240,0.2)]"
-          />
-          <p className="absolute left-[27px] top-1/2 -translate-y-1/2 text-[16px] font-semibold leading-[1.5] tracking-[-0.48px] text-[#62605F]">
-            광고 칸
-          </p>
-        </Card>
-
         <BottomNav bottomClassName="bottom-[15px]" />
       </main>
       <LoginRequiredModal

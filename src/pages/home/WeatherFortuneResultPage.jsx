@@ -69,7 +69,7 @@ export default function WeatherFortuneResultPage() {
 
   return (
     <MobileLayout>
-      <main className="relative mx-auto min-h-[1680px] w-full max-w-[402px] bg-white pb-[140px] text-[#353331]">
+      <main className="relative mx-auto min-h-[1800px] w-full max-w-[402px] bg-white pb-[220px] text-[#353331]">
         <button
           type="button"
           aria-label="운세 결과 공유하기"
