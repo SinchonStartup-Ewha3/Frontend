@@ -32,7 +32,7 @@ const getCurrentCoordinates = () =>
                 : "현재 위치를 확인할 수 없어요. 위치 설정을 확인해 주세요.",
           ),
         ),
-      { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 },
+      { enableHighAccuracy: false, timeout: 20_000, maximumAge: 60000 },
     );
   });
 

@@ -1,5 +1,5 @@
 // 위치 기능 custom hook
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { reverseGeocode, searchRegions } from "../api/location";
 import queryKeys from "../api/queryKeys";
@@ -21,9 +21,11 @@ export const useRegionSearch = (query) => {
 export const useCurrentRegion = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const errorRef = useRef(null);
 
   const locate = useCallback(async () => {
     setLoading(true);
+    errorRef.current = null;
     setError(null);
     try {
       if (!("geolocation" in navigator))
@@ -31,7 +33,8 @@ export const useCurrentRegion = () => {
       const position = await new Promise((resolve, reject) =>
         navigator.geolocation.getCurrentPosition(resolve, reject, {
           enableHighAccuracy: false,
-          timeout: 8000,
+          // Instagram 등 모바일 인앱 브라우저의 위치 응답이 늦을 수 있어 여유를 둡니다.
+          timeout: 20_000,
           maximumAge: 60_000,
         }),
       );
@@ -47,13 +50,17 @@ export const useCurrentRegion = () => {
         .flat()
         .find((message) => typeof message === "string" && message.trim());
       const message =
-        apiMessage ?? (e?.code === 1
-          ? "위치 권한이 꺼져 있어요. 브라우저 설정에서 허용해 주세요"
-          : e?.code === 3
-            ? "위치를 가져오는 데 너무 오래 걸려요. 다시 시도해 주세요"
-            : e?.response
-              ? "현재 위치를 설정하지 못했어요. 다시 시도해 주세요"
-              : (e?.message ?? "현재 위치를 찾지 못했어요"));
+        apiMessage ??
+        (e?.code === 1
+          ? "위치 권한을 받지 못했어요. 인스타그램 앱 권한과 브라우저 권한을 확인해 주세요."
+          : e?.code === 2
+            ? "휴대폰에서 위치 신호를 받지 못했어요. 위치 서비스를 켜거나 지역명을 검색해 주세요."
+            : e?.code === 3
+              ? "위치 응답이 늦어요. 지역명을 검색하거나 외부 브라우저에서 다시 시도해 주세요."
+              : e?.response
+                ? "현재 위치를 설정하지 못했어요. 다시 시도해 주세요"
+                : (e?.message ?? "현재 위치를 찾지 못했어요"));
+      errorRef.current = message;
       setError(message);
       return null;
     } finally {
@@ -61,5 +68,5 @@ export const useCurrentRegion = () => {
     }
   }, []);
 
-  return { locate, loading, error };
+  return { locate, loading, error, errorRef };
 };

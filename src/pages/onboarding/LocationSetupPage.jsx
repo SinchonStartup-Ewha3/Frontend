@@ -36,7 +36,7 @@ export default function LocationSetupPage() {
         const position = await new Promise((resolve, reject) =>
           navigator.geolocation.getCurrentPosition(resolve, reject, {
             enableHighAccuracy: false,
-            timeout: 8000,
+            timeout: 20_000,
             maximumAge: 60_000,
           }),
         );

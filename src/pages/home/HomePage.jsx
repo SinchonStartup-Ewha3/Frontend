@@ -91,7 +91,7 @@ export default function HomePage() {
   const [isSelectingLocation, setIsSelectingLocation] = useState(false);
   const messagePillRef = useRef(null);
   const [messagePillOffset, setMessagePillOffset] = useState(0);
-  const { locate, loading: locating } = useCurrentRegion();
+  const { locate, loading: locating, errorRef: locationErrorRef } = useCurrentRegion();
   const { data: regionResults = [], isError: regionSearchFailed } =
     useRegionSearch(locationQuery);
   const {
@@ -239,7 +239,7 @@ export default function HomePage() {
         const position = await new Promise((resolve, reject) =>
           navigator.geolocation.getCurrentPosition(resolve, reject, {
             enableHighAccuracy: false,
-            timeout: 8000,
+            timeout: 20_000,
             maximumAge: 60_000,
           }),
         );
@@ -249,14 +249,18 @@ export default function HomePage() {
         });
         setIsLocationPickerOpen(false);
         queryClient.invalidateQueries({ queryKey: queryKeys.home });
-      } catch {
-        toast.error("현재 위치를 찾지 못했어요. 위치 권한을 확인해 주세요.");
+      } catch (locationError) {
+        toast.error(
+          locationError.code === 3
+            ? "위치 응답이 늦어요. 동네를 직접 선택하거나 외부 브라우저에서 다시 시도해 주세요."
+            : "현재 위치를 찾지 못했어요. 위치 권한을 확인해 주세요.",
+        );
       }
       return;
     }
     const region = await locate();
     if (!region) {
-      toast.error("현재 위치를 설정하지 못했어요. 위치 권한을 확인해 주세요.");
+      toast.error(locationErrorRef.current ?? "현재 위치를 설정하지 못했어요. 지역을 직접 선택해 주세요.");
       return;
     }
     queryClient.invalidateQueries({ queryKey: queryKeys.profile });

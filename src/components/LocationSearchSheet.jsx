@@ -24,7 +24,7 @@ const LocationSearchSheet = ({ isOpen, onClose, selected, onSelect }) => {
   const hasRecent = Boolean(localStorage.getItem("wee_access_token")) && recent.length > 0;
   const selectedName = typeof selected === "string" ? selected : selected?.regionName;
   const { data: results = [], isFetching: isSearchingRegions, isError: hasSearchError, refetch: retrySearch } = useRegionSearch(query);
-  const { locate, loading: locating } = useCurrentRegion();
+  const { locate, loading: locating, errorRef: locationErrorRef } = useCurrentRegion();
 
   const isSearching = focused || query.length > 0;
 
@@ -45,7 +45,7 @@ const LocationSearchSheet = ({ isOpen, onClose, selected, onSelect }) => {
   const handleLocate = async () => {
     const region = await locate();
     if (region) pick(region, "GPS");
-    else toast.error("현재 위치를 찾지 못했어요. 위치 권한을 확인해 주세요");
+    else toast.error(locationErrorRef.current ?? "현재 위치를 찾지 못했어요. 지역명을 검색해 주세요.");
   };
 
   const cancelSearch = () => {
