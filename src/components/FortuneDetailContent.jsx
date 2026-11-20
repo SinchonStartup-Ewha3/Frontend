@@ -1,16 +1,10 @@
-const CATEGORY_ORDER = ["ACADEMIC", "LOVE", "MONEY", "WEATHER", "COMMUTE", "RELATIONSHIPS"];
+const CATEGORY_ORDER = ["WORK", "LOVE", "MONEY", "HEALTH"];
 
 function getRating(category) {
-  if (category.rating !== undefined && category.rating !== null) {
-    const rating = Number(category.rating);
-    return Number.isFinite(rating)
-      ? Math.max(0, Math.min(5, Math.round(rating)))
-      : 0;
-  }
   if (category.score !== undefined && category.score !== null) {
     const score = Number(category.score);
     return Number.isFinite(score)
-      ? Math.max(0, Math.min(5, Math.round((score / 100) * 5)))
+      ? Math.max(0, Math.min(5, Math.round(score)))
       : 0;
   }
   return 0;
@@ -49,9 +43,9 @@ export default function FortuneDetailContent({ fortune }) {
               ))}
             </div>
           </div>
-          {category.title && (
+          {category.headline && (
             <p className="mb-[7px] text-[12px] font-semibold leading-[1.5] tracking-[-0.36px] text-[#353331]">
-              {category.title}
+              {category.headline}
             </p>
           )}
           <p className="whitespace-pre-line break-words text-[12px] font-medium leading-[1.5] tracking-[-0.36px] text-[#797776]">
